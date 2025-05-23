@@ -1,0 +1,10 @@
+# pkgmeta externals
+Libs/
+Embeds/
+
+# pkgmeta local
+.release/
+
+# dev stuffs
+WarbandWorldQuestDev.toc
+Screenshots/raw/

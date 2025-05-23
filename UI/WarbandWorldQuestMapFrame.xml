@@ -1,0 +1,228 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\..\..\..\WoW\Data\Interface\AddOns\Blizzard_SharedXML\UI.xsd">
+	<Script file="WarbandWorldQuestMapFrame.lua" />
+
+	<Button name="WarbandWorldQuestEntryTemplate" mixin="WarbandWorldQuestEntryMixin" enableMouse="true" virtual="true">
+		<Size x="295" y="0" />
+		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" />
+						<Anchor point="BOTTOMRIGHT" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
+					<Size x="220" y="0" />
+					<Anchors>
+						<Anchor point="TOPLEFT" x="14" y="-5" />
+					</Anchors>
+					<Color color="WHITE_FONT_COLOR" />
+				</FontString>
+				<FontString parentKey="Progress" inherits="GameFontNormalSmall" maxLines="1" justifyH="RIGHT">
+					<Size x="60" y="0" />
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="-14" y="-5" />
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TimeLeft" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
+					<Size x="300" y="0" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-4" />
+					</Anchors>
+					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
+				</FontString>
+				<FontString parentKey="Rewards" inherits="GameFontNormalSmall" maxLines="1" justifyH="RIGHT">
+					<Size x="300" y="0" />
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="RIGHT" x="-14" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter method="OnEnter" />
+			<OnLeave method="OnLeave" />
+			<OnMouseUp method="OnClick" />
+		</Scripts>
+	</Button>
+
+	<Button name="WarbandWorldQuestHeaderTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
+		<Size x="295" y="0" />
+		<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
+			<Size x="234" y="10" />
+			<Anchors>
+				<Anchor point="LEFT" x="8" y="1" />
+			</Anchors>
+		</ButtonText>
+		<NormalTexture atlas="questlog-tab" />
+		<HighlightTexture atlas="questlog-tab" alphaMode="ADD" alpha="0.4" />
+		<NormalFont style="Game15Font_Shadow" />
+		<HighlightFont style="Game15Font_Shadow" />
+		<Frames>
+			<Button parentKey="CollapseButton" inherits="QuestLogHeaderCollapseButtonTemplate">
+				<Anchors>
+					<Anchor point="RIGHT" x="-6" />
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad" />
+			<OnClick method="OnClick" />
+			<OnEnter method="OnEnter" />
+			<OnLeave method="OnLeave" />
+			<OnMouseDown method="OnMouseDown" />
+			<OnMouseUp method="OnMouseUp" />
+		</Scripts>
+	</Button>
+
+	<Frame name="WarbandWorldQuestTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandWorldQuestTabButtonMixin" virtual="true">
+		<KeyValues>
+			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
+			<KeyValue key="tooltipText" value="Warband World Quest" type="string" />
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="NormalTexture">
+					<Size x="24" y="24" />
+					<Anchors>
+						<Anchor point="CENTER" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad" />
+			<OnMouseUp method="OnMouseUp" />
+		</Scripts>
+	</Frame>
+
+	<Frame name="WarbandWorldQuestPageTemplate" mixin="WarbandWorldQuestPageMixin" hidden="true" enableMouse="true" virtual="true">
+		<KeyValues>
+			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
+		</KeyValues>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeKey="$parent.ContentsAnchor" y="-29" />
+			<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ContentsAnchor" x="-22" />
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture setAllPoints="true">
+					<Color r="1" g="1" b="0" />
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<DropdownButton parentKey="SettingsDropdown" mixin="WarbandWorldQuestSettingsButtonMixin">
+				<Size x="15" y="16" />
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="19" y="25" />
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture parentKey="Icon" atlas="questlog-icon-setting" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="HIGHLIGHT">
+						<Texture atlas="questlog-icon-setting" useAtlasSize="true" inherits="QuestLogHighlightTextureTemplate">
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.Icon" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnMouseDown method="OnMouseDown" />
+					<OnMouseUp method="OnMouseUp" />
+				</Scripts>
+			</DropdownButton>
+			<Frame parentKey="BorderFrame" inherits="QuestLogBorderFrameTemplate" />
+			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList">
+				<Anchors>
+					<Anchor point="TOPLEFT" />
+					<Anchor point="BOTTOMRIGHT" />
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Background" atlas="QuestLog-main-background" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="TOPLEFT" />
+								<Anchor point="BOTTOMRIGHT" />
+							</Anchors>
+						</Texture>
+						<FontString parentKey="EmptyText" inherits="Game16Font" text="EVENT_SCHEDULER_NO_EVENTS" hidden="true">
+							<Size x="250" />
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<EventFrame parentKey="ScrollBar" inherits="MinimalScrollBar">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="8" y="2" />
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="6" y="-4" />
+				</Anchors>
+			</EventFrame>
+			<Frame parentKey="LoadingFrame" inherits="SpinnerTemplate" hidden="true">
+				<Size x="70" y="70" />
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+			</Frame>
+			<Button parentKey="NextResetButton" mixin="WarbandWorldQuestNextResetButtonMixin">
+				<Size x="200" y="24" />
+				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" x="0" />
+					</Anchors>
+				</ButtonText>
+				<HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
+				<NormalFont style="GameFontDisable" />
+				<HighlightFont style="GameFontHighlight" />
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.BorderFrame" relativePoint="TOPLEFT" x="8" y="-3" />
+				</Anchors>
+				<Scripts>
+					<OnLoad method="OnLoad" />
+					<OnEnter method="OnEnter" />
+					<OnLeave method="OnLeave" />
+				</Scripts>
+			</Button>
+			<Button parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
+				<Size x="60" y="24" />
+				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8" />
+					</Anchors>
+				</ButtonText>
+				<HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
+				<NormalFont style="GameFontDisableSmall" />
+				<HighlightFont style="GameFontHighlightSmall" />
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BorderFrame" relativePoint="TOPRIGHT" x="0" y="-3" />
+				</Anchors>
+				<Scripts>
+					<OnLoad method="OnLoad" />
+					<OnEnter method="OnEnter" />
+					<OnLeave method="OnLeave" />
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad" />
+			<OnShow method="OnShow" />
+			<OnHide method="OnHide" />
+			<OnEvent method="OnEvent" />
+		</Scripts>
+
+	</Frame>
+
+</Ui>

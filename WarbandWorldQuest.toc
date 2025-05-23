@@ -1,0 +1,32 @@
+## Interface: 110105,110107
+## Title: |cff00d9ffWarband World Quest|r
+## Notes: Track World Quests across all your characters
+## Version: @project-version@
+## IconTexture: Interface\AddOns\WarbandWorldQuest\UI\Icon.blp
+## SavedVariables: WarbandWorldQuestDB, WarbandWorldQuestSettings
+## Category-enUS: Quests
+## Category-deDE: Quests
+## Category-esES: Misiones
+## Category-esMX: Misiones
+## Category-frFR: Quêtes
+## Category-itIT: Missioni
+## Category-koKR: 퀘스트
+## Category-ptBR: Missões
+## Category-ruRU: Задания
+## Category-zhCN: 任务
+## Category-zhTW: 任務
+## X-Website: https://github.com/cybertk/WarbandWorldQuest
+## X-Curse-Project-ID: 1271870
+## X-Wago-ID: 
+## X-WoWI-ID: 
+
+
+Core\Util.lua
+Core\WorldQuest.lua
+Core\Character.lua
+Core\CharacterStore.lua
+
+UI\DataProviders.lua
+UI\WarbandWorldQuestMapFrame.xml
+
+WarbandWorldQuest.lua
