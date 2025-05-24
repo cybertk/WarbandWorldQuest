@@ -29,7 +29,12 @@ function WarbandWorldQuestNextResetButtonMixin:OnEnter()
 	tooltip:AddLine(" ")
 	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Quests Count:|r |cnWHITE_FONT_COLOR:%d|r", #quests))
 	for _, quest in ipairs(quests) do
-		tooltip:AddLine(format("- %s %s", CreateAtlasMarkup("quest-recurring-available", 13, 13), quest:GetName()), 1, 1, 1)
+		local icon = CreateAtlasMarkup(QuestUtil.GetWorldQuestAtlasInfo(quest.ID, C_QuestLog.GetQuestTagInfo(quest.ID)))
+
+		tooltip:AddDoubleLine(
+			format("|cnWHITE_FONT_COLOR:%s %s|r", icon, quest:GetName()),
+			EVENT_SCHEDULER_LOCATION_COLOR_CODE .. C_Map.GetMapInfo(quest.map).name .. "|r"
+		)
 	end
 
 	tooltip:Show()
