@@ -40,6 +40,7 @@
 					<Anchors>
 						<Anchor point="RIGHT" relativePoint="RIGHT" x="-14" />
 					</Anchors>
+					<Color color="WHITE_FONT_COLOR"/>
 				</FontString>
 			</Layer>
 		</Layers>

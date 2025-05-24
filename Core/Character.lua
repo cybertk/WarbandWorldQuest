@@ -40,13 +40,7 @@ function Character:_Init()
 end
 
 function Character:GetRewards(questID)
-	local rewards = self.rewards[questID]
-
-	if rewards then
-		setmetatable(rewards, QuestRewards)
-	end
-
-	return rewards
+	return self.rewards[questID]
 end
 
 function Character:ResetRewards(questID)

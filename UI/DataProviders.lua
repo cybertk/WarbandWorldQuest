@@ -5,9 +5,38 @@ local CharacterStore = ns.CharacterStore
 local WorldQuestList = ns.WorldQuestList
 local QuestRewards = ns.QuestRewards
 
+local WarbandWorldQuestDataRowMixin = {}
+
+function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
+	if not self.isActive then
+		return GRAY_FONT_COLOR:GenerateHexColor()
+	end
+
+	local color
+	local rewards = (character or CharacterStore.Get():CurrentPlayer()):GetRewards(self.quest.ID)
+
+	if rewards == nil then
+		color = GRAY_FONT_COLOR
+	elseif rewards:IsClaimed() then
+		color = GREEN_FONT_COLOR
+	elseif not rewards:PassRewardTypeFilters(WarbandWorldQuestSettings.rewardTypeFilters) then
+		color = RED_FONT_COLOR
+	else
+		color = defaultColor or YELLOW_FONT_COLOR
+	end
+
+	return color:GenerateHexColor()
+end
+
 WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
+	for _, row in ipairs(self.rows or {}) do
+		if row.aggregatedRewards then
+			row.aggregatedRewards:Release()
+		end
+	end
+
 	local rows = {}
 
 	for _, quest in ipairs(WorldQuestList:GetAllQuests()) do
@@ -26,9 +55,10 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 			progress.total = progress.total + 1
 		end)
 
-		local aggregatedRewards = QuestRewards:Aggregate(rewards)
+		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
+		Mixin(row, WarbandWorldQuestDataRowMixin)
 
-		table.insert(rows, { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = aggregatedRewards })
+		table.insert(rows, row)
 	end
 
 	self.rows = rows
@@ -209,9 +239,7 @@ function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 					self.progressFrames[pin] = progress
 				end
 
-				local color = row.quest:IsCompleted() and "GREEN_FONT_COLOR" or "YELLOW_FONT_COLOR"
-
-				progress:SetText(format("|cn%s:%d/%d|r", color, row.progress.claimed, row.progress.total))
+				progress:SetText(format("|c%s%d/%d|r", row:GetProgressColor(), row.progress.claimed, row.progress.total))
 				progress:Show()
 
 				framesToRemove[pin] = nil

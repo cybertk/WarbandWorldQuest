@@ -112,10 +112,7 @@ function WorldQuest:IsTracked()
 	return self.tracked or false
 end
 
-local QuestRewards = { RewardTypes = {
-	{ texture = 0, name = "Gold", currency = 0 },
-	{ texture = 0, name = "Equi", item = 1 },
-}, RewardTypesCache = {} }
+local QuestRewards = {}
 QuestRewards.__index = QuestRewards
 
 function QuestRewards:Create(questID)
@@ -158,9 +155,12 @@ function QuestRewards:Aggregate(rewardsList)
 	end
 
 	setmetatable(aggregated, QuestRewards)
-	aggregated:UpdateRewardType()
 
 	return aggregated
+end
+
+function QuestRewards:Release()
+	self.RewardTypeTable[self] = nil
 end
 
 function QuestRewards:Update(questID, force)
@@ -249,7 +249,7 @@ function QuestRewards:Summary(asList)
 			s = s .. format(" |T%d:15|t %d", info.iconFileID, amount)
 
 			local color = ITEM_QUALITY_COLORS[info.quality].color:GenerateHexColor()
-			table.insert(records, 1, format(" |T%d:15|t |c%s[%s]|r |cnWHITE_FONT_COLOR:x%d|r", info.iconFileID, color, info.name, amount))
+			table.insert(records, 1, format(" |T%d:15|t |c%s[%s]|r x%d", info.iconFileID, color, info.name, amount))
 		elseif asList then
 			table.insert(records, 1, LFG_LIST_LOADING)
 		else
@@ -268,13 +268,13 @@ function QuestRewards:Summary(asList)
 			local color = ITEM_QUALITY_COLORS[itemQuality].color:GenerateHexColor()
 
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
-				record = format(" |T%d:15|t |c%s%s|r", itemTexture, color, itemName)
+				record = format(" |T%d:15|t |c%s[%s]|r", itemTexture, color, itemName)
 			else
 				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], itemLevel)
 			end
 
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" or amount > 1 then
-				record = record .. format("|cnWHITE_FONT_COLOR: x%d|r", amount)
+				record = record .. format(" x%d", amount)
 			end
 
 			table.insert(records, 1, record)
@@ -289,7 +289,7 @@ function QuestRewards:Summary(asList)
 		end
 	end
 
-	return asList and records or WHITE_FONT_COLOR:WrapTextInColorCode(s)
+	return asList and records or s
 end
 
 function QuestRewards:SetClaimed()
@@ -304,6 +304,15 @@ function QuestRewards:IsValid()
 	return (self.money or self.currencies or self.items) ~= nil
 end
 
+QuestRewards.RewardTypeTable = {}
+function QuestRewards:GetRewardType()
+	if self.RewardTypeTable[self] == nil then
+		self:UpdateRewardType()
+	end
+
+	return self.RewardTypeTable[self]
+end
+
 QuestRewards.RewardTypes = {
 	{ name = WORLD_QUEST_REWARD_FILTERS_GOLD, currency = 0 },
 	{ name = WORLD_QUEST_REWARD_FILTERS_EQUIPMENT },
@@ -311,7 +320,7 @@ QuestRewards.RewardTypes = {
 function QuestRewards:UpdateRewardType()
 	local rewardType = 0
 
-	if self.money > 0 then
+	if self.money and self.money > 0 then
 		rewardType = bit.bor(rewardType, WORLD_QUEST_REWARD_TYPE_FLAG_GOLD)
 	end
 
@@ -323,11 +332,7 @@ function QuestRewards:UpdateRewardType()
 		rewardType = bit.bor(rewardType, 2 ^ (self:GetOrAddRewardType(nil, currency[1]) - 1))
 	end
 
-	if self.rewardType == nil then
-		Mixin(self, { rewardType = rewardType })
-	else
-		self.rewardType = rewardType
-	end
+	self.RewardTypeTable[self] = rewardType
 end
 
 QuestRewards.RewardTypesCache = {}
@@ -378,7 +383,7 @@ function QuestRewards:GetOrAddRewardType(itemID, currencyID)
 end
 
 function QuestRewards:PassRewardTypeFilters(mask)
-	return bit.band(self.rewardType, mask) ~= 0
+	return bit.band(self:GetRewardType(), mask) ~= 0
 end
 
 ns.QuestRewards = QuestRewards

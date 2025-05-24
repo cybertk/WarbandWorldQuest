@@ -187,15 +187,13 @@ WarbandWorldQuestEntryMixin = {}
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
 
-	self.Progress:SetText(
-		format("|cn%s_FONT_COLOR:%d/%d|r", elementData.quest:IsCompleted() and "GREEN" or "YELLOW", elementData.progress.claimed, elementData.progress.total)
-	)
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
 	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
 
 	self.Background:SetShown(elementData.isActive)
 
 	self:UpdateName()
+	self:UpdateProgress()
 	self:AdjustHeight()
 end
 
@@ -207,6 +205,10 @@ function WarbandWorldQuestEntryMixin:UpdateName()
 	end
 
 	self.Name:SetText(text)
+end
+
+function WarbandWorldQuestEntryMixin:UpdateProgress()
+	self.Progress:SetText(format("|c%s%d/%d|r", self.data:GetProgressColor(), self.data.progress.claimed, self.data.progress.total))
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
@@ -290,14 +292,14 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 
 		tooltip:AddDoubleLine(
 			Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
-			rewards == nil and "" or rewards:Summary()
+			rewards and format("|c%s%s|r", self.data:GetProgressColor(character, WHITE_FONT_COLOR), rewards:Summary()) or ""
 		)
 	end)
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine("Warband Rewards:")
 	for _, reward in ipairs(self.data.aggregatedRewards:Summary(true)) do
-		tooltip:AddLine(reward)
+		tooltip:AddLine(reward, 1, 1, 1)
 	end
 
 	tooltip:Show()
