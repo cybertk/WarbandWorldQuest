@@ -96,7 +96,21 @@ function WorldQuest:IsCompleted()
 	return C_QuestLog.IsQuestFlaggedCompleted(self.ID)
 end
 
-function WorldQuest:GetRewards() end
+function WorldQuest:SetTracked(tracked)
+	self.tracked = tracked or nil
+
+	if not self:IsCompleted() then
+		if self.tracked then
+			QuestUtil.TrackWorldQuest(self.ID, Enum.QuestWatchType.Manual)
+		else
+			QuestUtil.UntrackWorldQuest(self.ID)
+		end
+	end
+end
+
+function WorldQuest:IsTracked()
+	return self.tracked or false
+end
 
 local QuestRewards = { RewardTypes = {
 	{ texture = 0, name = "Gold", currency = 0 },

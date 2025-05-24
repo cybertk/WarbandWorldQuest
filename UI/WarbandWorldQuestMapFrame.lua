@@ -187,7 +187,6 @@ WarbandWorldQuestEntryMixin = {}
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
 
-	self.Name:SetText(elementData.quest:GetName())
 	self.Progress:SetText(
 		format("|cn%s_FONT_COLOR:%d/%d|r", elementData.quest:IsCompleted() and "GREEN" or "YELLOW", elementData.progress.claimed, elementData.progress.total)
 	)
@@ -196,7 +195,18 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 
 	self.Background:SetShown(elementData.isActive)
 
+	self:UpdateName()
 	self:AdjustHeight()
+end
+
+function WarbandWorldQuestEntryMixin:UpdateName()
+	local text = self.data.quest:GetName()
+
+	if self.data.quest:IsTracked() then
+		text = text .. format(" %s", CreateAtlasMarkup("questlog-icon-checkmark-yellow", 11, 11))
+	end
+
+	self.Name:SetText(text)
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
@@ -231,23 +241,19 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 			OpenWorldMap(quest.map)
 		end
 	elseif button == "RightButton" then
+		local function SetQuestTracked(tracked)
+			PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+			quest:SetTracked(tracked)
+			self:UpdateName()
+		end
+
 		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
 			rootDescription:SetTag("MENU_QUEST_MAP_WARBAND_WORLD_QUEST")
 
 			local watchType = C_QuestLog.GetQuestWatchType(quest.ID)
-			local isSuperTracked = C_SuperTrack.GetSuperTrackedQuestID() == quest.ID
+			local isTracked = quest:IsTracked()
 
-			if watchType == Enum.QuestWatchType.Manual or (watchType == Enum.QuestWatchType.Automatic and isSuperTracked) then
-				rootDescription:CreateButton(UNTRACK_QUEST, function()
-					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-					QuestUtil.UntrackWorldQuest(quest.ID)
-				end)
-			else
-				rootDescription:CreateButton(TRACK_QUEST, function()
-					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-					QuestUtil.TrackWorldQuest(quest.ID, Enum.QuestWatchType.Manual)
-				end)
-			end
+			rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(SetQuestTracked, not isTracked))
 
 			if C_SuperTrack.GetSuperTrackedQuestID() ~= quest.ID then
 				rootDescription:CreateButton(SUPER_TRACK_QUEST, function()

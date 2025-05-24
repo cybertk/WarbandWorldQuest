@@ -52,6 +52,7 @@ function WarbandWorldQuest:Init()
 	end
 
 	QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
+	self:AddTrackedQuestsToObjectivesPanel()
 end
 
 function WarbandWorldQuest:RemoveExpiredQuests()
@@ -109,6 +110,12 @@ function WarbandWorldQuest:CreateDataProvider()
 	dataProvider.character = self.character
 
 	return dataProvider
+end
+
+function WarbandWorldQuest:AddTrackedQuestsToObjectivesPanel()
+	for _, quest in ipairs(self.WorldQuestList:GetAllQuests()) do
+		quest:SetTracked(quest:IsTracked())
+	end
 end
 
 function WarbandWorldQuest:ExecuteChatCommands(command)
