@@ -69,6 +69,9 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.activeQuests = {}
 	self.groupState = {}
 
+	self.minPinDisplayLevel = self.minPinDisplayLevel and self.minPinDisplayLevel or Enum.UIMapType.Continent
+	self.maxPinDisplayLevel = self.maxPinDisplayLevel and self.maxPinDisplayLevel or Enum.UIMapType.Zone
+
 	self:Init(rows)
 end
 
@@ -93,6 +96,10 @@ end
 
 function WarbandWorldQuestDataProviderMixin:SetProgressOnPinShown(shown)
 	self.showProgressOnPin = shown
+end
+
+function WarbandWorldQuestDataProviderMixin:SetMinPinDisplayLevel(uiMapType)
+	self.minPinDisplayLevel = uiMapType
 end
 
 function WarbandWorldQuestDataProviderMixin:Reset()
@@ -260,8 +267,10 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 
 	local mapCanvas = self:GetMap()
 	local mapID = mapCanvas:GetMapID()
+	local mapType = C_Map.GetMapInfo(mapID).mapType
 
-	local quests = self:EnumerateActiveQuestsByMapID(mapID, C_Map.GetMapInfo(mapID).mapType ~= Enum.UIMapType.Continent)
+	local quests = (mapType < self.minPinDisplayLevel or mapType > self.maxPinDisplayLevel) and {}
+		or self:EnumerateActiveQuestsByMapID(mapID, mapType == Enum.UIMapType.Zone)
 
 	for position, quest in pairs(quests) do
 		local pin = self.activePins[quest.ID]
@@ -272,6 +281,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 			pin:AddIconWidgets()
 		elseif not InCombatLockdown() then
 			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
+			pin:SetPosition(unpack(position))
 			self.activePins[quest.ID] = pin
 
 			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), mapID)

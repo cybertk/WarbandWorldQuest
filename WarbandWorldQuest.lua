@@ -108,6 +108,7 @@ function WarbandWorldQuest:CreateDataProvider()
 
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
+	dataProvider:SetMinPinDisplayLevel(WarbandWorldQuestSettings.minPinDisplayLevel or Enum.UIMapType.Continent)
 
 	return dataProvider
 end
@@ -184,6 +185,7 @@ do
 			rewardTypeFilters = 1,
 			groups = {},
 			showProgressOnPin = true,
+			minPinDisplayLevel = Enum.UIMapType.Continent,
 		}
 
 		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB

@@ -418,6 +418,14 @@ function WarbandWorldQuestPageMixin:UpdateFilters()
 			self.dataProvider:SetProgressOnPinShown(WarbandWorldQuestSettings.showProgressOnPin)
 		end)
 
+		mapPinsMenu:CreateCheckbox("Show Pins on the Continent Maps", function()
+			return WarbandWorldQuestSettings.minPinDisplayLevel == Enum.UIMapType.Continent
+		end, function()
+			WarbandWorldQuestSettings.minPinDisplayLevel = WarbandWorldQuestSettings.minPinDisplayLevel == Enum.UIMapType.Continent and Enum.UIMapType.Zone
+				or Enum.UIMapType.Continent
+			self.dataProvider:SetMinPinDisplayLevel(WarbandWorldQuestSettings.minPinDisplayLevel)
+		end)
+
 		rootMenu:CreateTitle("Rewards Filter")
 
 		for i, rewardType in ipairs(QuestRewards.RewardTypes) do
