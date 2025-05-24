@@ -111,7 +111,6 @@
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture setAllPoints="true">
-					<Color r="1" g="1" b="0" />
 				</Texture>
 			</Layer>
 		</Layers>
@@ -171,7 +170,7 @@
 					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="6" y="-4" />
 				</Anchors>
 			</EventFrame>
-			<Frame parentKey="LoadingFrame" inherits="SpinnerTemplate" hidden="true">
+			<Frame parentKey="LoadingFrame" inherits="SpinnerTemplate">
 				<Size x="70" y="70" />
 				<Anchors>
 					<Anchor point="CENTER" />

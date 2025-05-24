@@ -356,6 +356,7 @@ function WarbandWorldQuestPageMixin:OnLoad()
 	ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view)
 
 	self.pinsHooked = {}
+	self.LoadingFrame:Hide()
 end
 
 function WarbandWorldQuestPageMixin:OnShow()
