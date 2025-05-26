@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2 - 2025-05-26
+
+### Alpha Release
+
+#### New Features
+
+- Added settings to toggle showing pins on continent maps
+- Improved UI of next reset button tooltip
+- Quests with unmatched rewards type are marked in red color
+- Added support of tracking world quest at warband/account level
+- Now the quest panel will show a loading spinner when data is unavailable
+
 ## v0.1 - 2025-05-24
 
 ### Alpha Release
