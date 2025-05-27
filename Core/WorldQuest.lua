@@ -527,23 +527,23 @@ function WorldQuestList:Scan(continents, isNewSession)
 
 		for _, info in ipairs(quests) do
 			if self:GetQuest(info.questID) == nil then
-				table.insert(remainingQuests, info)
+				remainingQuests[info.questID] = info
 			end
 		end
 	end
 
-	for i = #remainingQuests, 1, -1 do
-		if self:AddQuest(remainingQuests[i]) then
-			table.remove(remainingQuests, i)
+	for questID, info in pairs(remainingQuests) do
+		if self:AddQuest(info) then
+			remainingQuests[questID] = nil
 		end
 	end
-	Util:Debug("Scanned maps", #mapsToScan, #remainingQuests)
+	Util:Debug("Scanned maps", #mapsToScan, next(remainingQuests) == nil)
 
 	table.sort(self.quests, function(x, y)
 		return x.resetTime < y.resetTime
 	end)
 
-	if #remainingQuests == 0 then
+	if next(remainingQuests) == nil then
 		self.isScanSessionCompleted = true
 	end
 
