@@ -112,6 +112,18 @@ function WorldQuest:IsTracked()
 	return self.tracked or false
 end
 
+function WorldQuest:SetInactive(inactive)
+	self.inactive = inactive or nil
+
+	if inactive and self.tracked then
+		self:SetTracked(false)
+	end
+end
+
+function WorldQuest:IsInactive()
+	return self.inactive or false
+end
+
 local QuestRewards = {}
 QuestRewards.__index = QuestRewards
 

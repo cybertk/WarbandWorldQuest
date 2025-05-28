@@ -112,13 +112,13 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 			virtual = true,
 		},
 		{
-			name = "Inactive Quests",
+			name = "Inactive",
 			rows = {},
 		},
 	}
 
 	for _, row in ipairs(self.rows) do
-		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFilters) then
+		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFilters) and not row.quest:IsInactive() then
 			row.isActive = true
 			table.insert(groups[1].rows, row)
 			table.insert(self.activeQuests, row.quest)

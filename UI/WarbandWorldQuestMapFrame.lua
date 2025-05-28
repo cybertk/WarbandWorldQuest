@@ -195,7 +195,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
 	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
 
-	self.Background:SetShown(elementData.isActive)
+	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
 
 	self:UpdateName()
 	self:UpdateProgress()
@@ -272,6 +272,14 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 			else
 				rootDescription:CreateButton(STOP_SUPER_TRACK_QUEST, function()
 					C_SuperTrack.SetSuperTrackedQuestID(0)
+				end)
+			end
+
+			local isInactive = quest:IsInactive()
+			if self.data.isActive or isInactive then
+				rootDescription:CreateButton((isInactive and CANCEL .. ": " or "") .. MOVE_TO_INACTIVE, function()
+					quest:SetInactive(not isInactive)
+					self.owner:Refresh()
 				end)
 			end
 		end)
