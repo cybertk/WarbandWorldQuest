@@ -407,8 +407,9 @@ local WorldQuestList = {
 	isScanSessionCompleted = nil,
 }
 
-function WorldQuestList:Load(quests)
+function WorldQuestList:Load(quests, resetStartTime)
 	self.quests = quests
+	self.resetStartTime = resetStartTime
 
 	for _, quest in ipairs(self.quests) do
 		setmetatable(quest, WorldQuest)
@@ -461,13 +462,19 @@ function WorldQuestList:GetQuestsByMapID(mapID)
 	return self.mapCache[mapID]
 end
 
-function WorldQuestList:NextResetQuests()
-	if #self.quests == 0 then
+function WorldQuestList:NextResetQuests(excludeTags)
+	excludeTags = excludeTags or {}
+
+	local quests = Util:Filter(self.quests, function(quest)
+		return not excludeTags[C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType]
+	end)
+
+	if #quests == 0 then
 		return {}
 	end
 
-	local resetTime = self.quests[1].resetTime
-	local quests = Util:Filter(self.quests, function(quest)
+	local resetTime = quests[1].resetTime
+	quests = Util:Filter(quests, function(quest)
 		return math.abs(quest.resetTime - resetTime) < 60
 	end)
 
@@ -543,7 +550,6 @@ function WorldQuestList:Reset(callback)
 	local expiredQuests = {}
 
 	local now = GetServerTime()
-	local resetStartTime = 0
 
 	for i = #self.quests, 1, -1 do
 		local resetTime = self.quests[i].resetTime
@@ -552,10 +558,8 @@ function WorldQuestList:Reset(callback)
 			Util:Debug("Removing corrupt quest:", self.quests[i].ID, self.quests[i]:GetName())
 			table.remove(self.quests, i)
 		elseif now > resetTime then
-			table.insert(expiredQuests, self.quests[i])
+			table.insert(expiredQuests, 1, self.quests[i])
 			table.remove(self.quests, i)
-
-			resetStartTime = resetStartTime < resetTime and resetTime or resetStartTime
 		end
 	end
 
@@ -565,7 +569,32 @@ function WorldQuestList:Reset(callback)
 		end
 	end
 
-	return resetStartTime, expiredQuests
+	self:UpdateResetStartTime(expiredQuests)
+
+	return expiredQuests
+end
+
+function WorldQuestList:UpdateResetStartTime(quests)
+	for _, quest in ipairs(quests) do
+		local tag = C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType
+
+		if self.resetStartTime[tag] == nil or quest.resetTime > self.resetStartTime[tag] then
+			self.resetStartTime[tag] = quest.resetTime
+			Util:Debug("Updatd resetStartTime:", tag, date("%Y-%m-%d %H:%M", quest.resetTime))
+		end
+	end
+end
+
+function WorldQuestList:GetResetStartTime(excludeTags)
+	local resetStartTime = 0
+
+	for tag, time in pairs(self.resetStartTime) do
+		if not excludeTags[tag] and (time > resetStartTime) then
+			resetStartTime = time
+		end
+	end
+
+	return resetStartTime
 end
 
 ns.WorldQuestList = WorldQuestList

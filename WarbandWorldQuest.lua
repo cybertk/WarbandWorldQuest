@@ -24,9 +24,10 @@ function WarbandWorldQuest:Init()
 
 	self.character = self.characterStore:CurrentPlayer()
 
-	WorldQuestList:Load(self.db.quests)
-	self:RemoveExpiredQuests()
+	WorldQuestList:Load(self.db.quests, self.db.resetStartTime)
+	WorldQuestList:Reset(GenerateClosure(WarbandWorldQuest.RemoveQuestRewardsFromAllCharacters, self))
 	WorldQuestList:Scan(MAPS)
+
 	self.WorldQuestList = WorldQuestList
 
 	self.character:CleanupRewards(WorldQuestList:GetAllQuests())
@@ -55,28 +56,21 @@ function WarbandWorldQuest:Init()
 	self:AddTrackedQuestsToObjectivesPanel()
 end
 
-function WarbandWorldQuest:RemoveExpiredQuests()
-	local resetStartTime = WorldQuestList:Reset(function(quest)
-		self.characterStore:ForEach(function(character)
-			if character.rewards[quest.ID] then
-				character.rewards[quest.ID] = nil
-			end
-		end)
-
-		Util:Debug("Removed quest:", quest.ID, quest:GetName())
+function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)
+	self.characterStore:ForEach(function(character)
+		if character.rewards[quest.ID] then
+			character.rewards[quest.ID] = nil
+		end
 	end)
 
-	if WarbandWorldQuestDB.resetStartTime == nil and resetStartTime == 0 then
-		resetStartTime = GetServerTime()
-	end
-
-	if resetStartTime > 0 then
-		WarbandWorldQuestDB.resetStartTime = resetStartTime
-		Util:Debug("Updatd resetStartTime:", date("%Y-%m-%d %H:%M", resetStartTime))
-	end
+	Util:Debug("Removed quest:", quest.ID, quest:GetName())
 end
 
 function WarbandWorldQuest:Update()
+	if self.dataProvider == nil then
+		return
+	end
+
 	local changed = WorldQuestList:Scan(MAPS)
 	if changed then
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
@@ -178,7 +172,7 @@ do
 		local DefaultWarbandWorldQuestDB = {
 			quests = {},
 			characters = {},
-			resetStartTime = GetServerTime(),
+			resetStartTime = { [Enum.QuestTagType.Normal] = GetServerTime() },
 		}
 
 		local DefaultWarbandWorldQuestSettings = {
@@ -186,10 +180,18 @@ do
 			groups = {},
 			showProgressOnPin = true,
 			minPinDisplayLevel = Enum.UIMapType.Continent,
+			nextResetExcludeTypes = {},
 		}
 
 		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB
 		WarbandWorldQuestSettings = WarbandWorldQuestSettings or DefaultWarbandWorldQuestSettings
+
+		do -- Migration
+			WarbandWorldQuestSettings.nextResetExcludeTypes = WarbandWorldQuestSettings.nextResetExcludeTypes or {}
+			if type(WarbandWorldQuestDB.resetStartTime) == "number" then
+				WarbandWorldQuestDB.resetStartTime = { [2] = WarbandWorldQuestDB.resetStartTime }
+			end
+		end
 
 		WarbandWorldQuest.db = WarbandWorldQuestDB
 		Util.debug = WarbandWorldQuestDB.debug

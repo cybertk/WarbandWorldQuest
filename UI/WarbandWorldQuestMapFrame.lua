@@ -8,20 +8,39 @@ local CharacterStore = ns.CharacterStore
 WarbandWorldQuestNextResetButtonMixin = {}
 
 function WarbandWorldQuestNextResetButtonMixin:OnLoad()
+	local function AddFilter(menu, text, questTagType)
+		menu:CreateCheckbox(text, function()
+			return WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType]
+		end, function()
+			WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType] = not WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType]
+			EventRegistry:TriggerEvent("WarbandWorldQuest.NextResetFiltersChanged")
+		end)
+	end
+
+	self:SetupMenu(function(_, rootMenu)
+		rootMenu:CreateTitle("Exclude World Quest Types")
+
+		AddFilter(rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
+		AddFilter(rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
+	end)
+
+	EventRegistry:RegisterCallback("WarbandWorldQuest.NextResetFiltersChanged", self.Update, self)
 	self:Update()
 end
 
 function WarbandWorldQuestNextResetButtonMixin:Update()
-	local quests, resetTime = WorldQuestList:NextResetQuests()
+	local quests, resetTime = WorldQuestList:NextResetQuests(WarbandWorldQuestSettings.nextResetExcludeTypes)
 
 	self.ButtonText:SetText(format("Next Reset: %s (%d)", resetTime and date("%m-%d %H:%M", resetTime) or UNKNOWN, #quests))
+
+	self:SetWidth(self.ButtonText:GetStringWidth())
 end
 
 function WarbandWorldQuestNextResetButtonMixin:OnEnter()
-	local quests, resetTime = WorldQuestList:NextResetQuests()
+	local quests, resetTime = WorldQuestList:NextResetQuests(WarbandWorldQuestSettings.nextResetExcludeTypes)
 	local tooltip = GetAppropriateTooltip()
 
-	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+	tooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
 	tooltip:SetText("Upcomming Reset of World Quests", 1, 1, 1)
 	tooltip:AddLine(
 		format("|cnNORMAL_FONT_COLOR:Time Left:|r |cnWHITE_FONT_COLOR:%s|r", resetTime and Util.FormatTimeDuration(resetTime - GetServerTime()) or UNKNOWN)
@@ -47,6 +66,7 @@ end
 WarbandWorldQuestCharactersButtonMixin = {}
 
 function WarbandWorldQuestCharactersButtonMixin:OnLoad()
+	EventRegistry:RegisterCallback("WarbandWorldQuest.NextResetFiltersChanged", self.Update, self)
 	self:Update()
 end
 
@@ -60,8 +80,10 @@ function WarbandWorldQuestCharactersButtonMixin:PopulateCharactersData()
 	local fullilled = {}
 	local pending = {}
 
+	local resetStartTime = WorldQuestList:GetResetStartTime(WarbandWorldQuestSettings.nextResetExcludeTypes)
+
 	CharacterStore.Get():ForEach(function(character)
-		local scanned = WarbandWorldQuestDB.resetStartTime and character.updatedAt > WarbandWorldQuestDB.resetStartTime
+		local scanned = character.updatedAt > resetStartTime
 		local state = CreateAtlasMarkup(scanned and "common-icon-checkmark" or "common-icon-undo", 15, 15)
 
 		table.insert(scanned and fullilled or pending, { character, state })
@@ -73,10 +95,11 @@ end
 function WarbandWorldQuestCharactersButtonMixin:OnEnter()
 	local scanned, pending = self:PopulateCharactersData()
 	local tooltip = GetAppropriateTooltip()
+	local resetStartTime = WorldQuestList:GetResetStartTime(WarbandWorldQuestSettings.nextResetExcludeTypes)
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
 	tooltip:SetText("Characters Scanned", 1, 1, 1)
-	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Last Reset Time:|r |cnWHITE_FONT_COLOR:%s|r", date("%m-%d %H:%M", WarbandWorldQuestDB.resetStartTime)))
+	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Last Reset Time:|r |cnWHITE_FONT_COLOR:%s|r", date("%m-%d %H:%M", resetStartTime)))
 
 	for groupName, records in pairs({ ["Pending"] = pending, ["Scanned"] = scanned }) do
 		tooltip:AddLine(" ")

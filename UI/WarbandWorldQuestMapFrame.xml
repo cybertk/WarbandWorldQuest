@@ -177,8 +177,8 @@
 					<Anchor point="CENTER" />
 				</Anchors>
 			</Frame>
-			<Button parentKey="NextResetButton" mixin="WarbandWorldQuestNextResetButtonMixin">
-				<Size x="200" y="24" />
+			<DropdownButton parentKey="NextResetButton" mixin="WarbandWorldQuestNextResetButtonMixin">
+				<Size y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
 					<Anchors>
 						<Anchor point="LEFT" x="0" />
@@ -194,8 +194,9 @@
 					<OnLoad method="OnLoad" />
 					<OnEnter method="OnEnter" />
 					<OnLeave method="OnLeave" />
+					<OnMouseDown method="OnLeave" />
 				</Scripts>
-			</Button>
+			</DropdownButton>
 			<Button parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
 				<Size x="60" y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
