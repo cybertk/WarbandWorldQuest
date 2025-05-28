@@ -478,6 +478,10 @@ function WorldQuestList:NextResetQuests(excludeTags)
 		return math.abs(quest.resetTime - resetTime) < 60
 	end)
 
+	table.sort(quests, function(x, y)
+		return x.map < y.map
+	end)
+
 	return quests, resetTime
 end
 
