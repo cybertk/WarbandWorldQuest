@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3 - 2025-05-28
+
+### Alpha Release
+
+The duplicated quests of Azj-Kahet issue is fixed
+
+#### New Features
+
+- Now the next reset quests are sorted by location
+- Now all map pin releated features are supported during combat
+- Now hovering on map pin will highlight the quest row
+- Added support of excluding quest types from Next Reset count - Click the "Next Reset" button
+- Added an option in right-click menu to move the selected quest to Inactive section
+
 ## v0.2 - 2025-05-26
 
 ### Alpha Release
