@@ -224,6 +224,29 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	tooltip:Show()
 end
 
+function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
+	local updated = false
+	local row = self:FindByQuestID(pin.questID, true)
+
+	if row then
+		local progress = self.progressFrames[pin]
+		if progress == nil then
+			progress = pin:CreateFontString(nil, "OVERLAY")
+			progress:SetPoint("TOP", pin, "BOTTOM", 0, -1)
+			progress:SetFontObject("SystemFont_Shadow_Small_Outline")
+
+			self.progressFrames[pin] = progress
+		end
+
+		progress:SetText(format("|c%s%d/%d|r", row:GetProgressColor(), row.progress.claimed, row.progress.total))
+		progress:Show()
+
+		updated = true
+	end
+
+	return updated
+end
+
 function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 	local framesToRemove = {}
 	for pin in pairs(self.progressFrames) do
@@ -234,23 +257,11 @@ function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 		local mapCanvas = self:GetMap()
 
 		for pin in mapCanvas:EnumeratePinsByTemplate(self:GetPinTemplate()) do
-			local row = self:FindByQuestID(pin.questID, true)
+			framesToRemove[pin] = not self:UpdatePinProgress(pin) and framesToRemove[pin] or nil
+		end
 
-			if row then
-				local progress = self.progressFrames[pin]
-				if progress == nil then
-					progress = pin:CreateFontString(nil, "OVERLAY")
-					progress:SetPoint("TOP", pin, "BOTTOM", 0, -1)
-					progress:SetFontObject("SystemFont_Shadow_Small_Outline")
-
-					self.progressFrames[pin] = progress
-				end
-
-				progress:SetText(format("|c%s%d/%d|r", row:GetProgressColor(), row.progress.claimed, row.progress.total))
-				progress:Show()
-
-				framesToRemove[pin] = nil
-			end
+		for pin in mapCanvas:EnumeratePinsByTemplate(WorldMap_WorldQuestDataProviderMixin:GetPinTemplate()) do
+			framesToRemove[pin] = not self:UpdatePinProgress(pin) and framesToRemove[pin] or nil
 		end
 	end
 
@@ -279,7 +290,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 			pin:RefreshVisuals()
 			pin:SetPosition(unpack(position))
 			pin:AddIconWidgets()
-		elseif not InCombatLockdown() then
+		else
 			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
 			pin:SetPosition(unpack(position))
 			self.activePins[quest.ID] = pin
@@ -297,3 +308,18 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 
 	self:UpdateAllPinsProgress()
 end
+
+function WarbandWorldQuestDataProviderMixin:GetPinTemplate()
+	return "WarbandWorldQuestPinTemplate"
+end
+
+WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)
+
+function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
+
+hooksecurefunc(WorldMapFrame, "RegisterPin", function(mapCanvas, pin)
+	if pin.CheckMouseButtonPassthrough ~= nop then
+		pin.CheckMouseButtonPassthrough = nop
+		pin.UpdateMousePropagation = nop
+	end
+end)

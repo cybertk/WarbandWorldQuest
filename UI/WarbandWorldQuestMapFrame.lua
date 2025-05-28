@@ -268,7 +268,7 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 		if IsShiftKeyDown() then
 			ChatEdit_TryInsertQuestLinkForQuestID(quest.ID)
 		else
-			OpenWorldMap(quest.map)
+			C_Map.OpenWorldMap(quest.map)
 		end
 	elseif button == "RightButton" then
 		local function SetQuestTracked(tracked)

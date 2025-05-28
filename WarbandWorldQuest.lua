@@ -35,7 +35,7 @@ function WarbandWorldQuest:Init()
 	self.dataProvider = self:CreateDataProvider()
 
 	WorldMapFrame:AddDataProvider(self.dataProvider)
-	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin }) do
+	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestDataProviderMixin.UpdatePinTooltip(WarbandWorldQuestDataProviderMixin, GameTooltip, pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)

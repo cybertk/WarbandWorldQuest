@@ -26,7 +26,7 @@ Core\WorldQuest.lua
 Core\Character.lua
 Core\CharacterStore.lua
 
-UI\DataProviders.lua
+UI\DataProviders.xml
 UI\WarbandWorldQuestMapFrame.xml
 
 WarbandWorldQuest.lua
