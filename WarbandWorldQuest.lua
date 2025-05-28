@@ -38,6 +38,11 @@ function WarbandWorldQuest:Init()
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestDataProviderMixin.UpdatePinTooltip(WarbandWorldQuestDataProviderMixin, GameTooltip, pin)
+			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
+		end)
+
+		hooksecurefunc(pin, "OnMouseLeave", function(pin)
+			WarbandWorldQuestPage:HighlightRow(pin.questID, false)
 		end)
 	end
 

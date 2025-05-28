@@ -503,6 +503,18 @@ function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)
 	end
 end
 
+function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
+	local frame = self.ScrollBox:FindFrameByPredicate(function(frame)
+		return frame.data.quest and frame.data.quest.ID == questID
+	end)
+
+	if frame == nil or not frame:IsShown() then
+		return
+	end
+
+	frame:SetDrawLayerEnabled("HIGHLIGHT", shown)
+end
+
 function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
 	self:UpdateFilters()
 
