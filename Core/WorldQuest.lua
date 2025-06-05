@@ -176,17 +176,18 @@ function QuestRewards:Release()
 end
 
 function QuestRewards:Update(questID, force)
-	if self.claimedAt and self.claimedAt > 0 then
+	if self.claimedAt ~= nil then
 		Util:Debug("Skip completed quest", questID)
 		return
 	end
 
+	if C_QuestLog.IsQuestFlaggedCompleted(questID) then
+		self.claimedAt = 0
+		return true
+	end
+
 	local completed = true
 	local changes = 0
-
-	if self.claimedAt == nil and C_QuestLog.IsQuestFlaggedCompleted(questID) then
-		self.claimedAt = 0
-	end
 
 	if not HaveQuestRewardData(questID) then
 		C_TaskQuest.RequestPreloadRewardData(questID)

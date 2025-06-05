@@ -71,7 +71,8 @@ end
 function Character:SetQuests(quests)
 	Character.Quests = Util:Filter(quests, function(quest)
 		local rewards = self:GetRewards(quest.ID)
-		return rewards == nil or not rewards:IsValid()
+
+		return rewards == nil or not rewards:IsClaimed()
 	end)
 
 	Util:Debug("Quests to update:", #Character.Quests, #quests)

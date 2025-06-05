@@ -27,13 +27,13 @@ function WarbandWorldQuest:Init()
 
 	WorldQuestList:Load(self.db.quests, self.db.resetStartTime)
 	WorldQuestList:Reset(GenerateClosure(WarbandWorldQuest.RemoveQuestRewardsFromAllCharacters, self))
-	WorldQuestList:Scan(MAPS)
 
 	self.WorldQuestList = WorldQuestList
 
 	self.character:CleanupRewards(WorldQuestList:GetAllQuests())
 
 	self.dataProvider = self:CreateDataProvider()
+	self:Update()
 
 	WorldMapFrame:AddDataProvider(self.dataProvider)
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
