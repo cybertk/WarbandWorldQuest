@@ -101,9 +101,9 @@ function WorldQuest:SetTracked(tracked)
 
 	if not self:IsCompleted() then
 		if self.tracked then
-			QuestUtil.TrackWorldQuest(self.ID, Enum.QuestWatchType.Manual)
+			C_QuestLog.AddWorldQuestWatch(self.ID, Enum.QuestWatchType.Manual)
 		else
-			QuestUtil.UntrackWorldQuest(self.ID)
+			C_QuestLog.RemoveWorldQuestWatch(self.ID)
 		end
 	end
 end
