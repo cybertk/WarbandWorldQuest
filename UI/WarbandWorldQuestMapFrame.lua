@@ -166,6 +166,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.Continent),
 				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.Continent, Enum.UIMapType.Zone })
 			)
+
+			Settings:CreateCheckboxMenu("pins_completed_shown", pinsMenu, "Show Pins for Completed Quests")
 		end
 
 		do -- Rewards Filter

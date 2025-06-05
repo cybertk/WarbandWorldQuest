@@ -102,6 +102,10 @@ function WarbandWorldQuestDataProviderMixin:SetMinPinDisplayLevel(uiMapType)
 	self.minPinDisplayLevel = uiMapType
 end
 
+function WarbandWorldQuestDataProviderMixin:SetPinOfCompletedQuestShown(shown)
+	self.showPinOfCompletedQuest = shown
+end
+
 function WarbandWorldQuestDataProviderMixin:Reset()
 	self.activeQuests = {}
 
@@ -144,11 +148,18 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	self:Init(rows)
 end
 
-function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, completedOnly)
+function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, includeCompleted, completedOnly)
 	self.questsOnMap[mapID] = {}
 
 	for i, quest in ipairs(self.activeQuests) do
-		if not completedOnly or quest:IsCompleted() then
+		local matched = true
+		if not includeCompleted and quest:IsCompleted() then
+			matched = false
+		elseif completedOnly and not quest:IsCompleted() then
+			matched = false
+		end
+
+		if matched then
 			local position = {}
 
 			local mapGroup = C_Map.GetMapGroupID(quest.map)
@@ -281,7 +292,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 	local mapType = C_Map.GetMapInfo(mapID).mapType
 
 	local quests = (mapType < self.minPinDisplayLevel or mapType > self.maxPinDisplayLevel) and {}
-		or self:EnumerateActiveQuestsByMapID(mapID, mapType == Enum.UIMapType.Zone)
+		or self:EnumerateActiveQuestsByMapID(mapID, self.showPinOfCompletedQuest, mapType == Enum.UIMapType.Zone)
 
 	for position, quest in pairs(quests) do
 		local pin = self.activePins[quest.ID]

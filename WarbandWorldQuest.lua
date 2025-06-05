@@ -118,6 +118,7 @@ function WarbandWorldQuest:CreateDataProvider()
 
 	Settings:InvokeAndRegisterCallback("pins_min_display_level", WarbandWorldQuestDataProviderMixin.SetMinPinDisplayLevel, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_progress_shown", WarbandWorldQuestDataProviderMixin.SetProgressOnPinShown, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_completed_shown", WarbandWorldQuestDataProviderMixin.SetPinOfCompletedQuestShown, dataProvider)
 
 	return dataProvider
 end
@@ -194,6 +195,7 @@ do
 			["group_collapsed_states"] = {},
 			["reward_type_filters"] = 1,
 			["pins_progress_shown"] = true,
+			["pins_completed_shown"] = true,
 			["pins_tooltip_shown"] = true,
 			["pins_tooltip_modifier"] = nil,
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
