@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4 - 2025-06-05
+
+### Alpha Release
+
+#### New Features
+
+- Refresh rewards for all incomplete quests on login - Now quests completed before installing the addon could be recognized
+- Added settings to show/hide pins of completed quests
+- Added settings to show/hide progress in pin tooltips
+
 ## v0.3 - 2025-05-28
 
 ### Alpha Release
