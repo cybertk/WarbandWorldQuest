@@ -4,6 +4,7 @@ local Util = ns.Util
 local CharacterStore = ns.CharacterStore
 local WorldQuestList = ns.WorldQuestList
 local QuestRewards = ns.QuestRewards
+local Settings = ns.Settings
 
 local MAPS = {
 	2274, -- Khaz Algar
@@ -37,8 +38,15 @@ function WarbandWorldQuest:Init()
 	WorldMapFrame:AddDataProvider(self.dataProvider)
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
-			WarbandWorldQuestDataProviderMixin.UpdatePinTooltip(WarbandWorldQuestDataProviderMixin, GameTooltip, pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
+
+			if Settings:Get("pins_tooltip_shown") then
+				local tooltipModifier = Settings:Get("pins_tooltip_modifier")
+
+				if not tooltipModifier or (tooltipModifier == "CTRL" and IsControlKeyDown()) or (tooltipModifier == "ALT" and IsAltKeyDown()) then
+					WarbandWorldQuestDataProviderMixin.UpdatePinTooltip(WarbandWorldQuestDataProviderMixin, GameTooltip, pin)
+				end
+			end
 		end)
 
 		hooksecurefunc(pin, "OnMouseLeave", function(pin)
@@ -107,7 +115,9 @@ function WarbandWorldQuest:CreateDataProvider()
 
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
-	dataProvider:SetMinPinDisplayLevel(WarbandWorldQuestSettings.minPinDisplayLevel or Enum.UIMapType.Continent)
+
+	Settings:InvokeAndRegisterCallback("pins_min_display_level", WarbandWorldQuestDataProviderMixin.SetMinPinDisplayLevel, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_progress_shown", WarbandWorldQuestDataProviderMixin.SetProgressOnPinShown, dataProvider)
 
 	return dataProvider
 end
@@ -181,20 +191,31 @@ do
 		}
 
 		local DefaultWarbandWorldQuestSettings = {
-			rewardTypeFilters = 1,
-			groups = {},
-			showProgressOnPin = true,
-			minPinDisplayLevel = Enum.UIMapType.Continent,
-			nextResetExcludeTypes = {},
+			["group_collapsed_states"] = {},
+			["reward_type_filters"] = 1,
+			["pins_progress_shown"] = true,
+			["pins_tooltip_shown"] = true,
+			["pins_tooltip_modifier"] = nil,
+			["pins_min_display_level"] = Enum.UIMapType.Continent,
+			["next_reset_exclude_types"] = {},
 		}
 
+		Settings:RegisterSettings("WarbandWorldQuestSettings", DefaultWarbandWorldQuestSettings)
 		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB
-		WarbandWorldQuestSettings = WarbandWorldQuestSettings or DefaultWarbandWorldQuestSettings
 
 		do -- Migration
-			WarbandWorldQuestSettings.nextResetExcludeTypes = WarbandWorldQuestSettings.nextResetExcludeTypes or {}
 			if type(WarbandWorldQuestDB.resetStartTime) == "number" then
 				WarbandWorldQuestDB.resetStartTime = { [2] = WarbandWorldQuestDB.resetStartTime }
+			end
+
+			if WarbandWorldQuestSettings.nextResetExcludeTypes then
+				WarbandWorldQuestSettings["next_reset_exclude_types"] = WarbandWorldQuestSettings.nextResetExcludeTypes
+				WarbandWorldQuestSettings.nextResetExcludeTypes = nil
+			end
+
+			if WarbandWorldQuestSettings.minPinDisplayLevel then
+				WarbandWorldQuestSettings["pins_min_display_level"] = WarbandWorldQuestSettings.minPinDisplayLevel
+				WarbandWorldQuestSettings.minPinDisplayLevel = nil
 			end
 		end
 

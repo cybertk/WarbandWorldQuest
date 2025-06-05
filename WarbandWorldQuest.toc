@@ -22,6 +22,7 @@
 
 
 Core\Util.lua
+Core\Settings.lua
 Core\WorldQuest.lua
 Core\Character.lua
 Core\CharacterStore.lua

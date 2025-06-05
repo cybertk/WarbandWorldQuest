@@ -4,32 +4,25 @@ local Util = ns.Util
 local QuestRewards = ns.QuestRewards
 local WorldQuestList = ns.WorldQuestList
 local CharacterStore = ns.CharacterStore
+local Settings = ns.Settings
 
 WarbandWorldQuestNextResetButtonMixin = {}
 
 function WarbandWorldQuestNextResetButtonMixin:OnLoad()
-	local function AddFilter(menu, text, questTagType)
-		menu:CreateCheckbox(text, function()
-			return WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType]
-		end, function()
-			WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType] = not WarbandWorldQuestSettings.nextResetExcludeTypes[questTagType]
-			EventRegistry:TriggerEvent("WarbandWorldQuest.NextResetFiltersChanged")
-		end)
-	end
+	self.settingsKey = "next_reset_exclude_types"
 
 	self:SetupMenu(function(_, rootMenu)
 		rootMenu:CreateTitle("Exclude World Quest Types")
 
-		AddFilter(rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
-		AddFilter(rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
+		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
+		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
 	end)
 
-	EventRegistry:RegisterCallback("WarbandWorldQuest.NextResetFiltersChanged", self.Update, self)
-	self:Update()
+	Settings:InvokeAndRegisterCallback(self.settingsKey, self.Update, self)
 end
 
 function WarbandWorldQuestNextResetButtonMixin:Update()
-	local quests, resetTime = WorldQuestList:NextResetQuests(WarbandWorldQuestSettings.nextResetExcludeTypes)
+	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey))
 
 	self.ButtonText:SetText(format("Next Reset: %s (%d)", resetTime and date("%m-%d %H:%M", resetTime) or UNKNOWN, #quests))
 
@@ -37,7 +30,7 @@ function WarbandWorldQuestNextResetButtonMixin:Update()
 end
 
 function WarbandWorldQuestNextResetButtonMixin:OnEnter()
-	local quests, resetTime = WorldQuestList:NextResetQuests(WarbandWorldQuestSettings.nextResetExcludeTypes)
+	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey))
 	local tooltip = GetAppropriateTooltip()
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
@@ -66,8 +59,7 @@ end
 WarbandWorldQuestCharactersButtonMixin = {}
 
 function WarbandWorldQuestCharactersButtonMixin:OnLoad()
-	EventRegistry:RegisterCallback("WarbandWorldQuest.NextResetFiltersChanged", self.Update, self)
-	self:Update()
+	Settings:InvokeAndRegisterCallback("next_reset_exclude_types", self.Update, self)
 end
 
 function WarbandWorldQuestCharactersButtonMixin:Update()
@@ -80,7 +72,7 @@ function WarbandWorldQuestCharactersButtonMixin:PopulateCharactersData()
 	local fullilled = {}
 	local pending = {}
 
-	local resetStartTime = WorldQuestList:GetResetStartTime(WarbandWorldQuestSettings.nextResetExcludeTypes)
+	local resetStartTime = WorldQuestList:GetResetStartTime(Settings:Get("next_reset_exclude_types"))
 
 	CharacterStore.Get():ForEach(function(character)
 		local scanned = character.updatedAt > resetStartTime
@@ -95,7 +87,7 @@ end
 function WarbandWorldQuestCharactersButtonMixin:OnEnter()
 	local scanned, pending = self:PopulateCharactersData()
 	local tooltip = GetAppropriateTooltip()
-	local resetStartTime = WorldQuestList:GetResetStartTime(WarbandWorldQuestSettings.nextResetExcludeTypes)
+	local resetStartTime = WorldQuestList:GetResetStartTime(Settings:Get("next_reset_exclude_types"))
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
 	tooltip:SetText("Characters Scanned", 1, 1, 1)
@@ -136,6 +128,61 @@ function WarbandWorldQuestSettingsButtonMixin:OnMouseUp(button, upInside)
 	self.Icon:AdjustPointsOffset(-1, 1)
 end
 
+function WarbandWorldQuestSettingsButtonMixin:Onload()
+	self:Update()
+end
+
+function WarbandWorldQuestSettingsButtonMixin:Update()
+	if not self:IsShown() then
+		return
+	end
+
+	self:SetupMenu(function(_, rootMenu)
+		rootMenu:CreateTitle("Settings")
+
+		do -- Map Pins
+			local pinsMenu = rootMenu:CreateButton("Map Pins")
+
+			Settings:CreateCheckboxMenu("pins_progress_shown", pinsMenu, "Show Warband Progress on Pins")
+
+			do -- Show Warband Progress in Tooltip
+				local tooltipMenu = Settings:CreateCheckboxMenu("pins_tooltip_shown", pinsMenu, "Show Warband Progress in Tooltip")
+
+				local options = {
+					["Always"] = false,
+					["Press CTRL"] = "CTRL",
+					["Press ALT"] = "ALT",
+				}
+				for description, mode in pairs(options) do
+					local radio = Settings:CreateRadio("pins_tooltip_modifier", tooltipMenu, description, mode or nil)
+
+					radio:SetResponse(MenuResponse.Refresh)
+					radio:SetEnabled(Settings:GenerateGetter("pins_tooltip_shown"))
+				end
+			end
+
+			pinsMenu:CreateCheckbox(
+				"Show Pins on the Continent Maps",
+				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.Continent),
+				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.Continent, Enum.UIMapType.Zone })
+			)
+		end
+
+		do -- Rewards Filter
+			rootMenu:CreateTitle("Rewards Filter")
+
+			for i, rewardType in ipairs(QuestRewards.RewardTypes) do
+				local title = (rewardType.texture and format("|T%d:14|t ", rewardType.texture) or "") .. (rewardType.name or LFG_LIST_LOADING)
+				rootMenu:CreateCheckbox(title, function()
+					return bit.band(2 ^ (i - 1), Settings:Get("reward_type_filters")) ~= 0
+				end, function()
+					Settings:Set("reward_type_filters", bit.bxor(Settings:Get("reward_type_filters"), 2 ^ (i - 1)))
+				end)
+			end
+		end
+	end)
+end
+
 WarbandWorldQuestHeaderMixin = {}
 
 function WarbandWorldQuestHeaderMixin:Init(elementData)
@@ -153,12 +200,7 @@ end
 function WarbandWorldQuestHeaderMixin:OnClick(button)
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 	if button == "LeftButton" then
-		if WarbandWorldQuestSettings.groups[self.data.index] == nil then
-			WarbandWorldQuestSettings.groups[self.data.index] = {}
-		end
-		WarbandWorldQuestSettings.groups[self.data.index].isCollapsed = not self.data.isCollapsed
-
-		self.owner:Refresh()
+		Settings:GenerateTableToggler("group_collapsed_states")(self.data.index)
 	elseif button == "RightButton" then
 	end
 end
@@ -407,6 +449,8 @@ function WarbandWorldQuestPageMixin:OnShow()
 	self:RegisterEvent("QUEST_LOG_UPDATE")
 	self:RegisterEvent("QUEST_TURNED_IN")
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
+	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
+	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 
 	self:Refresh()
 end
@@ -415,12 +459,14 @@ function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
+	Settings:UnregisterCallback("reward_type_filters")
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)
 	if event == "QUEST_LOG_UPDATE" then
 		self.CharactersButton:Update()
 		self.NextResetButton:Update()
+		self.SettingsDropdown:Update()
 	else
 		self:Refresh(true)
 	end
@@ -435,41 +481,6 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 	self.RewardsText:SetText(WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. elementData.aggregatedRewards:Summary())
 
 	return self.RewardsText:GetStringWidth() + 50 > self:GetWidth()
-end
-
-function WarbandWorldQuestPageMixin:UpdateFilters()
-	self.SettingsDropdown:SetupMenu(function(_, rootMenu)
-		rootMenu:CreateTitle("Settings")
-
-		local mapPinsMenu = rootMenu:CreateButton("Map Pins")
-		mapPinsMenu:CreateCheckbox("Show Progress", function()
-			return WarbandWorldQuestSettings.showProgressOnPin
-		end, function()
-			WarbandWorldQuestSettings.showProgressOnPin = not WarbandWorldQuestSettings.showProgressOnPin
-			self.dataProvider:SetProgressOnPinShown(WarbandWorldQuestSettings.showProgressOnPin)
-		end)
-
-		mapPinsMenu:CreateCheckbox("Show Pins on the Continent Maps", function()
-			return WarbandWorldQuestSettings.minPinDisplayLevel == Enum.UIMapType.Continent
-		end, function()
-			WarbandWorldQuestSettings.minPinDisplayLevel = WarbandWorldQuestSettings.minPinDisplayLevel == Enum.UIMapType.Continent and Enum.UIMapType.Zone
-				or Enum.UIMapType.Continent
-			self.dataProvider:SetMinPinDisplayLevel(WarbandWorldQuestSettings.minPinDisplayLevel)
-		end)
-
-		rootMenu:CreateTitle("Rewards Filter")
-
-		for i, rewardType in ipairs(QuestRewards.RewardTypes) do
-			local title = (rewardType.texture and format("|T%d:14|t ", rewardType.texture) or "") .. (rewardType.name or LFG_LIST_LOADING)
-			local typeButton = rootMenu:CreateCheckbox(title, function()
-				return bit.band(2 ^ (i - 1), WarbandWorldQuestSettings.rewardTypeFilters) ~= 0
-			end, function()
-				WarbandWorldQuestSettings.rewardTypeFilters = bit.bxor(WarbandWorldQuestSettings.rewardTypeFilters, 2 ^ (i - 1))
-
-				self:Refresh()
-			end)
-		end
-	end)
 end
 
 function WarbandWorldQuestPageMixin:OnMapUpdate()
@@ -516,13 +527,10 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 end
 
 function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
-	self:UpdateFilters()
+	self.dataProvider:SetRewardTypeFilters(Settings:Get("reward_type_filters"))
 
-	self.dataProvider:SetProgressOnPinShown(WarbandWorldQuestSettings.showProgressOnPin)
-	self.dataProvider:SetRewardTypeFilters(WarbandWorldQuestSettings.rewardTypeFilters)
-
-	for groupIndex, group in pairs(WarbandWorldQuestSettings.groups) do
-		self.dataProvider:UpdateGroupState(groupIndex, group.isCollapsed)
+	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
+		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end
 
 	self.dataProvider:Reset()

@@ -138,6 +138,8 @@
 					</Layer>
 				</Layers>
 				<Scripts>
+					<OnLoad method="OnLoad" />
+					<OnShow method="OnLoad" />
 					<OnMouseDown method="OnMouseDown" />
 					<OnMouseUp method="OnMouseUp" />
 				</Scripts>
