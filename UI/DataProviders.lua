@@ -187,10 +187,12 @@ function WarbandWorldQuestDataProviderMixin:FindByQuestID(questID, isActiveOnly)
 end
 
 function WarbandWorldQuestDataProviderMixin:FindPinByQuestID(questID)
-	for pin in self:GetMap():EnumeratePinsByTemplate(self:GetPinTemplate()) do
-		if pin.questID == questID then
-			return pin
-		end
+	local function MatchPin(pin)
+		return pin.questID == questID
+	end
+
+	for pin in self:EnumeratePinsByPredicate(MatchPin) do
+		return pin
 	end
 end
 
@@ -258,6 +260,32 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
 	return updated
 end
 
+function WarbandWorldQuestDataProviderMixin:EnumeratePinsByPredicate(predicate)
+	local pins = {}
+
+	for _, template in ipairs({ self:GetPinTemplate(), WorldMap_WorldQuestDataProviderMixin:GetPinTemplate() }) do
+		for pin in self:GetMap():EnumeratePinsByTemplate(template) do
+			if predicate(pin) then
+				table.insert(pins, pin)
+			end
+		end
+	end
+
+	local index = 0
+
+	local function Enumerator(tbl)
+		index = index + 1
+		if index <= #tbl then
+			local value = tbl[index]
+			if value ~= nil then
+				return value
+			end
+		end
+	end
+
+	return Enumerator, pins
+end
+
 function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 	local framesToRemove = {}
 	for pin in pairs(self.progressFrames) do
@@ -265,14 +293,8 @@ function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 	end
 
 	if self.showProgressOnPin then
-		local mapCanvas = self:GetMap()
-
-		for pin in mapCanvas:EnumeratePinsByTemplate(self:GetPinTemplate()) do
-			framesToRemove[pin] = not self:UpdatePinProgress(pin) and framesToRemove[pin] or nil
-		end
-
-		for pin in mapCanvas:EnumeratePinsByTemplate(WorldMap_WorldQuestDataProviderMixin:GetPinTemplate()) do
-			framesToRemove[pin] = not self:UpdatePinProgress(pin) and framesToRemove[pin] or nil
+		for pin in self:EnumeratePinsByPredicate(GenerateClosure(self.UpdatePinProgress, self)) do
+			framesToRemove[pin] = nil
 		end
 	end
 
