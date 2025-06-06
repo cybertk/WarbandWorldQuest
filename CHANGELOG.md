@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5 - 2025-06-06
+
+### Alpha Release
+
+Performance improved: Now less mem computing is used by addon
+
 ## v0.4 - 2025-06-05
 
 ### Alpha Release
