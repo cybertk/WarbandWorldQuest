@@ -16,8 +16,12 @@ function Settings:RegisterSettings(savedVariableName, default)
 	end
 end
 
-function Settings:RegisterCallback(keyPattern, callback, ...)
-	self.callbacks[GenerateClosure(callback, ...)] = keyPattern
+function Settings:RegisterCallback(keyPattern, callback, owner, ...)
+	if self.callbacks[keyPattern] == nil then
+		self.callbacks[keyPattern] = {}
+	end
+
+	self.callbacks[keyPattern][owner] = GenerateClosure(callback, owner, ...)
 
 	for key, _ in pairs(self.keysMonitored) do
 		if key:find(keyPattern) then
@@ -31,17 +35,23 @@ function Settings:InvokeAndRegisterCallback(keyPattern, callback, ...)
 	self:RegisterCallback(keyPattern, callback, ...)
 end
 
-function Settings:UnregisterCallback(callback)
-	self.callbacks[callback] = nil
+function Settings:UnregisterCallback(keyPattern, owner)
+	if self.callbacks[keyPattern] == nil then
+		return
+	end
+
+	self.callbacks[keyPattern][owner] = nil
 end
 
 function Settings:Notify(key, value)
 	if self.keysMonitored[key] == nil then
 		local callbacks = {}
 
-		for callback, pattern in pairs(self.callbacks) do
+		for pattern, closures in pairs(self.callbacks) do
 			if key:find(pattern) then
-				table.insert(callbacks, callback)
+				for _, closure in pairs(closures) do
+					table.insert(callbacks, closure)
+				end
 			end
 		end
 

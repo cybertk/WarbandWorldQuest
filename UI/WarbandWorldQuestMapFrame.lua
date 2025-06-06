@@ -461,7 +461,8 @@ function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
-	Settings:UnregisterCallback("reward_type_filters")
+	Settings:UnregisterCallback("reward_type_filters", self)
+	Settings:UnregisterCallback("group_collapsed_states", self)
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)
