@@ -91,7 +91,7 @@ function WarbandWorldQuest:Update()
 
 	changed = self.character:Update() or changed
 	if changed then
-		self.dataProvider:OnLoad()
+		self.dataProvider:SetShouldPopulateData(true)
 	end
 end
 
@@ -119,6 +119,7 @@ function WarbandWorldQuest:CreateDataProvider()
 	Settings:InvokeAndRegisterCallback("pins_min_display_level", WarbandWorldQuestDataProviderMixin.SetMinPinDisplayLevel, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_progress_shown", WarbandWorldQuestDataProviderMixin.SetProgressOnPinShown, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_completed_shown", WarbandWorldQuestDataProviderMixin.SetPinOfCompletedQuestShown, dataProvider)
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", WarbandWorldQuestDataProviderMixin.SetShouldPopulateData, dataProvider, true)
 
 	return dataProvider
 end

@@ -39,6 +39,14 @@ function Character:_Init()
 	Util:Debug("Initialized new character:", self.name)
 end
 
+function Character:GetNameInClassColor(excludeRealm)
+	if excludeRealm then
+		return Util.WrapTextInClassColor(self.class, self.name)
+	else
+		return Util.WrapTextInClassColor(self.class, format("%s - %s", self.name, self.realmName))
+	end
+end
+
 function Character:GetRewards(questID)
 	return self.rewards[questID]
 end

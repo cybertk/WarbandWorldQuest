@@ -60,6 +60,24 @@ WarbandWorldQuestCharactersButtonMixin = {}
 
 function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 	Settings:InvokeAndRegisterCallback("next_reset_exclude_types", self.Update, self)
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Update, self)
+
+	self:SetupMenu(function(_, rootMenu)
+		rootMenu:CreateTitle("Exclude Characters")
+
+		local function CharactersFilter(character)
+			return not CharacterStore.IsCurrentPlayer(character)
+		end
+
+		local characterStore = CharacterStore.Get()
+		characterStore:ForEach(function(character)
+			rootMenu:CreateCheckbox(character:GetNameInClassColor(), function()
+				return not character.enabled
+			end, function()
+				characterStore:SetCharacterEnabled(character, not character.enabled)
+			end)
+		end, CharactersFilter)
+	end)
 end
 
 function WarbandWorldQuestCharactersButtonMixin:Update()
@@ -76,10 +94,14 @@ function WarbandWorldQuestCharactersButtonMixin:PopulateCharactersData()
 
 	CharacterStore.Get():ForEach(function(character)
 		local scanned = character.updatedAt > resetStartTime
-		local state = CreateAtlasMarkup(scanned and "common-icon-checkmark" or "common-icon-undo", 15, 15)
+		local state = CreateAtlasMarkup(scanned and "checkmark-minimal" or "common-icon-undo", 15, 15)
 
 		table.insert(scanned and fullilled or pending, { character, state })
 	end)
+
+	if not CharacterStore.Get():CurrentPlayer().enabled then
+		table.insert(fullilled, 1, { CharacterStore.Get():CurrentPlayer(), CreateAtlasMarkup("checkmark-minimal-disabled", 15, 15) })
+	end
 
 	return fullilled, pending
 end
@@ -98,16 +120,7 @@ function WarbandWorldQuestCharactersButtonMixin:OnEnter()
 		tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:%s:|r |cnWHITE_FONT_COLOR:%d|r", groupName, #records))
 		for _, record in ipairs(records) do
 			local character, state = unpack(record)
-			tooltip:AddDoubleLine(
-				Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
-				Util.FormatLastUpdateTime(character.updatedAt),
-				1,
-				1,
-				1,
-				1,
-				1,
-				1
-			)
+			tooltip:AddDoubleLine(state .. " " .. character:GetNameInClassColor(), Util.FormatLastUpdateTime(character.updatedAt), 1, 1, 1, 1, 1, 1)
 		end
 	end
 
@@ -365,7 +378,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	tooltip:AddLine(" ")
 	tooltip:AddLine(format("Characters Scanned: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
 	tooltip:AddLine(format("Characters Completed: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
-	CharacterStore.Get():ForEach(function(character)
+	for _, character in self.owner.dataProvider:EnumerateCharacters() do
 		local rewards = character:GetRewards(quest.ID)
 
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
@@ -374,7 +387,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 			Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
 			rewards and format("|c%s%s|r", self.data:GetProgressColor(character, WHITE_FONT_COLOR), rewards:Summary()) or ""
 		)
-	end)
+	end
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine("Warband Rewards:")
@@ -450,7 +463,9 @@ end
 function WarbandWorldQuestPageMixin:OnShow()
 	self:RegisterEvent("QUEST_LOG_UPDATE")
 	self:RegisterEvent("QUEST_TURNED_IN")
+
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Refresh, self, true)
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 
@@ -460,7 +475,9 @@ end
 function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
+
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
+	CharacterStore:UnregisterCallback("CharacterStore.CharacterStateChanged", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 end
@@ -494,7 +511,6 @@ end
 
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
 	self.dataProvider = dataProvider
-	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)

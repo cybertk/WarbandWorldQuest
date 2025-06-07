@@ -199,7 +199,7 @@
 					<OnMouseDown method="OnLeave" />
 				</Scripts>
 			</DropdownButton>
-			<Button parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
+			<DropdownButton parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
 				<Size x="60" y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
 					<Anchors>
@@ -216,8 +216,9 @@
 					<OnLoad method="OnLoad" />
 					<OnEnter method="OnEnter" />
 					<OnLeave method="OnLeave" />
+					<OnMouseDown method="OnLeave" />
 				</Scripts>
-			</Button>
+			</DropdownButton>
 		</Frames>
 		<Scripts>
 			<OnLoad method="OnLoad" />

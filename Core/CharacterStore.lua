@@ -123,6 +123,17 @@ function CharacterStore:RemoveCharacter(id)
 	return true
 end
 
+function CharacterStore:SetCharacterEnabled(character, enabled)
+	if not self[character.GUID] or self[character.GUID].enabled == enabled then
+		return false
+	end
+
+	Util:Debug("Set character enabled: ", self[character.GUID].name, self[character.GUID].enabled)
+	self[character.GUID].enabled = enabled
+
+	EventRegistry:TriggerEvent("CharacterStore.CharacterStateChanged")
+end
+
 function CharacterStore:GetSortOrder()
 	return Cache.sortOrder, Cache.ascending
 end
@@ -142,6 +153,14 @@ end
 
 function CharacterStore:SetSortField(field)
 	Cache.sortField = field
+end
+
+function CharacterStore:RegisterCallback(...)
+	return EventRegistry:RegisterCallback(...)
+end
+
+function CharacterStore:UnregisterCallback(...)
+	return EventRegistry:UnregisterCallback(...)
 end
 
 function CharacterStore:ForEach(callback, filter)

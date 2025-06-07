@@ -31,7 +31,34 @@ end
 WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
-	for _, row in ipairs(self.rows or {}) do
+	self.rows = {}
+	self.questsOnMap = {}
+	self.activeProgress = {}
+	self.progressFrames = {}
+	self.activeQuests = {}
+	self.groupState = {}
+	self.shouldPopulateData = true
+
+	self.minPinDisplayLevel = Enum.UIMapType.Continent
+	self.maxPinDisplayLevel = Enum.UIMapType.Zone
+
+	self:Init()
+end
+
+function WarbandWorldQuestDataProviderMixin:EnumerateCharacters()
+	return CreateTableEnumerator(CharacterStore.Get():ForEach(nop, function(character)
+		return CharacterStore.IsCurrentPlayer(character) or character.enabled
+	end))
+end
+
+function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
+	if not self.shouldPopulateData then
+		return
+	end
+
+	Util:Debug("Populating Characters Data")
+
+	for _, row in ipairs(self.rows) do
 		if row.aggregatedRewards then
 			row.aggregatedRewards:Release()
 		end
@@ -43,7 +70,7 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 		local rewards = {}
 		local progress = { total = 0, unknown = 0, claimed = 0 }
 
-		CharacterStore.Get():ForEach(function(character)
+		for _, character in self:EnumerateCharacters() do
 			rewards[character] = character.rewards[quest.ID]
 
 			if rewards[character] == nil then
@@ -53,7 +80,7 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 			end
 
 			progress.total = progress.total + 1
-		end)
+		end
 
 		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
 		Mixin(row, WarbandWorldQuestDataRowMixin)
@@ -62,17 +89,7 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 	end
 
 	self.rows = rows
-	self.questsOnMap = {}
-	self.activeProgress = {}
-	self.progressFrames = {}
-
-	self.activeQuests = {}
-	self.groupState = {}
-
-	self.minPinDisplayLevel = self.minPinDisplayLevel and self.minPinDisplayLevel or Enum.UIMapType.Continent
-	self.maxPinDisplayLevel = self.maxPinDisplayLevel and self.maxPinDisplayLevel or Enum.UIMapType.Zone
-
-	self:Init(rows)
+	self.shouldPopulateData = false
 end
 
 function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
@@ -106,7 +123,13 @@ function WarbandWorldQuestDataProviderMixin:SetPinOfCompletedQuestShown(shown)
 	self.showPinOfCompletedQuest = shown
 end
 
+function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
+	self.shouldPopulateData = shouldPopulateData
+end
+
 function WarbandWorldQuestDataProviderMixin:Reset()
+	self:PopulateCharactersData()
+
 	self.activeQuests = {}
 
 	local groups = {
@@ -216,7 +239,7 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	tooltip:AddLine(" ")
 	tooltip:AddLine("Warband Progress", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, false, offset)
 
-	CharacterStore.Get():ForEach(function(character)
+	for _, character in self:EnumerateCharacters() do
 		local rewards = character:GetRewards(questID)
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
 
@@ -232,7 +255,7 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 			false,
 			offset
 		)
-	end)
+	end
 
 	tooltip:Show()
 end
