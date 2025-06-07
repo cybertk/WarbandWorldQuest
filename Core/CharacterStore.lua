@@ -120,6 +120,8 @@ function CharacterStore:RemoveCharacter(id)
 	Util:Debug("Removed character: ", self[id].name)
 
 	self[id] = nil
+	EventRegistry:TriggerEvent("CharacterStore.CharacterStateChanged")
+
 	return true
 end
 

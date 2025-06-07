@@ -71,12 +71,31 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 
 		local characterStore = CharacterStore.Get()
 		characterStore:ForEach(function(character)
-			rootMenu:CreateCheckbox(character:GetNameInClassColor(), function()
+			local checkbox = rootMenu:CreateCheckbox(character:GetNameInClassColor(), function()
 				return not character.enabled
-			end, function()
-				characterStore:SetCharacterEnabled(character, not character.enabled)
+			end)
+
+			checkbox:SetResponder(function(data, menuInputData, menu)
+				if IsControlKeyDown() then
+					self:RemoveCharacter(character)
+					return MenuResponse.CloseAll
+				else
+					characterStore:SetCharacterEnabled(character, not character.enabled)
+					return MenuResponse.Refresh
+				end
 			end)
 		end, CharactersFilter)
+
+		rootMenu:CreateSpacer()
+		rootMenu:CreateTitle("|cnGREEN_FONT_COLOR:Press CTRL + |A:NPE_LeftClick:16:16|a to delete the character|r")
+	end)
+end
+
+function WarbandWorldQuestCharactersButtonMixin:RemoveCharacter(character)
+	Util:Debug("Removing character:", character.name)
+
+	StaticPopup_ShowGenericConfirmation(CONFIRM_COMPACT_UNIT_FRAME_PROFILE_DELETION:format(character:GetNameInClassColor()), function()
+		CharacterStore:Get():RemoveCharacter(character.GUID)
 	end)
 end
 
