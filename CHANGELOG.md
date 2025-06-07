@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6 - 2025-06-07
+
+### Alpha Release
+
+#### New Features
+
+- Added settings to delete unused characters
+- Added settings to exclude tracking characters - Click the 'Characters' button, located to the left of the 'Settings' button.
+
 ## v0.5 - 2025-06-06
 
 ### Alpha Release
