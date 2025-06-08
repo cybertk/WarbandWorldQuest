@@ -16,9 +16,15 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Name" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
-					<Size x="220" y="0" />
 					<Anchors>
 						<Anchor point="TOPLEFT" x="14" y="-5" />
+					</Anchors>
+					<Color color="WHITE_FONT_COLOR" />
+				</FontString>
+				<FontString parentKey="Status" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
+					<Size x="40" y="0" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="TOPRIGHT" x="5" y="0" />
 					</Anchors>
 					<Color color="WHITE_FONT_COLOR" />
 				</FontString>

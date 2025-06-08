@@ -297,6 +297,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
 
 	self:UpdateName()
+	self:UpdateStatus()
 	self:UpdateProgress()
 	self:AdjustHeight()
 end
@@ -304,11 +305,17 @@ end
 function WarbandWorldQuestEntryMixin:UpdateName()
 	local text = self.data.quest:GetName()
 
+	self.Name:SetText(text)
+	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 215))
+end
+
+function WarbandWorldQuestEntryMixin:UpdateStatus()
+	local text = ""
 	if self.data.quest:IsTracked() then
-		text = text .. format(" %s", CreateAtlasMarkup("questlog-icon-checkmark-yellow", 11, 11))
+		text = CreateAtlasMarkup("questlog-icon-checkmark-yellow", 11, 11)
 	end
 
-	self.Name:SetText(text)
+	self.Status:SetText(text)
 end
 
 function WarbandWorldQuestEntryMixin:UpdateProgress()
@@ -350,7 +357,7 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 		local function SetQuestTracked(tracked)
 			PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 			quest:SetTracked(tracked)
-			self:UpdateName()
+			self:UpdateStatus()
 		end
 
 		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
