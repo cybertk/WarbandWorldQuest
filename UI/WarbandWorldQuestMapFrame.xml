@@ -36,7 +36,7 @@
 					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
 				</FontString>
 				<FontString parentKey="Rewards" inherits="GameFontNormalSmall" maxLines="1" justifyH="RIGHT">
-					<Size x="300" y="0" />
+					<Size x="250" y="0" />
 					<Anchors>
 						<Anchor point="RIGHT" relativePoint="RIGHT" x="-14" />
 					</Anchors>
