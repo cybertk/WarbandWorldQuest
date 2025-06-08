@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7 - 2025-06-08
+
+### Alpha Release
+
+UI improved: Enhanced overall readability
+
+#### New Features
+
+- Now a green checkmark is displayed on pins for completed quests - Helps identify quest status with progress turned off
+- Added support of displaying the tracking checkmark(yellow) for quests with wrapped title
+- Added support of re-scanning quests when new ones spawn - Previously only scanned once on login
+
 ## v0.6 - 2025-06-07
 
 ### Alpha Release
