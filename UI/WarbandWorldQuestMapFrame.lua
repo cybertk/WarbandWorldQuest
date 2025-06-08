@@ -139,7 +139,16 @@ function WarbandWorldQuestCharactersButtonMixin:OnEnter()
 		tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:%s:|r |cnWHITE_FONT_COLOR:%d|r", groupName, #records))
 		for _, record in ipairs(records) do
 			local character, state = unpack(record)
-			tooltip:AddDoubleLine(state .. " " .. character:GetNameInClassColor(), Util.FormatLastUpdateTime(character.updatedAt), 1, 1, 1, 1, 1, 1)
+			tooltip:AddDoubleLine(
+				state .. " " .. character:GetNameInClassColor(),
+				CURRENCY_TRANSFER_LOG_TIME_FORMAT:format(Util.FormatLastUpdateTime(character.updatedAt)),
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			)
 		end
 	end
 
