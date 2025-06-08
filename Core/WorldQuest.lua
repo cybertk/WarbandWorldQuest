@@ -396,7 +396,7 @@ function QuestRewards:GetOrAddRewardType(itemID, currencyID)
 end
 
 function QuestRewards:PassRewardTypeFilters(mask)
-	return bit.band(self:GetRewardType(), mask) ~= 0
+	return bit.band(self:GetRewardType(), mask or 0) ~= 0
 end
 
 ns.QuestRewards = QuestRewards

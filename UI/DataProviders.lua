@@ -19,7 +19,7 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 		color = GRAY_FONT_COLOR
 	elseif rewards:IsClaimed() then
 		color = GREEN_FONT_COLOR
-	elseif not rewards:PassRewardTypeFilters(WarbandWorldQuestSettings.rewardTypeFilters) then
+	elseif not rewards:PassRewardTypeFilters(self.dataProvider.rewardFilters) then
 		color = RED_FONT_COLOR
 	else
 		color = defaultColor or YELLOW_FONT_COLOR
@@ -83,6 +83,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 		end
 
 		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
+		row.dataProvider = self
 		Mixin(row, WarbandWorldQuestDataRowMixin)
 
 		table.insert(rows, row)
