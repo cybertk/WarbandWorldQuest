@@ -26,14 +26,12 @@ function WarbandWorldQuest:Init()
 	self.character = self.characterStore:CurrentPlayer()
 
 	WorldQuestList:Load(self.db.quests, self.db.resetStartTime)
-	WorldQuestList:Reset(GenerateClosure(WarbandWorldQuest.RemoveQuestRewardsFromAllCharacters, self))
-
 	self.WorldQuestList = WorldQuestList
 
 	self.character:CleanupRewards(WorldQuestList:GetAllQuests())
 
 	self.dataProvider = self:CreateDataProvider()
-	self:Update()
+	self:Update(true)
 
 	WorldMapFrame:AddDataProvider(self.dataProvider)
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
@@ -79,13 +77,25 @@ function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)
 	Util:Debug("Removed quest:", quest.ID, quest:GetName())
 end
 
-function WarbandWorldQuest:Update()
+function WarbandWorldQuest:Update(isNewScanSession)
 	if self.dataProvider == nil then
 		return
 	end
 
-	local changed = WorldQuestList:Scan(MAPS)
+	if isNewScanSession then
+		WorldQuestList:Reset(GenerateClosure(self.RemoveQuestRewardsFromAllCharacters, self))
+
+		if self.resetTimer ~= nil then
+			self.resetTimer:Cancel()
+			self.resetTimer = nil
+		end
+	end
+
+	local changed = WorldQuestList:Scan(MAPS, isNewScanSession)
 	if changed then
+		local secondsToReset = select(2, WorldQuestList:NextResetQuests()) - GetServerTime() + 60
+
+		self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
 	end
 

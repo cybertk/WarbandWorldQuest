@@ -509,6 +509,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 
 	if isNewSession then
 		self.isScanSessionCompleted = nil
+		Util:Debug("Started new scan session")
 	end
 
 	if self.isScanSessionCompleted then
