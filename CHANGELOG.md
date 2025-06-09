@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.8 - 2025-06-09
+
+### Alpha Release
+
+Crashes on first installation are fixed
+- WarbandWorldQuest.lua:96: attempt to perform arithmetic on a nil value
+- WorldQuest.lua:399: bad argument #2 to 'band' (number expected, got nil)
+
+#### New Features
+
+- Now the equipments rewards displayed in the quest log are aggregated by equipLoc - This ensures a cleaner display
+- All non-equipable items are categorized into "Equipment" in the **Rewards Filter** - The forever "Loading..." rows are gone
+- Added quests scanning completed indicators in the quest log title - Also able to turn on/off in the settings
+
+
 ## v0.7 - 2025-06-08
 
 ### Alpha Release
