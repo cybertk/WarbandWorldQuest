@@ -375,7 +375,7 @@ function QuestRewards:GetOrAddRewardType(itemID, currencyID)
 			end
 
 			type.texture = icon
-		elseif C_Item.GetItemClassInfo(Enum.ItemClass.Armor) == itemType then
+		else
 			self.RewardTypesCache[objectID] = 2
 			return 2
 		end
