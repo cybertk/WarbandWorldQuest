@@ -270,6 +270,7 @@ function QuestRewards:Summary(asList)
 		end
 	end
 
+	local equipments = {}
 	for _, item in ipairs(self.items or {}) do
 		local itemID, amount = unpack(item)
 
@@ -297,9 +298,17 @@ function QuestRewards:Summary(asList)
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
 				s = s .. format(" |T%d:15|t %d", icon, amount)
 			else
-				s = s .. format(" |T%d:15|t(%s)", icon, _G[itemEquipLoc])
+				if equipments[itemEquipLoc] == nil then
+					equipments[itemEquipLoc] = { amount = amount, icon = icon }
+				else
+					equipments[itemEquipLoc].amount = equipments[itemEquipLoc].amount + amount
+				end
 			end
 		end
+	end
+
+	for itemEquipLoc, equipment in pairs(equipments) do
+		s = s .. format(" |T%d:15|t(%s) %d", equipment.icon, _G[itemEquipLoc], equipment.amount)
 	end
 
 	return asList and records or s
