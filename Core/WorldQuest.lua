@@ -554,7 +554,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 		return x.resetTime < y.resetTime
 	end)
 
-	if next(remainingQuests) == nil then
+	if next(remainingQuests) == nil and #self.quests > 0 then
 		self.isScanSessionCompleted = true
 	end
 
