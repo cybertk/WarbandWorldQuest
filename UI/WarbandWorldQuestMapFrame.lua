@@ -211,6 +211,18 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 			Settings:CreateCheckboxMenu("pins_completed_shown", pinsMenu, "Show Pins for Completed Quests")
 		end
 
+		do -- Quest Log
+			local logMenu = rootMenu:CreateButton("World Quest Log")
+
+			Settings:CreateCheckboxMenu(
+				"log_scanning_icon_shown",
+				logMenu,
+				"Show Pending Scan Icon",
+				nil,
+				"Display an icon |A:common-icon-undo:10:10:0:0|a in the quest title if the quest progress hasn't been scanned on all tracked characters"
+			)
+		end
+
 		do -- Rewards Filter
 			rootMenu:CreateTitle("Rewards Filter")
 
@@ -300,31 +312,31 @@ WarbandWorldQuestEntryMixin = {}
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
 
+	self.Name:SetText(elementData.quest:GetName())
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
 	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
 
 	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
 
-	self:UpdateName()
 	self:UpdateStatus()
 	self:UpdateProgress()
 	self:AdjustHeight()
 end
 
-function WarbandWorldQuestEntryMixin:UpdateName()
-	local text = self.data.quest:GetName()
-
-	self.Name:SetText(text)
-	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 215))
-end
-
 function WarbandWorldQuestEntryMixin:UpdateStatus()
 	local text = ""
-	if self.data.quest:IsTracked() then
-		text = CreateAtlasMarkup("questlog-icon-checkmark-yellow", 11, 11)
+
+	if Settings:Get("log_scanning_icon_shown") and self.data.progress.unknown > 0 then
+		text = text .. " " .. CreateAtlasMarkup("common-icon-undo", 10, 10)
 	end
 
-	self.Status:SetText(text)
+	if self.data.quest:IsTracked() then
+		text = text .. " " .. CreateAtlasMarkup("questlog-icon-checkmark-yellow", 11, 11)
+	end
+
+	self.Status:SetTextToFit(text)
+
+	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 220 - self.Status:GetWidth()))
 end
 
 function WarbandWorldQuestEntryMixin:UpdateProgress()
@@ -503,6 +515,7 @@ function WarbandWorldQuestPageMixin:OnShow()
 	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Refresh, self, true)
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
+	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
 
 	self:Refresh()
 end
@@ -515,6 +528,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 	CharacterStore:UnregisterCallback("CharacterStore.CharacterStateChanged", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
+	Settings:UnregisterCallback("log_scanning_icon_shown", self)
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)

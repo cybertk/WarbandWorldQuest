@@ -22,7 +22,7 @@
 					<Color color="WHITE_FONT_COLOR" />
 				</FontString>
 				<FontString parentKey="Status" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
-					<Size x="40" y="0" />
+					<Size x="0" y="0" />
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="TOPRIGHT" x="5" y="0" />
 					</Anchors>

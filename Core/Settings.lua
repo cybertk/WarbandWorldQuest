@@ -132,12 +132,23 @@ function Settings:GenerateRotator(key, values)
 	end
 end
 
-function Settings:CreateCheckboxMenu(key, menu, text, tableIndex)
+function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText)
+	local checkbox
+
 	if tableIndex then
-		return menu:CreateCheckbox(text, Settings:GenerateTableGetter(key), Settings:GenerateTableToggler(key), tableIndex)
+		checkbox = menu:CreateCheckbox(text, Settings:GenerateTableGetter(key), Settings:GenerateTableToggler(key), tableIndex)
 	else
-		return menu:CreateCheckbox(text, Settings:GenerateGetter(key), Settings:GenerateToggler(key))
+		checkbox = menu:CreateCheckbox(text, Settings:GenerateGetter(key), Settings:GenerateToggler(key))
 	end
+
+	if tooltipText then
+		checkbox:SetTooltip(function(tooltip)
+			GameTooltip_SetTitle(tooltip, text)
+			GameTooltip_AddNormalLine(tooltip, tooltipText)
+		end)
+	end
+
+	return checkbox
 end
 
 function Settings:CreateRadio(key, menu, text, data)

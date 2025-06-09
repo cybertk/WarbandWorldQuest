@@ -210,6 +210,7 @@ do
 			["pins_tooltip_shown"] = true,
 			["pins_tooltip_modifier"] = nil,
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
+			["log_scanning_icon_shown"] = true,
 			["next_reset_exclude_types"] = {},
 		}
 
