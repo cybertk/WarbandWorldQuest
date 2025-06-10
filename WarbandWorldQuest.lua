@@ -6,10 +6,6 @@ local WorldQuestList = ns.WorldQuestList
 local QuestRewards = ns.QuestRewards
 local Settings = ns.Settings
 
-local MAPS = {
-	2274, -- Khaz Algar
-}
-
 local WarbandWorldQuest = {}
 
 function WarbandWorldQuest:Init()
@@ -42,7 +38,7 @@ function WarbandWorldQuest:Init()
 				local tooltipModifier = Settings:Get("pins_tooltip_modifier")
 
 				if not tooltipModifier or (tooltipModifier == "CTRL" and IsControlKeyDown()) or (tooltipModifier == "ALT" and IsAltKeyDown()) then
-					WarbandWorldQuestDataProviderMixin.UpdatePinTooltip(WarbandWorldQuestDataProviderMixin, GameTooltip, pin)
+					self.dataProvider:UpdatePinTooltip(GameTooltip, pin)
 				end
 			end
 		end)
@@ -67,6 +63,8 @@ function WarbandWorldQuest:Init()
 		QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
 	end
 	self:AddTrackedQuestsToObjectivesPanel()
+
+	Settings:RegisterCallback("maps_to_scan", self.Update, self, true)
 end
 
 function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)
@@ -93,7 +91,7 @@ function WarbandWorldQuest:Update(isNewScanSession)
 		end
 	end
 
-	local changed = WorldQuestList:Scan(MAPS, isNewScanSession)
+	local changed = WorldQuestList:Scan(Settings:Get("maps_to_scan"), isNewScanSession)
 	if changed then
 		local secondsToReset = select(2, WorldQuestList:NextResetQuests()) - GetServerTime() + 60
 
@@ -206,6 +204,10 @@ do
 
 		local DefaultWarbandWorldQuestSettings = {
 			["group_collapsed_states"] = {},
+			["maps_to_scan"] = {
+				[2274] = true, -- Khaz Algar
+				[1978] = false, -- Dragon Isles
+			},
 			["reward_type_filters"] = 1,
 			["pins_progress_shown"] = true,
 			["pins_completed_shown"] = true,

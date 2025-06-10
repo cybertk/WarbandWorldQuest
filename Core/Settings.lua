@@ -3,17 +3,23 @@ local _, namespace = ...
 local Settings = { callbacks = {}, keysMonitored = {} }
 
 function Settings:RegisterSettings(savedVariableName, default)
+	local function PopulateDefaultValue(tbl, values)
+		for key, value in pairs(values) do
+			if tbl[key] == nil then
+				tbl[key] = value
+			elseif type(value) == "table" then
+				tbl[key] = tbl[key] or {}
+				PopulateDefaultValue(tbl[key], value)
+			end
+		end
+	end
+
 	if _G[savedVariableName] == nil then
 		_G[savedVariableName] = {}
 	end
 
 	self.settings = _G[savedVariableName]
-
-	for key, value in pairs(default) do
-		if self.settings[key] == nil then
-			self.settings[key] = value
-		end
-	end
+	PopulateDefaultValue(self.settings, default)
 end
 
 function Settings:RegisterCallback(keyPattern, callback, owner, ...)
@@ -129,6 +135,14 @@ function Settings:GenerateRotator(key, values)
 		index = index == #values and 1 or (index + 1)
 
 		self:Set(key, values[index])
+	end
+end
+
+function Settings:CreateMenuTree(key, menu, text, submenuTextGetter)
+	local rootMenu = menu:CreateButton(text)
+
+	for index in pairs(self.settings[key]) do
+		rootMenu:CreateCheckbox(submenuTextGetter(index), Settings:GenerateTableGetter(key), Settings:GenerateTableToggler(key), index)
 	end
 end
 

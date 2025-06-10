@@ -512,8 +512,26 @@ function WorldQuestList:GetQuestsOnContinent(mapID)
 	return self.questsOnMap[mapID]
 end
 
+function WorldQuestList:RemoveQuests(maps)
+	local mapsByID = {}
+
+	for _, map in ipairs(maps) do
+		mapsByID[map.mapID] = true
+	end
+
+	for i = #self.quests, 1, -1 do
+		local quest = self.quests[i]
+
+		if mapsByID[quest.map] then
+			self.questCache[quest.ID] = nil
+			table.remove(self.quests, i)
+		end
+	end
+end
+
 function WorldQuestList:Scan(continents, isNewSession)
 	local mapsToScan = {}
+	local mapsToRemove = {}
 	local remainingQuests = {}
 
 	if isNewSession then
@@ -525,11 +543,14 @@ function WorldQuestList:Scan(continents, isNewSession)
 		return
 	end
 
-	for _, mapID in ipairs(continents) do
+	for mapID, shouldScan in pairs(continents) do
+		local maps = shouldScan and mapsToScan or mapsToRemove
 		for _, map in ipairs(C_Map.GetMapChildrenInfo(mapID, Enum.UIMapType.Zone, true)) do
-			table.insert(mapsToScan, map)
+			table.insert(maps, map)
 		end
 	end
+
+	self:RemoveQuests(mapsToRemove)
 
 	for _, map in ipairs(mapsToScan) do
 		local quests = Util:Filter(C_TaskQuest.GetQuestsOnMap(map.mapID) or {}, function(info)

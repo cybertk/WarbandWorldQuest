@@ -231,6 +231,16 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 			)
 		end
 
+		do -- Maps
+			local function GetMapName(mapID)
+				return C_Map.GetMapInfo(mapID).name
+			end
+
+			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName)
+		end
+
+		rootMenu:CreateDivider()
+
 		do -- Rewards Filter
 			rootMenu:CreateTitle("Rewards Filter")
 
