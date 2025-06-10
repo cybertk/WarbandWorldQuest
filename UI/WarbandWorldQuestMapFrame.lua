@@ -456,7 +456,8 @@ end
 WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)
 
 function WarbandWorldQuestTabButtonMixin:OnLoad()
-	self.NormalTexture:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
+	self.Icon:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
+	self.Icon:SetSize(24, 24)
 	self:SetPoint("TOP", QuestMapFrame.MapLegendTab, "BOTTOM", 0, -3)
 	self:SetChecked(false)
 end
