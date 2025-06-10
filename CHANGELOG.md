@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9 - 2025-06-10
+
+### Alpha Release
+
+#### New Features
+
+- Added Dragon Isles world quest tracking support
+- Added world quest icon in the quest log - Click to track the quest in Warband
+- Added default tab toggle in settings
+
 ## v0.8 - 2025-06-09
 
 ### Alpha Release
