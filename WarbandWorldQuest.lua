@@ -63,7 +63,9 @@ function WarbandWorldQuest:Init()
 		table.insert(QuestMapFrame.ContentFrames, content)
 	end
 
-	QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
+	if Settings:Get("log_is_default_tab") then
+		QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
+	end
 	self:AddTrackedQuestsToObjectivesPanel()
 end
 
@@ -211,6 +213,7 @@ do
 			["pins_tooltip_modifier"] = nil,
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
 			["log_scanning_icon_shown"] = true,
+			["log_is_default_tab"] = true,
 			["next_reset_exclude_types"] = {},
 		}
 

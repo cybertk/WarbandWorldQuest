@@ -169,7 +169,7 @@ function WarbandWorldQuestSettingsButtonMixin:OnMouseUp(button, upInside)
 	self.Icon:AdjustPointsOffset(-1, 1)
 end
 
-function WarbandWorldQuestSettingsButtonMixin:Onload()
+function WarbandWorldQuestSettingsButtonMixin:OnShow()
 	self:Update()
 end
 
@@ -213,6 +213,14 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 
 		do -- Quest Log
 			local logMenu = rootMenu:CreateButton("World Quest Log")
+
+			Settings:CreateCheckboxMenu(
+				"log_is_default_tab",
+				logMenu,
+				"Default Tab",
+				nil,
+				"Set |cff00d9ffWarband World Quest|r as the default tab, it opens automatically when opening the World Map for the first time after logging in"
+			)
 
 			Settings:CreateCheckboxMenu(
 				"log_scanning_icon_shown",
@@ -450,6 +458,7 @@ WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)
 function WarbandWorldQuestTabButtonMixin:OnLoad()
 	self.NormalTexture:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
 	self:SetPoint("TOP", QuestMapFrame.MapLegendTab, "BOTTOM", 0, -3)
+	self:SetChecked(false)
 end
 
 function WarbandWorldQuestTabButtonMixin:SetChecked(checked)
