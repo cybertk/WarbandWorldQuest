@@ -104,6 +104,8 @@ function Character:Update()
 
 	if #self.Quests == 0 then
 		self.updatedAt = GetServerTime()
+		EventRegistry:TriggerEvent("CharacterStore.CharacterStateChanged")
+
 		return true
 	end
 end

@@ -548,7 +548,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 			remainingQuests[questID] = nil
 		end
 	end
-	Util:Debug("Scanned maps", #mapsToScan, next(remainingQuests) == nil)
+	Util:Debug("Scanned maps", #mapsToScan, next(remainingQuests) == nil, #self.quests)
 
 	table.sort(self.quests, function(x, y)
 		return x.resetTime < y.resetTime

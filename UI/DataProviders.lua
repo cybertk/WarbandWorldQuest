@@ -133,6 +133,10 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 	self.activeQuests = {}
 
+	if #self.rows == 0 then
+		return
+	end
+
 	local groups = {
 		{
 			name = "Active Quests",
@@ -170,6 +174,8 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	end
 
 	self:Init(rows)
+
+	return true
 end
 
 function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, includeCompleted, completedOnly)

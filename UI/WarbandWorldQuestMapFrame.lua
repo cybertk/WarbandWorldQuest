@@ -504,7 +504,6 @@ function WarbandWorldQuestPageMixin:OnLoad()
 	ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view)
 
 	self.pinsHooked = {}
-	self.LoadingFrame:Hide()
 end
 
 function WarbandWorldQuestPageMixin:OnShow()
@@ -601,7 +600,9 @@ function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end
 
-	self.dataProvider:Reset()
+	if self.dataProvider:Reset() then
+		self.LoadingFrame:Hide()
+	end
 
 	self.ScrollBox:SetDataProvider(self.dataProvider, frameOnShow and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition)
 end
