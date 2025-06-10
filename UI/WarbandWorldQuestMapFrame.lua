@@ -325,6 +325,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
 
 	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
+	self.IconButton:Update(elementData.quest.ID)
 
 	self:UpdateStatus()
 	self:UpdateProgress()
@@ -344,7 +345,7 @@ function WarbandWorldQuestEntryMixin:UpdateStatus()
 
 	self.Status:SetTextToFit(text)
 
-	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 220 - self.Status:GetWidth()))
+	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 205 - self.Status:GetWidth()))
 end
 
 function WarbandWorldQuestEntryMixin:UpdateProgress()
@@ -361,6 +362,12 @@ function WarbandWorldQuestEntryMixin:AdjustHeight()
 	else
 		self.Rewards:SetPoint("TOP", self.TimeLeft, "TOP", 0, 0)
 	end
+end
+
+function WarbandWorldQuestEntryMixin:ToggleTracked()
+	PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+	self.data.quest:SetTracked(not self.data.quest:IsTracked())
+	self:UpdateStatus()
 end
 
 function WarbandWorldQuestEntryMixin:OnEnter()
@@ -383,19 +390,13 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 			C_Map.OpenWorldMap(quest.map)
 		end
 	elseif button == "RightButton" then
-		local function SetQuestTracked(tracked)
-			PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-			quest:SetTracked(tracked)
-			self:UpdateStatus()
-		end
-
 		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
 			rootDescription:SetTag("MENU_QUEST_MAP_WARBAND_WORLD_QUEST")
 
 			local watchType = C_QuestLog.GetQuestWatchType(quest.ID)
 			local isTracked = quest:IsTracked()
 
-			rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(SetQuestTracked, not isTracked))
+			rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(self.ToggleTracked, self))
 
 			if C_SuperTrack.GetSuperTrackedQuestID() ~= quest.ID then
 				rootDescription:CreateButton(SUPER_TRACK_QUEST, function()
@@ -451,6 +452,32 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	end
 
 	tooltip:Show()
+end
+
+WarbandWorldQuestIconButtonMixin = {}
+
+function WarbandWorldQuestIconButtonMixin:OnMouseDown()
+	self.Display:SetPoint("CENTER", 1, -1)
+end
+
+function WarbandWorldQuestIconButtonMixin:OnMouseUp()
+	self.Display:SetPoint("CENTER")
+
+	self:GetParent():ToggleTracked()
+end
+
+function WarbandWorldQuestIconButtonMixin:Update(questID)
+	local tag = C_QuestLog.GetQuestTagInfo(questID)
+
+	self.Display:SetAtlas(QuestUtil.GetWorldQuestAtlasInfo(questID, tag))
+
+	if tag.worldQuestType == Enum.QuestTagType.Capstone then
+		self.Underlay:SetAtlas("worldquest-Capstone-Banner", true)
+	elseif tag.isElite then
+		self.Underlay:SetAtlas("worldquest-questmarker-dragon", true)
+	else
+		self.Underlay:SetAtlas(nil)
+	end
 end
 
 WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)

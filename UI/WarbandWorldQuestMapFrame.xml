@@ -5,6 +5,36 @@
 	<Button name="WarbandWorldQuestEntryTemplate" mixin="WarbandWorldQuestEntryMixin" enableMouse="true" virtual="true">
 		<Size x="295" y="0" />
 		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
+		<Frames>
+			<Button parentKey="IconButton" mixin="WarbandWorldQuestIconButtonMixin">
+				<Size x="28" y="28" />
+				<Anchors>
+					<Anchor point="TOPLEFT" />
+				</Anchors>
+				<NormalTexture atlas="UI-QuestPoi-QuestNumber" />
+				<HighlightTexture atlas="UI-QuestPoi-InnerGlow" alphaMode="ADD" />
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Underlay">
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Display">
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnMouseDown method="OnMouseDown" />
+					<OnMouseUp method="OnMouseUp" />
+				</Scripts>
+			</Button>
+		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true">
@@ -17,7 +47,7 @@
 			<Layer level="ARTWORK">
 				<FontString parentKey="Name" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="14" y="-5" />
+						<Anchor point="TOPLEFT" x="30" y="-5" />
 					</Anchors>
 					<Color color="WHITE_FONT_COLOR" />
 				</FontString>
@@ -46,7 +76,7 @@
 					<Anchors>
 						<Anchor point="RIGHT" relativePoint="RIGHT" x="-14" />
 					</Anchors>
-					<Color color="WHITE_FONT_COLOR"/>
+					<Color color="WHITE_FONT_COLOR" />
 				</FontString>
 			</Layer>
 		</Layers>
