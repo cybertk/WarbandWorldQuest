@@ -65,9 +65,16 @@
 					</Anchors>
 				</FontString>
 				<FontString parentKey="TimeLeft" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
-					<Size x="300" y="0" />
+					<Size x="0" y="0" />
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-4" />
+					</Anchors>
+					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
+				</FontString>
+				<FontString parentKey="Location" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.TimeLeft" relativePoint="RIGHT" />
 					</Anchors>
 					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
 				</FontString>
@@ -81,6 +88,8 @@
 			</Layer>
 		</Layers>
 		<Scripts>
+			<OnShow method="OnShow" />
+			<OnHide method="OnHide" />
 			<OnEnter method="OnEnter" />
 			<OnLeave method="OnLeave" />
 			<OnMouseUp method="OnClick" />

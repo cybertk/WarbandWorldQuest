@@ -349,6 +349,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 
 	self:UpdateStatus()
 	self:UpdateProgress()
+	self:UpdateLocation()
 	self:AdjustHeight()
 end
 
@@ -372,8 +373,15 @@ function WarbandWorldQuestEntryMixin:UpdateProgress()
 	self.Progress:SetText(format("|c%s%d/%d|r", self.data:GetProgressColor(), self.data.progress.claimed, self.data.progress.total))
 end
 
+function WarbandWorldQuestEntryMixin:UpdateLocation(mapID)
+	local location = C_Map.GetMapInfo(self.data.quest.map).name
+
+	mapID = mapID or WorldMapFrame:GetMapID()
+	self.Location:SetText(mapID == self.data.quest.map and YELLOW_FONT_COLOR:WrapTextInColorCode(location) or location)
+end
+
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
-	return Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - " .. C_Map.GetMapInfo(elementData.quest.map).name
+	return Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - "
 end
 
 function WarbandWorldQuestEntryMixin:AdjustHeight()
@@ -388,6 +396,14 @@ function WarbandWorldQuestEntryMixin:ToggleTracked()
 	PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 	self.data.quest:SetTracked(not self.data.quest:IsTracked())
 	self:UpdateStatus()
+end
+
+function WarbandWorldQuestEntryMixin:OnShow()
+	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.UpdateLocation, self)
+end
+
+function WarbandWorldQuestEntryMixin:OnHide()
+	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)
 end
 
 function WarbandWorldQuestEntryMixin:OnEnter()
@@ -603,7 +619,9 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 		self.RewardsText:SetFontObject("GameFontNormalSmall")
 	end
 
-	self.RewardsText:SetText(WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. elementData.aggregatedRewards:Summary())
+	self.RewardsText:SetText(
+		WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. C_Map.GetMapInfo(elementData.quest.map).name .. elementData.aggregatedRewards:Summary()
+	)
 
 	return self.RewardsText:GetStringWidth() > WarbandWorldQuestEntryMixin.MaxNameWidth
 end
