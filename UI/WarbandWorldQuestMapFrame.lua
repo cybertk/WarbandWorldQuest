@@ -246,10 +246,19 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 
 			for i, rewardType in ipairs(QuestRewards.RewardTypes) do
 				local title = (rewardType.texture and format("|T%d:14|t ", rewardType.texture) or "") .. (rewardType.name or LFG_LIST_LOADING)
-				rootMenu:CreateCheckbox(title, function()
+
+				local checkbox = rootMenu:CreateCheckbox(title, function()
 					return bit.band(2 ^ (i - 1), Settings:Get("reward_type_filters")) ~= 0
 				end, function()
 					Settings:Set("reward_type_filters", bit.bxor(Settings:Get("reward_type_filters"), 2 ^ (i - 1)))
+				end)
+
+				checkbox:SetTooltip(function(tooltip)
+					if rewardType.itemID then
+						tooltip:SetItemByID(rewardType.itemID)
+					elseif rewardType.currencyID then
+						tooltip:SetCurrencyByID(rewardType.currencyID)
+					end
 				end)
 			end
 		end
