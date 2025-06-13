@@ -233,8 +233,11 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	end
 
 	if tooltip.ItemTooltip and tooltip.ItemTooltip:IsShown() then
-		if tooltip.ItemTooltip.Tooltip:GetLeft() and tooltip:GetLeft() then
-			self.tooltipPadding = tooltip.ItemTooltip.Tooltip:GetLeft() - tooltip:GetLeft()
+		tooltip.ItemTooltip.Tooltip:GetLeft()
+
+		local embeddedLeft, left = tooltip.ItemTooltip.Tooltip:GetLeft(), tooltip:GetLeft()
+		if embeddedLeft and left then
+			self.tooltipPadding = embeddedLeft - left
 		end
 		tooltip = tooltip.ItemTooltip.Tooltip
 	else
