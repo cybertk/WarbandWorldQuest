@@ -335,6 +335,7 @@ function WarbandWorldQuestHeaderMixin:OnMouseUp()
 end
 
 WarbandWorldQuestEntryMixin = {}
+WarbandWorldQuestEntryMixin.MaxNameWidth = 215
 
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
@@ -364,7 +365,7 @@ function WarbandWorldQuestEntryMixin:UpdateStatus()
 
 	self.Status:SetTextToFit(text)
 
-	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), 205 - self.Status:GetWidth()))
+	self.Name:SetWidth(min(self.Name:GetUnboundedStringWidth(), self.MaxNameWidth - self.Status:GetWidth()))
 end
 
 function WarbandWorldQuestEntryMixin:UpdateProgress()
@@ -604,7 +605,7 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 
 	self.RewardsText:SetText(WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. elementData.aggregatedRewards:Summary())
 
-	return self.RewardsText:GetStringWidth() + 50 > self:GetWidth()
+	return self.RewardsText:GetStringWidth() > WarbandWorldQuestEntryMixin.MaxNameWidth
 end
 
 function WarbandWorldQuestPageMixin:OnMapUpdate()
