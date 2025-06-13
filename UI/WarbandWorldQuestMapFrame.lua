@@ -577,6 +577,8 @@ function WarbandWorldQuestPageMixin:OnLoad()
 	ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view)
 
 	self.pinsHooked = {}
+
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Refresh, self, true)
 end
 
 function WarbandWorldQuestPageMixin:OnShow()
@@ -584,12 +586,9 @@ function WarbandWorldQuestPageMixin:OnShow()
 	self:RegisterEvent("QUEST_TURNED_IN")
 
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
-	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Refresh, self, true)
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
-
-	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
@@ -597,7 +596,6 @@ function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_TURNED_IN")
 
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
-	CharacterStore:UnregisterCallback("CharacterStore.CharacterStateChanged", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
@@ -634,6 +632,7 @@ end
 
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
 	self.dataProvider = dataProvider
+	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)
