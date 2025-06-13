@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.10 - 2025-06-13
+
+### Alpha Release
+
+#### Issues Fixed
+
+- The Warband Progress padding in Tooltip is sometimes incorrect
+- The Pins of Active Quests are not shown until opening Warband Quest Tab when **"Default Tab"** is unselected
+
+#### New Features
+
+- Now the location text in rows of panel will be highlighed for currently opened map
+- Added tooltip for item and currency in **"Rewards Filter"**
+
 ## v0.9 - 2025-06-10
 
 ### Alpha Release
