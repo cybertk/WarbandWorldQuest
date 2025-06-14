@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11 - 2025-05-29
+
+### Alpha Release
+
+- Optimized paddings of elements in quest log row
+- Now the quest progress in log updates correctly after completion
+
 ## v0.10 - 2025-06-13
 
 ### Alpha Release
