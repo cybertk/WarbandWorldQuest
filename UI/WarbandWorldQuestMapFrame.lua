@@ -399,6 +399,10 @@ function WarbandWorldQuestEntryMixin:ToggleTracked()
 end
 
 function WarbandWorldQuestEntryMixin:OnShow()
+	if self.data then
+		self:UpdateProgress()
+	end
+
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.UpdateLocation, self)
 end
 
