@@ -169,12 +169,12 @@ function WarbandWorldQuestSettingsButtonMixin:OnMouseUp(button, upInside)
 	self.Icon:AdjustPointsOffset(-1, 1)
 end
 
-function WarbandWorldQuestSettingsButtonMixin:OnShow()
-	self:Update()
+function WarbandWorldQuestSettingsButtonMixin:OnLoad()
+	self:Update(true)
 end
 
-function WarbandWorldQuestSettingsButtonMixin:Update()
-	if not self:IsShown() then
+function WarbandWorldQuestSettingsButtonMixin:Update(force)
+	if not force and not self:IsMenuOpen() then
 		return
 	end
 
@@ -236,7 +236,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 				return C_Map.GetMapInfo(mapID).name
 			end
 
-			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName)
+			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName, MenuResponse.CloseAll)
 		end
 
 		rootMenu:CreateDivider()

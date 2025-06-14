@@ -138,15 +138,15 @@ function Settings:GenerateRotator(key, values)
 	end
 end
 
-function Settings:CreateMenuTree(key, menu, text, submenuTextGetter)
+function Settings:CreateMenuTree(key, menu, text, submenuTextGetter, response)
 	local rootMenu = menu:CreateButton(text)
 
 	for index in pairs(self.settings[key]) do
-		rootMenu:CreateCheckbox(submenuTextGetter(index), Settings:GenerateTableGetter(key), Settings:GenerateTableToggler(key), index)
+		self:CreateCheckboxMenu(key, rootMenu, submenuTextGetter(index), index, nil, response)
 	end
 end
 
-function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText)
+function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText, response)
 	local checkbox
 
 	if tableIndex then
@@ -160,6 +160,10 @@ function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText)
 			GameTooltip_SetTitle(tooltip, text)
 			GameTooltip_AddNormalLine(tooltip, tooltipText)
 		end)
+	end
+
+	if response then
+		checkbox:SetResponse(response)
 	end
 
 	return checkbox
