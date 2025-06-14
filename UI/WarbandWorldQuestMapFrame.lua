@@ -335,7 +335,7 @@ function WarbandWorldQuestHeaderMixin:OnMouseUp()
 end
 
 WarbandWorldQuestEntryMixin = {}
-WarbandWorldQuestEntryMixin.MaxNameWidth = 215
+WarbandWorldQuestEntryMixin.MaxNameWidth = 205
 
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
@@ -625,7 +625,7 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 		WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. C_Map.GetMapInfo(elementData.quest.map).name .. elementData.aggregatedRewards:Summary()
 	)
 
-	return self.RewardsText:GetStringWidth() > WarbandWorldQuestEntryMixin.MaxNameWidth
+	return self.RewardsText:GetStringWidth() > WarbandWorldQuestEntryMixin.MaxNameWidth + 35
 end
 
 function WarbandWorldQuestPageMixin:OnMapUpdate()
