@@ -221,22 +221,6 @@ do
 		Settings:RegisterSettings("WarbandWorldQuestSettings", DefaultWarbandWorldQuestSettings)
 		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB
 
-		do -- Migration
-			if type(WarbandWorldQuestDB.resetStartTime) == "number" then
-				WarbandWorldQuestDB.resetStartTime = { [2] = WarbandWorldQuestDB.resetStartTime }
-			end
-
-			if WarbandWorldQuestSettings.nextResetExcludeTypes then
-				WarbandWorldQuestSettings["next_reset_exclude_types"] = WarbandWorldQuestSettings.nextResetExcludeTypes
-				WarbandWorldQuestSettings.nextResetExcludeTypes = nil
-			end
-
-			if WarbandWorldQuestSettings.minPinDisplayLevel then
-				WarbandWorldQuestSettings["pins_min_display_level"] = WarbandWorldQuestSettings.minPinDisplayLevel
-				WarbandWorldQuestSettings.minPinDisplayLevel = nil
-			end
-		end
-
 		WarbandWorldQuest.db = WarbandWorldQuestDB
 		Util.debug = WarbandWorldQuestDB.debug
 	end)

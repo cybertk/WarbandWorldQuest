@@ -1,4 +1,4 @@
-## Interface: 110105,110107
+## Interface: 110107
 ## Title: |cff00d9ffWarband World Quest|r
 ## Notes: Track World Quests across all your characters
 ## Version: @project-version@
