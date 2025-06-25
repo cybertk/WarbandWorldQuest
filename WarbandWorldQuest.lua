@@ -49,8 +49,7 @@ function WarbandWorldQuest:Init()
 	end
 
 	do -- Add tab to QuestMapFrame
-		local tab = CreateFrame("Frame", nil, QuestMapFrame, "WarbandWorldQuestTabButtonTemplate")
-		table.insert(QuestMapFrame.TabButtons, tab)
+		CreateFrame("Frame", nil, QuestMapFrame, "WarbandWorldQuestTabButtonTemplate")
 	end
 
 	do -- Add content to QuestMapFrame
