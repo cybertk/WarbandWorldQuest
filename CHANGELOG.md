@@ -1,6 +1,13 @@
 # Changelog
 
-## v0.11 - 2025-05-29
+## v0.12 - 2025-06-25
+
+### Alpha Release
+
+- Now the World Map tab button can ajust its position automatically when other addons that added another tab buttons
+- New Addon Icon
+
+## v0.11 - 2025-06-14
 
 ### Alpha Release
 
