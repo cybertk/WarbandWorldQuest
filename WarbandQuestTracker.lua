@@ -30,9 +30,9 @@ function WarbandWorldQuest:Init()
 	self:Update(true)
 
 	WorldMapFrame:AddDataProvider(self.dataProvider)
-	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
+	for _, pin in ipairs({ WarbandQuestTrackerPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
-			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
+			WarbandQuestTrackerPage:HighlightRow(pin.questID, true)
 
 			if Settings:Get("pins_tooltip_shown") then
 				local tooltipModifier = Settings:Get("pins_tooltip_modifier")
@@ -44,22 +44,22 @@ function WarbandWorldQuest:Init()
 		end)
 
 		hooksecurefunc(pin, "OnMouseLeave", function(pin)
-			WarbandWorldQuestPage:HighlightRow(pin.questID, false)
+			WarbandQuestTrackerPage:HighlightRow(pin.questID, false)
 		end)
 	end
 
 	do -- Add tab to QuestMapFrame
-		CreateFrame("Frame", nil, QuestMapFrame, "WarbandWorldQuestTabButtonTemplate")
+		CreateFrame("Frame", nil, QuestMapFrame, "WarbandQuestTrackerTabButtonTemplate")
 	end
 
 	do -- Add content to QuestMapFrame
-		local content = CreateFrame("Frame", "WarbandWorldQuestPage", QuestMapFrame, "WarbandWorldQuestPageTemplate")
+		local content = CreateFrame("Frame", "WarbandQuestTrackerPage", QuestMapFrame, "WarbandQuestTrackerPageTemplate")
 		content:SetDataProvider(self.dataProvider)
 		table.insert(QuestMapFrame.ContentFrames, content)
 	end
 
 	if Settings:Get("log_is_default_tab") then
-		QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
+		QuestMapFrame:SetDisplayMode("WarbandQuestTracker")
 	end
 	self:AddTrackedQuestsToObjectivesPanel()
 
@@ -76,6 +76,37 @@ function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)
 	Util:Debug("Removed quest:", quest.ID, quest:GetName())
 end
 
+local QuestsFilter = {
+	remainingQuests = {
+		11813, -- Honor the Flame
+		11772, -- Desecrate the Fire!
+	},
+	filters = {},
+}
+
+function QuestsFilter:Load()
+	for i = #self.remainingQuests, 1, -1 do
+		local title = C_QuestLog.GetTitleForQuestID(self.remainingQuests[i])
+
+		if title then
+			self.filters[title] = true
+			table.remove(self.remainingQuests, i)
+		end
+	end
+
+	if #self.remainingQuests == 0 then
+		self.loaded = true
+	end
+end
+
+function QuestsFilter:Pass(info)
+	if not self.loaded then
+		self:Load()
+	end
+
+	return self.filters[C_QuestLog.GetTitleForQuestID(info.questID)]
+end
+
 function WarbandWorldQuest:Update(isNewScanSession)
 	if self.dataProvider == nil then
 		return
@@ -90,11 +121,25 @@ function WarbandWorldQuest:Update(isNewScanSession)
 		end
 	end
 
-	local changed = WorldQuestList:Scan(Settings:Get("maps_to_scan"), isNewScanSession)
-	if changed then
-		local secondsToReset = select(2, WorldQuestList:NextResetQuests()) - GetServerTime() + 60
+	if self.activeEvent == nil then
+		self.activeEvent = Util:GetCalendarActiveEvents()[341]
+	end
 
-		self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
+	local changed
+	if self.activeEvent then
+		changed = WorldQuestList:Scan(
+			Settings:Get("maps_to_scan"),
+			isNewScanSession,
+			GenerateClosure(QuestsFilter.Pass, QuestsFilter),
+			{ resetTime = Util:GetTimestampFromCalendarTime(self.activeEvent.endTime), tag = -1, tagName = self.activeEvent.title }
+		)
+	end
+
+	if changed then
+		local secondsToReset = (select(2, WorldQuestList:NextResetQuests()) or 0) - GetServerTime() + 60
+		if secondsToReset > 0 and secondsToReset < SECONDS_PER_DAY then
+			self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
+		end
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
 	end
 
@@ -120,15 +165,15 @@ function WarbandWorldQuest:SetRewardsClaimed(questID)
 end
 
 function WarbandWorldQuest:CreateDataProvider()
-	local dataProvider = CreateFromMixins(WarbandWorldQuestDataProviderMixin)
+	local dataProvider = CreateFromMixins(WarbandQuestTrackerDataProviderMixin)
 
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
 
-	Settings:InvokeAndRegisterCallback("pins_min_display_level", WarbandWorldQuestDataProviderMixin.SetMinPinDisplayLevel, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_progress_shown", WarbandWorldQuestDataProviderMixin.SetProgressOnPinShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_completed_shown", WarbandWorldQuestDataProviderMixin.SetPinOfCompletedQuestShown, dataProvider)
-	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", WarbandWorldQuestDataProviderMixin.SetShouldPopulateData, dataProvider, true)
+	Settings:InvokeAndRegisterCallback("pins_min_display_level", dataProvider.SetMinPinDisplayLevel, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", dataProvider.SetShouldPopulateData, dataProvider, true)
 
 	return dataProvider
 end
@@ -148,15 +193,15 @@ function WarbandWorldQuest:ExecuteChatCommands(command)
 		return
 	end
 
-	print("Usage: |n/wwq debug - Turn on/off debugging mode")
+	print("Usage: |n/wqt debug - Turn on/off debugging mode")
 end
 
 do
-	_G["WarbandWorldQuest"] = WarbandWorldQuest
+	_G["WarbandQuestTracker"] = WarbandWorldQuest
 
-	SLASH_WARBAND_WORLD_QUEST1 = "/WarbandWorldQuest"
-	SLASH_WARBAND_WORLD_QUEST2 = "/wwq"
-	function SlashCmdList.WARBAND_WORLD_QUEST(msg, editBox)
+	SLASH_WARBAND_QUEST_TRACKER1 = "/WarbandQuestTracker"
+	SLASH_WARBAND_QUEST_TRACKER2 = "/wqt"
+	function SlashCmdList.WARBAND_QUEST_TRACKER(msg, editBox)
 		WarbandWorldQuest:ExecuteChatCommands(msg)
 	end
 
@@ -200,12 +245,20 @@ do
 			characters = {},
 			resetStartTime = { [Enum.QuestTagType.Normal] = GetServerTime() },
 		}
-
+		-- /dump WorldMapFrame:GetMapID()
 		local DefaultWarbandWorldQuestSettings = {
 			["group_collapsed_states"] = {},
 			["maps_to_scan"] = {
 				[2274] = true, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
+				[876] = false, -- Kul Tiras
+				[875] = false, -- Zandalar
+				[619] = false, -- Broken Isles
+				[424] = false, -- Pandaria
+				[113] = false, -- Northend
+				[101] = false, -- Outland
+				[13] = false, -- Eastern Kingdoms
+				[12] = false, -- Kalimdor
 			},
 			["reward_type_filters"] = 1,
 			["pins_progress_shown"] = true,
@@ -218,26 +271,10 @@ do
 			["next_reset_exclude_types"] = {},
 		}
 
-		Settings:RegisterSettings("WarbandWorldQuestSettings", DefaultWarbandWorldQuestSettings)
-		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB
+		Settings:RegisterSettings("WarbandQuestTrackerSettings", DefaultWarbandWorldQuestSettings)
+		WarbandQuestTrackerDB = WarbandQuestTrackerDB or DefaultWarbandWorldQuestDB
 
-		do -- Migration
-			if type(WarbandWorldQuestDB.resetStartTime) == "number" then
-				WarbandWorldQuestDB.resetStartTime = { [2] = WarbandWorldQuestDB.resetStartTime }
-			end
-
-			if WarbandWorldQuestSettings.nextResetExcludeTypes then
-				WarbandWorldQuestSettings["next_reset_exclude_types"] = WarbandWorldQuestSettings.nextResetExcludeTypes
-				WarbandWorldQuestSettings.nextResetExcludeTypes = nil
-			end
-
-			if WarbandWorldQuestSettings.minPinDisplayLevel then
-				WarbandWorldQuestSettings["pins_min_display_level"] = WarbandWorldQuestSettings.minPinDisplayLevel
-				WarbandWorldQuestSettings.minPinDisplayLevel = nil
-			end
-		end
-
-		WarbandWorldQuest.db = WarbandWorldQuestDB
-		Util.debug = WarbandWorldQuestDB.debug
+		WarbandWorldQuest.db = WarbandQuestTrackerDB
+		Util.debug = WarbandQuestTrackerDB.debug
 	end)
 end

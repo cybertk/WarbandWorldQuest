@@ -26,12 +26,14 @@ end
 function Character:_Init()
 	local _localizedClassName, classFile, _classID = UnitClass("player")
 	local _englishFactionName, localizedFactionName = UnitFactionGroup("player")
+	local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
 
 	self.name = UnitName("player")
 	self.GUID = UnitGUID("player")
 	self.realmName = GetRealmName()
 	self.level = UnitLevel("player")
 	self.factionName = localizedFactionName
+	self.factionGroup = factionNameToEnum[_englishFactionName]
 	self.class = classFile
 	self.rewards = {}
 	self.updatedAt = GetServerTime()

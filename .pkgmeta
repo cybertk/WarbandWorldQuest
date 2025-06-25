@@ -1,4 +1,4 @@
-package-as: WarbandWorldQuest
+package-as: WarbandQuestTracker
 
 enable-nolib-creation: no
 

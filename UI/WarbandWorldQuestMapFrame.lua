@@ -6,16 +6,23 @@ local WorldQuestList = ns.WorldQuestList
 local CharacterStore = ns.CharacterStore
 local Settings = ns.Settings
 
-WarbandWorldQuestNextResetButtonMixin = {}
+local WarbandWorldQuestNextResetButtonMixin = {}
+WarbandQuestTrackerNextResetButtonMixin = WarbandWorldQuestNextResetButtonMixin
 
 function WarbandWorldQuestNextResetButtonMixin:OnLoad()
 	self.settingsKey = "next_reset_exclude_types"
 
-	self:SetupMenu(function(_, rootMenu)
-		rootMenu:CreateTitle("Exclude World Quest Types")
+	if self.shouldShowMenu ~= true then
+		return
+	end
 
-		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
-		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
+	self:SetupMenu(function(_, rootMenu)
+		Settings:CreateMenuTree(self.settingsKey, rootMenu, "Exclude Quest Types", WorldQuestList:GetAllTags())
+
+		-- rootMenu:CreateTitle("Exclude Quest Types")
+
+		-- Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
+		-- Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
 	end)
 
 	Settings:InvokeAndRegisterCallback(self.settingsKey, self.Update, self)
@@ -40,13 +47,20 @@ function WarbandWorldQuestNextResetButtonMixin:OnEnter()
 	)
 	tooltip:AddLine(" ")
 	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Quests Count:|r |cnWHITE_FONT_COLOR:%d|r", #quests))
-	for _, quest in ipairs(quests) do
-		local icon = CreateAtlasMarkup(QuestUtil.GetWorldQuestAtlasInfo(quest.ID, C_QuestLog.GetQuestTagInfo(quest.ID)))
+
+	for i = 1, min(#quests, 10) do
+		local quest = quests[i]
+		local icon =
+			CreateAtlasMarkup(quest.tag > 0 and QuestUtil.GetWorldQuestAtlasInfo(quest.ID, C_QuestLog.GetQuestTagInfo(quest.ID)) or "QuestLog-tab-icon-quest")
 
 		tooltip:AddDoubleLine(
 			format("|cnWHITE_FONT_COLOR:%s %s|r", icon, quest:GetName()),
 			EVENT_SCHEDULER_LOCATION_COLOR_CODE .. C_Map.GetMapInfo(quest.map).name .. "|r"
 		)
+	end
+
+	if #quests > 10 then
+		tooltip:AddLine("|n" .. CONTINUED)
 	end
 
 	tooltip:Show()
@@ -56,7 +70,8 @@ function WarbandWorldQuestNextResetButtonMixin:OnLeave()
 	GetAppropriateTooltip():Hide()
 end
 
-WarbandWorldQuestCharactersButtonMixin = {}
+local WarbandWorldQuestCharactersButtonMixin = {}
+WarbandQuestTrackerCharactersButtonMixin = WarbandWorldQuestCharactersButtonMixin
 
 function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 	Settings:InvokeAndRegisterCallback("next_reset_exclude_types", self.Update, self)
@@ -159,7 +174,8 @@ function WarbandWorldQuestCharactersButtonMixin:OnLeave()
 	GetAppropriateTooltip():Hide()
 end
 
-WarbandWorldQuestSettingsButtonMixin = {}
+local WarbandWorldQuestSettingsButtonMixin = {}
+WarbandQuestTrackerSettingsButtonMixin = WarbandWorldQuestSettingsButtonMixin
 
 function WarbandWorldQuestSettingsButtonMixin:OnMouseDown()
 	self.Icon:AdjustPointsOffset(1, -1)
@@ -204,15 +220,15 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 
 			pinsMenu:CreateCheckbox(
 				"Show Pins on the Continent Maps",
-				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.Continent),
-				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.Continent, Enum.UIMapType.Zone })
+				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.World),
+				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.World, Enum.UIMapType.Zone })
 			)
 
 			Settings:CreateCheckboxMenu("pins_completed_shown", pinsMenu, "Show Pins for Completed Quests")
 		end
 
 		do -- Quest Log
-			local logMenu = rootMenu:CreateButton("World Quest Log")
+			local logMenu = rootMenu:CreateButton("Quest Log")
 
 			Settings:CreateCheckboxMenu(
 				"log_is_default_tab",
@@ -239,9 +255,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName, MenuResponse.CloseAll)
 		end
 
-		rootMenu:CreateDivider()
-
-		do -- Rewards Filter
+		if self.shouldShowFilter then -- Rewards Filter
+			rootMenu:CreateDivider()
 			rootMenu:CreateTitle("Rewards Filter")
 
 			for i, rewardType in ipairs(QuestRewards.RewardTypes) do
@@ -265,7 +280,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 	end)
 end
 
-WarbandWorldQuestHeaderMixin = {}
+local WarbandWorldQuestHeaderMixin = {}
+WarbandQuestTrackerHeaderMixin = WarbandWorldQuestHeaderMixin
 
 function WarbandWorldQuestHeaderMixin:Init(elementData)
 	self.ButtonText:SetText(format("%s (%d)", elementData.name, elementData.numQuests))
@@ -334,8 +350,9 @@ function WarbandWorldQuestHeaderMixin:OnMouseUp()
 	self.CollapseButton:UpdatePressedState(pressed)
 end
 
-WarbandWorldQuestEntryMixin = {}
+local WarbandWorldQuestEntryMixin = {}
 WarbandWorldQuestEntryMixin.MaxNameWidth = 205
+WarbandQuestTrackerEntryMixin = WarbandWorldQuestEntryMixin
 
 function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.data = elementData
@@ -344,8 +361,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
 	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
 
-	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
-	self.IconButton:Update(elementData.quest.ID)
+	self.IconButton:Update(elementData.quest)
 
 	self:UpdateStatus()
 	self:UpdateProgress()
@@ -381,6 +397,10 @@ function WarbandWorldQuestEntryMixin:UpdateLocation(mapID)
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
+	if not self.shouldShowTimeLeft then
+		return ""
+	end
+
 	return Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - "
 end
 
@@ -469,12 +489,20 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 
 	tooltip:SetOwner(self, "ANCHOR_RIGHT")
 	tooltip:SetText(quest:GetName(), 1, 1, 1)
+	if quest.faction then
+		local color = CharacterStore.Get():CurrentPlayer().factionGroup == quest.faction and GREEN_FONT_COLOR or RED_FONT_COLOR
+		tooltip:AddLine(color:WrapTextInColorCode(quest.faction == 1 and ITEM_REQ_ALLIANCE or ITEM_REQ_HORDE))
+	end
 	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Time Left:|r |cnWHITE_FONT_COLOR:%s|r", Util.FormatTimeDuration(quest.resetTime - GetServerTime())))
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine(format("Characters Scanned: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
 	tooltip:AddLine(format("Characters Completed: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
-	for _, character in self.owner.dataProvider:EnumerateCharacters() do
+
+	local excludeFaction = function(character)
+		return quest.faction == nil or quest.faction == character.factionGroup
+	end
+	for _, character in self.owner.dataProvider:EnumerateCharacters(excludeFaction) do
 		local rewards = character:GetRewards(quest.ID)
 
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
@@ -494,7 +522,8 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	tooltip:Show()
 end
 
-WarbandWorldQuestIconButtonMixin = {}
+local WarbandWorldQuestIconButtonMixin = {}
+WarbandQuestTrackerIconButtonMixin = WarbandWorldQuestIconButtonMixin
 
 function WarbandWorldQuestIconButtonMixin:OnMouseDown()
 	self.Display:SetPoint("CENTER", 1, -1)
@@ -506,21 +535,13 @@ function WarbandWorldQuestIconButtonMixin:OnMouseUp()
 	self:GetParent():ToggleTracked()
 end
 
-function WarbandWorldQuestIconButtonMixin:Update(questID)
-	local tag = C_QuestLog.GetQuestTagInfo(questID)
-
-	self.Display:SetAtlas(QuestUtil.GetWorldQuestAtlasInfo(questID, tag))
-
-	if tag.worldQuestType == Enum.QuestTagType.Capstone then
-		self.Underlay:SetAtlas("worldquest-Capstone-Banner", true)
-	elseif tag.isElite then
-		self.Underlay:SetAtlas("worldquest-questmarker-dragon", true)
-	else
-		self.Underlay:SetAtlas(nil)
-	end
+function WarbandWorldQuestIconButtonMixin:Update(quest)
+	self.Display:SetAtlas("Quest-In-Progress-Icon-yellow", true)
+	self.Underlay:SetAtlas(nil)
 end
 
-WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)
+local WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)
+WarbandQuestTrackerTabButtonMixin = WarbandWorldQuestTabButtonMixin
 
 function WarbandWorldQuestTabButtonMixin:OnLoad()
 	self.Icon:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
@@ -540,7 +561,8 @@ function WarbandWorldQuestTabButtonMixin:OnMouseUp(button, upInside)
 	end
 end
 
-WarbandWorldQuestPageMixin = {}
+local WarbandWorldQuestPageMixin = CreateFromMixins(QuestLogTabButtonMixin)
+WarbandQuestTrackerPageMixin = WarbandWorldQuestPageMixin
 
 function WarbandWorldQuestPageMixin:OnLoad()
 	local indent = 0
@@ -557,7 +579,7 @@ function WarbandWorldQuestPageMixin:OnLoad()
 			frame:Init(data)
 		end
 
-		local template = data.isHeader and "WarbandWorldQuestHeaderTemplate" or "WarbandWorldQuestEntryTemplate"
+		local template = data.isHeader and "WarbandQuestTrackerHeaderTemplate" or "WarbandQuestTrackerEntryTemplate"
 
 		factory(template, Initializer)
 	end)
@@ -649,14 +671,6 @@ function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)
 	pin:ChangeSelected(shown)
 	self.highlightPin = shown and pin or nil
 	self.highlightQuest = nil
-
-	if self.pinsHooked[pin] == nil then
-		hooksecurefunc(pin, "RefreshVisuals", function(pin)
-			if pin == self.highlightPin then
-				pin:ChangeSelected(true)
-			end
-		end)
-	end
 end
 
 function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)

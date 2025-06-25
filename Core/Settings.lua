@@ -139,10 +139,20 @@ function Settings:GenerateRotator(key, values)
 end
 
 function Settings:CreateMenuTree(key, menu, text, submenuTextGetter, response)
+	local allKeys = self.settings[key]
+	local textGetter = submenuTextGetter
+
+	if type(submenuTextGetter) == "table" then
+		allKeys = submenuTextGetter
+		textGetter = function(index)
+			return submenuTextGetter[index]
+		end
+	end
+
 	local rootMenu = menu:CreateButton(text)
 
-	for index in pairs(self.settings[key]) do
-		self:CreateCheckboxMenu(key, rootMenu, submenuTextGetter(index), index, nil, response)
+	for index in pairs(allKeys) do
+		self:CreateCheckboxMenu(key, rootMenu, textGetter(index), index, nil, response)
 	end
 end
 

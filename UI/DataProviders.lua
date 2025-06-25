@@ -8,14 +8,18 @@ local QuestRewards = ns.QuestRewards
 local WarbandWorldQuestDataRowMixin = {}
 
 function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
+	character = character or CharacterStore.Get():CurrentPlayer()
+
 	if not self.isActive then
 		return GRAY_FONT_COLOR:GenerateHexColor()
 	end
 
 	local color
-	local rewards = (character or CharacterStore.Get():CurrentPlayer()):GetRewards(self.quest.ID)
+	local rewards = character:GetRewards(self.quest.ID)
 
-	if rewards == nil then
+	if self.quest.faction and self.quest.faction ~= character.factionGroup then
+		color = RED_FONT_COLOR
+	elseif rewards == nil then
 		color = GRAY_FONT_COLOR
 	elseif rewards:IsClaimed() then
 		color = GREEN_FONT_COLOR
@@ -28,7 +32,8 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 	return color:GenerateHexColor()
 end
 
-WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
+local WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, QuestDataProviderMixin)
+WarbandQuestTrackerDataProviderMixin = WarbandWorldQuestDataProviderMixin
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.rows = {}
@@ -39,15 +44,17 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.groupState = {}
 	self.shouldPopulateData = true
 
+	self.activePins = {}
+
 	self.minPinDisplayLevel = Enum.UIMapType.Continent
 	self.maxPinDisplayLevel = Enum.UIMapType.Zone
 
 	self:Init()
 end
 
-function WarbandWorldQuestDataProviderMixin:EnumerateCharacters()
+function WarbandWorldQuestDataProviderMixin:EnumerateCharacters(predicate)
 	return CreateTableEnumerator(CharacterStore.Get():ForEach(nop, function(character)
-		return CharacterStore.IsCurrentPlayer(character) or character.enabled
+		return (CharacterStore.IsCurrentPlayer(character) or character.enabled) and (predicate == nil or predicate(character))
 	end))
 end
 
@@ -69,17 +76,20 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 	for _, quest in ipairs(WorldQuestList:GetAllQuests()) do
 		local rewards = {}
 		local progress = { total = 0, unknown = 0, claimed = 0 }
+		local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
 
 		for _, character in self:EnumerateCharacters() do
-			rewards[character] = character.rewards[quest.ID]
+			if quest.faction == nil or quest.faction == character.factionGroup then
+				rewards[character] = character.rewards[quest.ID]
 
-			if rewards[character] == nil then
-				progress.unknown = progress.unknown + 1
-			elseif rewards[character]:IsClaimed() then
-				progress.claimed = progress.claimed + 1
+				if rewards[character] == nil then
+					progress.unknown = progress.unknown + 1
+				elseif rewards[character]:IsClaimed() then
+					progress.claimed = progress.claimed + 1
+				end
+
+				progress.total = progress.total + 1
 			end
-
-			progress.total = progress.total + 1
 		end
 
 		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
@@ -88,6 +98,10 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 		table.insert(rows, row)
 	end
+
+	table.sort(rows, function(x, y)
+		return C_Map.GetMapInfo(x.quest.map).name < C_Map.GetMapInfo(y.quest.map).name
+	end)
 
 	self.rows = rows
 	self.shouldPopulateData = false
@@ -137,27 +151,22 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		return
 	end
 
-	local groups = {
-		{
-			name = "Active Quests",
-			rows = {},
-			virtual = true,
-		},
-		{
-			name = "Inactive",
-			rows = {},
-		},
-	}
+	local groups = { continents = {} }
+	function groups:GetOrCreate(mapID)
+		local map = Util:GetContinentMap(mapID)
+
+		if self.continents[map.mapID] == nil then
+			self.continents[map.mapID] = { name = map.name, rows = {} }
+			table.insert(groups, self.continents[map.mapID])
+		end
+
+		return self.continents[map.mapID]
+	end
 
 	for _, row in ipairs(self.rows) do
-		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFilters) and not row.quest:IsInactive() then
-			row.isActive = true
-			table.insert(groups[1].rows, row)
-			table.insert(self.activeQuests, row.quest)
-		else
-			row.isActive = false
-			table.insert(groups[2].rows, row)
-		end
+		row.isActive = true
+		table.insert(groups:GetOrCreate(row.quest.map).rows, row)
+		table.insert(self.activeQuests, row.quest)
 	end
 
 	local rows = {}
@@ -228,7 +237,8 @@ end
 
 function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	local questID = pin.questID
-	if not WorldQuestList:IsActiveQuest(questID) then
+	local quest = WorldQuestList:GetQuest(questID)
+	if not quest then
 		return
 	end
 
@@ -245,11 +255,14 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	end
 
 	local offset = self.tooltipPadding and -self.tooltipPadding or 0
+	local excludeFaction = function(character)
+		return quest.faction == nil or quest.faction == character.factionGroup
+	end
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine("Warband Progress", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, false, offset)
 
-	for _, character in self:EnumerateCharacters() do
+	for _, character in self:EnumerateCharacters(excludeFaction) do
 		local rewards = character:GetRewards(questID)
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
 
@@ -296,7 +309,7 @@ end
 function WarbandWorldQuestDataProviderMixin:EnumeratePinsByPredicate(predicate)
 	local pins = {}
 
-	for _, template in ipairs({ self:GetPinTemplate(), WorldMap_WorldQuestDataProviderMixin:GetPinTemplate() }) do
+	for _, template in ipairs({ self:GetPinTemplate() }) do
 		for pin in self:GetMap():EnumeratePinsByTemplate(template) do
 			if predicate(pin) then
 				table.insert(pins, pin)
@@ -347,17 +360,17 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 	local mapType = C_Map.GetMapInfo(mapID).mapType
 
 	local quests = (mapType < self.minPinDisplayLevel or mapType > self.maxPinDisplayLevel) and {}
-		or self:EnumerateActiveQuestsByMapID(mapID, self.showPinOfCompletedQuest, mapType == Enum.UIMapType.Zone)
+		or self:EnumerateActiveQuestsByMapID(mapID, self.showPinOfCompletedQuest, false)
 
 	for position, quest in pairs(quests) do
 		local pin = self.activePins[quest.ID]
 
 		if pin then
-			pin:RefreshVisuals()
+			-- pin:RefreshVisuals()
 			pin:SetPosition(unpack(position))
 			pin:AddIconWidgets()
 		else
-			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
+			pin = self:AddQuest(quest:GetQuestPOIMapInfo())
 			pin:SetPosition(unpack(position))
 			self.activePins[quest.ID] = pin
 
@@ -377,10 +390,11 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 end
 
 function WarbandWorldQuestDataProviderMixin:GetPinTemplate()
-	return "WarbandWorldQuestPinTemplate"
+	return "WarbandQuestTrackerPinTemplate"
 end
 
-WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)
+local WarbandWorldQuestPinMixin = CreateFromMixins(QuestPinMixin)
+WarbandQuestTrackerPinMixin = WarbandWorldQuestPinMixin
 
 function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
 

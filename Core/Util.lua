@@ -173,6 +173,22 @@ function Util:DungeonToQuest(dungeonID)
 	return dungeonID + 9000000
 end
 
+function Util:GetContinentMap(mapID)
+	local map = C_Map.GetMapInfo(mapID)
+
+	if map.mapType <= Enum.UIMapType.Continent then
+		return map
+	end
+
+	return Util:GetContinentMap(map.parentMapID)
+end
+
+function Util:UnitFactionGroupEnum(unitName)
+	local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
+
+	return factionNameToEnum[UnitFactionGroup(unitName)]
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

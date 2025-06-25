@@ -2,11 +2,11 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\..\..\..\WoW\Data\Interface\AddOns\Blizzard_SharedXML\UI.xsd">
 	<Script file="WarbandWorldQuestMapFrame.lua" />
 
-	<Button name="WarbandWorldQuestEntryTemplate" mixin="WarbandWorldQuestEntryMixin" enableMouse="true" virtual="true">
+	<Button name="WarbandQuestTrackerEntryTemplate" mixin="WarbandQuestTrackerEntryMixin" enableMouse="true" virtual="true">
 		<Size x="295" y="0" />
 		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
 		<Frames>
-			<Button parentKey="IconButton" mixin="WarbandWorldQuestIconButtonMixin">
+			<Button parentKey="IconButton" mixin="WarbandQuestTrackerIconButtonMixin">
 				<Size x="28" y="28" />
 				<Anchors>
 					<Anchor point="TOPLEFT" />
@@ -37,7 +37,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true">
+				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true" hidden="true">
 					<Anchors>
 						<Anchor point="TOPLEFT" />
 						<Anchor point="BOTTOMRIGHT" />
@@ -75,6 +75,7 @@
 					<Size x="0" y="0" />
 					<Anchors>
 						<Anchor point="LEFT" relativeKey="$parent.TimeLeft" relativePoint="RIGHT" />
+						<Anchor point="TOP" relativeKey="$parent.Name" relativePoint="BOTTOM" y="-4" />
 					</Anchors>
 					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
 				</FontString>
@@ -96,7 +97,7 @@
 		</Scripts>
 	</Button>
 
-	<Button name="WarbandWorldQuestHeaderTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
+	<Button name="WarbandQuestTrackerHeaderTemplate" mixin="WarbandQuestTrackerHeaderMixin" virtual="true">
 		<Size x="295" y="0" />
 		<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
 			<Size x="234" y="10" />
@@ -125,10 +126,10 @@
 		</Scripts>
 	</Button>
 
-	<Frame name="WarbandWorldQuestTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandWorldQuestTabButtonMixin" virtual="true">
+	<Frame name="WarbandQuestTrackerTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandQuestTrackerTabButtonMixin" virtual="true">
 		<KeyValues>
-			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
-			<KeyValue key="tooltipText" value="Warband World Quest" type="string" />
+			<KeyValue key="displayMode" value="WarbandQuestTracker" type="string" />
+			<KeyValue key="tooltipText" value="Warband Quest Tracker" type="string" />
 		</KeyValues>
 		<Layers>
 			<Layer level="ARTWORK">
@@ -146,9 +147,9 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="WarbandWorldQuestPageTemplate" mixin="WarbandWorldQuestPageMixin" hidden="true" enableMouse="true" virtual="true">
+	<Frame name="WarbandQuestTrackerPageTemplate" mixin="WarbandQuestTrackerPageMixin" hidden="true" enableMouse="true" virtual="true">
 		<KeyValues>
-			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
+			<KeyValue key="displayMode" value="WarbandQuestTracker" type="string" />
 		</KeyValues>
 		<Anchors>
 			<Anchor point="TOPLEFT" relativeKey="$parent.ContentsAnchor" y="-29" />
@@ -161,7 +162,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<DropdownButton parentKey="SettingsDropdown" mixin="WarbandWorldQuestSettingsButtonMixin">
+			<DropdownButton parentKey="SettingsDropdown" mixin="WarbandQuestTrackerSettingsButtonMixin">
 				<Size x="15" y="16" />
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="19" y="25" />
@@ -223,7 +224,7 @@
 					<Anchor point="CENTER" />
 				</Anchors>
 			</Frame>
-			<DropdownButton parentKey="NextResetButton" mixin="WarbandWorldQuestNextResetButtonMixin">
+			<DropdownButton parentKey="NextResetButton" mixin="WarbandQuestTrackerNextResetButtonMixin">
 				<Size y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
 					<Anchors>
@@ -243,7 +244,7 @@
 					<OnMouseDown method="OnLeave" />
 				</Scripts>
 			</DropdownButton>
-			<DropdownButton parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
+			<DropdownButton parentKey="CharactersButton" mixin="WarbandQuestTrackerCharactersButtonMixin">
 				<Size x="60" y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
 					<Anchors>
