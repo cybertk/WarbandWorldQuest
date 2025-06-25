@@ -2,7 +2,7 @@ local _, ns = ...
 
 local Util = ns.Util
 
-local QuestRewards = ns.QuestRewards
+local Encounter = ns.Encounter
 
 local Character = { enabled = true }
 Character.__index = Character
@@ -16,8 +16,8 @@ function Character:New(o)
 		Character._Init(o)
 	end
 
-	for _, rewards in pairs(o.rewards) do
-		setmetatable(rewards, QuestRewards)
+	for _, encounter in pairs(o.encounters) do
+		setmetatable(encounter, Encounter)
 	end
 
 	return o
@@ -26,14 +26,16 @@ end
 function Character:_Init()
 	local _localizedClassName, classFile, _classID = UnitClass("player")
 	local _englishFactionName, localizedFactionName = UnitFactionGroup("player")
+	local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
 
 	self.name = UnitName("player")
 	self.GUID = UnitGUID("player")
 	self.realmName = GetRealmName()
 	self.level = UnitLevel("player")
 	self.factionName = localizedFactionName
+	self.factionGroup = factionNameToEnum[_englishFactionName]
 	self.class = classFile
-	self.rewards = {}
+	self.encounters = {}
 	self.updatedAt = GetServerTime()
 
 	Util:Debug("Initialized new character:", self.name)
@@ -76,35 +78,45 @@ function Character:CleanupRewards(activeQuests)
 	end
 end
 
-function Character:SetQuests(quests)
-	Character.Quests = Util:Filter(quests, function(quest)
-		local rewards = self:GetRewards(quest.ID)
+function Character:GetEncounter(encounterID)
+	self.encounters = self.encounters or {}
+	return self.encounters[encounterID]
+end
 
-		return rewards == nil or not rewards:IsClaimed()
+function Character:SetEncounters(encounters)
+	Character.Encounters = Util:Filter(encounters, function(encounterID)
+		local encounter = self:GetEncounter(encounterID)
+
+		return encounter == nil or not encounter:IsAllDifficultiesComplete()
 	end)
 
-	Util:Debug("Quests to update:", #Character.Quests, #quests)
+	Util:Debug("Encounters to update:", #Character.Encounters, #encounters)
 end
 
 function Character:Update()
-	if self.Quests == nil or #self.Quests == 0 then
+	if self.Encounters == nil or #self.Encounters == 0 then
 		return
 	end
 
-	for i = #self.Quests, 1, -1 do
-		local rewards = QuestRewards:Create(self.Quests[i].ID)
+	for i = #self.Encounters, 1, -1 do
+		local encounter = self:GetEncounter(self.Encounters[i])
 
-		if rewards then
-			self.rewards[self.Quests[i].ID] = rewards
-			table.remove(self.Quests, i)
+		if encounter == nil then
+			self.encounters[self.Encounters[i]] = Encounter:Create(self.Encounters[i])
+		else
+			encounter:Update(self.Encounters[i])
+		end
+
+		if encounter then
+			table.remove(self.Encounters, i)
 		end
 	end
 
-	Util:Debug("Remaining quests:", #self.Quests)
+	Util:Debug("Remaining encounters:", #self.Encounters)
 
-	if #self.Quests == 0 then
+	if #self.Encounters == 0 then
 		self.updatedAt = GetServerTime()
-		Util:TriggerEventAsync("CharacterStore.CharacterStateChanged")
+		-- Util:TriggerEventAsync("CharacterStore.CharacterStateChanged")
 
 		return true
 	end

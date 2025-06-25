@@ -11,7 +11,7 @@ L["next_reset_tooltip_quest_num"] = "Quests Count: |cnWHITE_FONT_COLOR:%d|r"
 L["characters_dropdown_title"] = "Exclude Characters"
 L["characters_dropdown_instruction"] = "Press %s to delete the character"
 L["characters_tooltip_title"] = "Tracked Characters Status"
-L["characters_tooltip_last_reset_time"] = "Last World Quests Reset Time: |cnWHITE_FONT_COLOR:%s|r"
+L["characters_tooltip_last_reset_time"] = "Last Instance Reset Time: |cnWHITE_FONT_COLOR:%s|r"
 
 L["settings_pins_progress_label_shown_text"] = "Warband Progress Label"
 L["settings_pins_tooltip_progress_shown_text"] = "Progress in Tooltip"
@@ -31,4 +31,12 @@ L["settings_filters_title"] = "Quest Filters by Rewards"
 
 L["log_entry_tooltip_characters_scanned"] = "Characters Scanned"
 L["log_entry_tooltip_characters_completed"] = "Characters Completed"
+L["log_entry_tooltip_characters_pending"] = "Characters Pending"
+L["log_entry_tooltip_characters_unknown"] = "Characters Unknown"
 L["log_entry_tooltip_total_rewards"] = "Total Warband Rewards:"
+L["log_entry_tooltip_attempts_reset"] = "This CD Attempts: %s"
+L["log_entry_tooltip_attempts_total"] = "Total Attempts: %s"
+
+L["log_enounter_tooltip_difficulity_instruction"] = "%s(Set)"
+
+L["log_entry_position_unknown"] = "Position of %s is unknown"

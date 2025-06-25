@@ -1,12 +1,171 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\..\..\..\WoW\Data\Interface\AddOns\Blizzard_SharedXML\UI.xsd">
 	<Script file="WarbandWorldQuestMapFrame.lua" />
+	<Script file="WarbandRewardsTrackerEntry.lua" />
 
-	<Button name="WarbandWorldQuestEntryTemplate" mixin="WarbandWorldQuestEntryMixin" enableMouse="true" virtual="true">
+	<Button name="WarbandRewardsTrackerEncounterProgressButtonTemplate" mixin="WarbandRewardsTrackerEncounterProgressButtonMixin" enableMouse="true" virtual="true">
+		<Size x="32" y="31" />
+		<NormalTexture file="Interface\EncounterJournal\UI-EncounterJournalTextures">
+			<TexCoords left="0.84960938" right="0.97070313" top="0.42871094" bottom="0.48828125" />
+		</NormalTexture>
+		<PushedTexture file="Interface\EncounterJournal\UI-EncounterJournalTextures">
+			<TexCoords left="0.77734375" right="0.89843750" top="0.26953125" bottom="0.32910156" />
+		</PushedTexture>
+		<HighlightTexture file="Interface\EncounterJournal\UI-EncounterJournalTextures">
+			<TexCoords left="0.68945313" right="0.81054688" top="0.33300781" bottom="0.39257813" />
+		</HighlightTexture>
+		<Frames>
+			<Frame parentKey="DefeatedOverlay" setAllPoints="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="DefeatedCross" atlas="Map-MarkedDefeated" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="BOTTOMRIGHT" x="4" y="-4" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background">
+					<Size x="18" y="18" />
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="DefeatedOpacity" hidden="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Background" relativePoint="TOPLEFT" x="-1" y="1" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background" relativePoint="BOTTOMRIGHT" x="1" y="-1" />
+					</Anchors>
+					<Color r="0.0" g="0.0" b="0.0" a="0.4" />
+				</Texture>
+				<MaskTexture parentKey="OpacityCircleMask" file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.DefeatedOpacity" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.DefeatedOpacity" />
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="DefeatedOpacity" />
+					</MaskedTextures>
+				</MaskTexture>
+				<FontString parentKey="Difficulty" inherits="GameFontHighlightExtraSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="3" y="3" />
+					</Anchors>
+					<!-- <Color color="GREEN_FONT_COLOR" /> -->
+				</FontString>
+				<FontString parentKey="Progress" inherits="GameFontHighlightExtraSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="TOP" relativePoint="TOP" x="0" y="7" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter method="OnEnter" />
+			<OnLeave method="OnLeave" />
+			<OnMouseUp method="OnClick" />
+		</Scripts>
+	</Button>
+
+	<Button name="WarbandRewardsTrackerInstanceEntryTemplate" mixin="WarbandRewardsTrackerInstanceEntryMixin" enableMouse="true" virtual="true">
 		<Size x="295" y="0" />
 		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
 		<Frames>
-			<Button parentKey="IconButton" mixin="WarbandWorldQuestIconButtonMixin">
+			<Button parentKey="IconButton" mixin="WarbandRewardSourceIconButtonMixin">
+				<Size x="28" y="28" />
+				<Anchors>
+					<Anchor point="TOPLEFT" />
+				</Anchors>
+
+				<HighlightTexture atlas="UI-QuestPoi-OuterGlow" alphaMode="ADD" alpha="0.4" />
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Underlay">
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Display">
+							<Anchors>
+								<Anchor point="CENTER" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnMouseDown method="OnMouseDown" />
+					<OnMouseUp method="OnMouseUp" />
+				</Scripts>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true" hidden="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" />
+						<Anchor point="BOTTOMRIGHT" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlight" maxLines="1" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="30" y="-5" />
+					</Anchors>
+					<Color color="WHITE_FONT_COLOR" />
+				</FontString>
+				<FontString parentKey="Status" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Name" relativePoint="RIGHT" x="5" y="0" />
+					</Anchors>
+					<!-- <Color color="WHITE_FONT_COLOR" /> -->
+				</FontString>
+				<FontString parentKey="Progress" inherits="GameFontNormalSmall" maxLines="1" justifyH="RIGHT">
+					<Size x="60" y="0" />
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="-14" y="-5" />
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TimeLeft" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-4" />
+					</Anchors>
+					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
+				</FontString>
+				<FontString parentKey="Location" inherits="GameFontNormalSmall" maxLines="1" justifyH="LEFT">
+					<Size x="0" y="0" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.TimeLeft" relativePoint="RIGHT" />
+						<Anchor point="TOP" relativeKey="$parent.Name" relativePoint="BOTTOM" y="-4" />
+					</Anchors>
+					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter method="OnEnter" />
+			<OnLeave method="OnLeave" />
+			<OnMouseUp method="OnClick" />
+		</Scripts>
+	</Button>
+
+	<Button name="WarbandQuestTrackerEntryTemplate" mixin="WarbandQuestTrackerEntryMixin" enableMouse="true" virtual="true">
+		<Size x="295" y="0" />
+		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
+		<Frames>
+			<Button parentKey="IconButton" mixin="WarbandQuestTrackerIconButtonMixin">
 				<Size x="28" y="28" />
 				<Anchors>
 					<Anchor point="TOPLEFT" />
@@ -37,7 +196,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true">
+				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true" hidden="true">
 					<Anchors>
 						<Anchor point="TOPLEFT" />
 						<Anchor point="BOTTOMRIGHT" />
@@ -97,7 +256,7 @@
 		</Scripts>
 	</Button>
 
-	<Button name="WarbandWorldQuestHeaderTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
+	<Button name="WarbandQuestTrackerHeaderTemplate" mixin="WarbandQuestTrackerHeaderMixin" virtual="true">
 		<Size x="295" y="0" />
 		<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
 			<Size x="234" y="10" />
@@ -127,10 +286,10 @@
 		</Scripts>
 	</Button>
 
-	<Frame name="WarbandWorldQuestTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandWorldQuestTabButtonMixin" virtual="true">
+	<Frame name="WarbandQuestTrackerTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandQuestTrackerTabButtonMixin" virtual="true">
 		<KeyValues>
-			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
-			<KeyValue key="tooltipText" value="Warband World Quest" type="string" />
+			<KeyValue key="displayMode" value="WarbandQuestTracker" type="string" />
+			<KeyValue key="tooltipText" value="Warband Rewards Tracker" type="string" />
 		</KeyValues>
 		<Layers>
 			<Layer level="ARTWORK">
@@ -148,9 +307,9 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="WarbandWorldQuestPageTemplate" mixin="WarbandWorldQuestPageMixin" hidden="true" enableMouse="true" virtual="true">
+	<Frame name="WarbandQuestTrackerPageTemplate" mixin="WarbandQuestTrackerPageMixin" hidden="true" enableMouse="true" virtual="true">
 		<KeyValues>
-			<KeyValue key="displayMode" value="WarbandWorldQuest" type="string" />
+			<KeyValue key="displayMode" value="WarbandQuestTracker" type="string" />
 		</KeyValues>
 		<Anchors>
 			<Anchor point="TOPLEFT" relativeKey="$parent.ContentsAnchor" y="-29" />
@@ -163,7 +322,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<DropdownButton parentKey="SettingsDropdown" mixin="WarbandWorldQuestSettingsButtonMixin">
+			<DropdownButton parentKey="SettingsDropdown" mixin="WarbandQuestTrackerSettingsButtonMixin">
 				<Size x="15" y="16" />
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="19" y="25" />
@@ -225,7 +384,7 @@
 					<Anchor point="CENTER" />
 				</Anchors>
 			</Frame>
-			<DropdownButton parentKey="NextResetButton" mixin="WarbandWorldQuestNextResetButtonMixin">
+			<DropdownButton parentKey="NextResetButton" mixin="WarbandQuestTrackerNextResetButtonMixin">
 				<Size y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
 					<Anchors>
@@ -245,7 +404,7 @@
 					<OnMouseDown method="OnLeave" />
 				</Scripts>
 			</DropdownButton>
-			<DropdownButton parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
+			<DropdownButton parentKey="CharactersButton" mixin="WarbandQuestTrackerCharactersButtonMixin">
 				<Size x="60" y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
 					<Anchors>

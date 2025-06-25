@@ -7,24 +7,39 @@ local RewardTypes = ns.RewardTypes
 local WorldQuest = {
 	nameCache = {},
 	positionCache = {},
+	tagCache = {},
 }
 WorldQuest.__index = WorldQuest
 
-function WorldQuest:Create(info)
-	local o = {
+function WorldQuest:Create(info, ...)
+	local o = Mixin({
 		ID = info.questID,
 		map = info.mapID,
 		x = info.x,
 		y = info.y,
-	}
+	}, ...)
 
 	setmetatable(o, self)
 
 	if not HaveQuestRewardData(o.ID) then
 		C_TaskQuest.RequestPreloadRewardData(o.ID)
+		C_QuestLog.RequestLoadQuestByID(o.ID)
 		Util:Debug("Reward data is not available", o.ID, o:GetName(), C_TaskQuest.GetQuestTimeLeftSeconds(o.ID))
 		return
 	end
+
+	if o.tag == nil then
+		local info = C_QuestLog.GetQuestTagInfo(o.ID)
+		if info then
+			o.tag = info.tagID
+			self.tagCache[info.tagID] = info.tagName
+		end
+	elseif o.tagName then
+		self.tagCache[o.tag] = o.tagName
+		o.tagName = nil
+	end
+
+	o.faction = GetQuestFactionGroup(o.ID)
 
 	o:UpdateFirstCompletionBonus()
 
@@ -71,14 +86,23 @@ function WorldQuest:GetName()
 	return self.nameCache[self.ID] or ""
 end
 
+function WorldQuest:GetTagName()
+	if self.tagCache[self.tag] then
+		return self.tagCache[self.tag]
+	end
+
+	local info = C_QuestLog.GetQuestTagInfo(self.ID)
+	self.tagCache[info.tagID] = info.tagName
+
+	if self.tag == nil then
+		self.tag = info.tagID
+	end
+
+	return self.tagCache[self.tag] or ""
+end
+
 function WorldQuest:GetQuestPOIMapInfo()
-	return {
-		questID = self.ID,
-		mapID = self.map,
-		x = self.x,
-		y = self.y,
-		numObjectives = 1,
-	}
+	return self.ID, self.x, self.y, 0, false
 end
 
 function WorldQuest:GetPositionOnMap(mapID)
@@ -283,8 +307,6 @@ function QuestRewards:ConvertAnimaItemsToCurrency()
 			else
 				completed = false
 			end
-
-			print("convert anima", itemID, numItems * animaAmount)
 		end
 	end
 
@@ -413,13 +435,13 @@ function WorldQuestList:GetAllQuests()
 end
 
 -- param: QuestPOIMapInfo
-function WorldQuestList:AddQuest(info)
-	local quest = WorldQuest:Create(info)
+function WorldQuestList:AddQuest(info, ...)
+	local quest = WorldQuest:Create(info, ...)
 	if quest == nil then
 		return
 	end
 
-	if not quest:UpdateResetTime() then
+	if quest.resetTime == nil and not quest:UpdateResetTime() then
 		Util:Debug("Ignored quest due to unknown resetTime", quest.ID, quest:GetName())
 		return true
 	end
@@ -448,7 +470,7 @@ function WorldQuestList:NextResetQuests(excludeTags)
 	excludeTags = excludeTags or {}
 
 	local quests = Util:Filter(self.quests, function(quest)
-		return not excludeTags[C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType]
+		return not excludeTags[quest.tag]
 	end)
 
 	if #quests == 0 then
@@ -501,7 +523,7 @@ function WorldQuestList:RemoveQuests(maps)
 	end
 end
 
-function WorldQuestList:Scan(continents, isNewSession)
+function WorldQuestList:Scan(continents, isNewSession, filter, questData)
 	local mapsToScan = {}
 	local mapsToRemove = {}
 	local remainingQuests = {}
@@ -527,7 +549,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 
 	for _, map in ipairs(mapsToScan) do
 		local quests = Util:Filter(C_TaskQuest.GetQuestsOnMap(map.mapID) or {}, function(info)
-			return info.mapID == map.mapID and C_QuestLog.IsWorldQuest(info.questID)
+			return info.mapID == map.mapID and (not filter or filter(info))
 		end)
 
 		for _, info in ipairs(quests) do
@@ -538,7 +560,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 	end
 
 	for questID, info in pairs(remainingQuests) do
-		if self:AddQuest(info) then
+		if self:AddQuest(info, questData) then
 			remainingQuests[questID] = nil
 		end
 	end
@@ -589,9 +611,9 @@ end
 
 function WorldQuestList:UpdateResetStartTime(quests)
 	for _, quest in ipairs(quests) do
-		local tag = C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType
+		local tag = quest.tag
 
-		if self.resetStartTime[tag] == nil or quest.resetTime > self.resetStartTime[tag] then
+		if tag and self.resetStartTime[tag] == nil or quest.resetTime > self.resetStartTime[tag] then
 			self.resetStartTime[tag] = quest.resetTime
 			Util:Debug("Updatd resetStartTime:", tag, date("%Y-%m-%d %H:%M", quest.resetTime))
 		end
@@ -608,6 +630,20 @@ function WorldQuestList:GetResetStartTime(excludeTags)
 	end
 
 	return resetStartTime
+end
+
+function WorldQuestList:EnumerateAllTags()
+	local tags = {}
+
+	for tagID, tagName in pairs(WorldQuest.tagCache) do
+		table.insert(tags, { ID = tagID, name = tagName })
+	end
+
+	return CreateTableEnumerator(tags)
+end
+
+function WorldQuestList:GetAllTags()
+	return CopyTable(WorldQuest.tagCache)
 end
 
 ns.WorldQuestList = WorldQuestList

@@ -183,6 +183,67 @@ function Util:IsWarModeEnabled()
 	return GetPVPTimer() == 301000 and not IsPVPTimerRunning()
 end
 
+function Util:GetContinentMap(mapID)
+	local map = C_Map.GetMapInfo(mapID)
+
+	if map.mapType <= Enum.UIMapType.Continent then
+		return map
+	end
+
+	return Util:GetContinentMap(map.parentMapID)
+end
+
+function Util:GetDungeonMap(mapID)
+	local map = C_Map.GetMapInfo(mapID)
+
+	if map.mapType < Enum.UIMapType.Dungeon then
+		return map
+	end
+
+	return Util:GetDungeonMap(map.parentMapID)
+end
+
+function Util:UnitFactionGroupEnum(unitName)
+	local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
+
+	return factionNameToEnum[UnitFactionGroup(unitName)]
+end
+
+function Util:GetDifficultyCode(difficultyID)
+	local DifficultyCodes = {
+		[1] = "N",
+		[2] = "H",
+		[3] = "10",
+		[4] = "25",
+		[5] = "10H",
+		[6] = "25H",
+		[14] = "N",
+		[15] = "H",
+		[16] = "M",
+		[17] = "LFR",
+		[23] = "M",
+	}
+
+	return DifficultyCodes[difficultyID] or difficultyID
+end
+
+function Util:GetNumSavedInstanceEncounters()
+	local num = 0
+
+	for i = 1, GetNumSavedInstances() do
+		local _, _, reset, difficultyID, _, _, _, _, _, _, numEncounters, _, _, instanceID = GetSavedInstanceInfo(i)
+		if reset ~= 0 then
+			for j = 1, numEncounters do
+				if select(3, GetSavedInstanceEncounterInfo(i, j)) then
+					num = num + 1
+				end
+			end
+		end
+	end
+
+	return num
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

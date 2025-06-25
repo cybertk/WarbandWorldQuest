@@ -1,9 +1,9 @@
 ## Interface: 110107
-## Title: |cff00d9ffWarband World Quest|r
-## Notes: Track World Quests across all your characters
+## Title: |cff00d9ffWarband Rewards Tracker|r
+## Notes: Track rewards progress across all your characters
 ## Version: @project-version@
-## IconTexture: Interface\AddOns\WarbandWorldQuest\UI\Icon.blp
-## SavedVariables: WarbandWorldQuestDB, WarbandWorldQuestSettings
+## IconTexture: Interface\AddOns\WarbandRewardsTrackerDev\UI\Icon.blp
+## SavedVariables: WarbandRewardsTrackerDB, WarbandRewardsTrackerSettings
 ## Category-enUS: Quests
 ## Category-deDE: Quests
 ## Category-esES: Misiones
@@ -15,21 +15,25 @@
 ## Category-ruRU: Задания
 ## Category-zhCN: 任务
 ## Category-zhTW: 任務
-## X-Website: https://github.com/cybertk/WarbandWorldQuest
-## X-Curse-Project-ID: 1271870
+## X-Website: https://github.com/cybertk/WarbandRewardsTracker
+## X-Curse-Project-ID: 1292812
 ## X-Wago-ID: 
 ## X-WoWI-ID: 
 
 Locales\Locales.xml
 
+DB\DB.xml
+
 Core\Util.lua
 Core\Settings.lua
+Core\Encounter.lua
 Core\RewardTypes.lua
 Core\WorldQuest.lua
+Core\WarbandReward.lua
 Core\Character.lua
 Core\CharacterStore.lua
 
 UI\DataProviders.xml
 UI\WarbandWorldQuestMapFrame.xml
 
-WarbandWorldQuest.lua
+WarbandRewardsTracker.lua

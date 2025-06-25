@@ -1,0 +1,5 @@
+<Ui>
+    <Script file="Init.lua" />
+
+    <Script file="CollectorsBounty.lua" />
+</Ui>
