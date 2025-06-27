@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13 - 2025-06-27
+
+### Alpha Release
+
+- Added Shadowlands world quest tracking support (Thanks @MayaWoW)
+- Added persistent reward filters - No need to reconfigure filters after each login (Thanks @cidddiii)
+
 ## v0.12 - 2025-06-25
 
 ### Alpha Release
