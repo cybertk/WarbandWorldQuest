@@ -138,15 +138,28 @@ function Settings:GenerateRotator(key, values)
 	end
 end
 
-function Settings:CreateMenuTree(key, menu, text, submenuTextGetter)
-	local rootMenu = menu:CreateButton(text)
+function Settings:CreateMenuTree(key, menu, text, submenuTextGetter, response)
+	local submenus = {}
 
-	for index in pairs(self.settings[key]) do
-		rootMenu:CreateCheckbox(submenuTextGetter(index), Settings:GenerateTableGetter(key), Settings:GenerateTableToggler(key), index)
+	if type(submenuTextGetter) == "table" then
+		submenus = submenuTextGetter
+		table.sort(submenus, function(a, b)
+			return a.priority < b.priority
+		end)
+	else
+		for index in pairs(self.settings[key]) do
+			table.insert(submenus, { index = index, text = submenuTextGetter(index) })
+		end
+	end
+
+	local rootMenu = text ~= nil and menu:CreateButton(text) or menu
+
+	for _, row in ipairs(submenus) do
+		self:CreateCheckboxMenu(key, rootMenu, row.text, row.index, row.tooltip, response)
 	end
 end
 
-function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText)
+function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText, response)
 	local checkbox
 
 	if tableIndex then
@@ -157,9 +170,19 @@ function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText)
 
 	if tooltipText then
 		checkbox:SetTooltip(function(tooltip)
-			GameTooltip_SetTitle(tooltip, text)
-			GameTooltip_AddNormalLine(tooltip, tooltipText)
+			if type(tooltipText) == "string" then
+				GameTooltip_SetTitle(tooltip, text)
+				GameTooltip_AddNormalLine(tooltip, tooltipText)
+			elseif tooltipText.itemID then
+				tooltip:SetItemByID(tooltipText.itemID)
+			elseif tooltipText.currencyID then
+				tooltip:SetCurrencyByID(tooltipText.currencyID)
+			end
 		end)
+	end
+
+	if response then
+		checkbox:SetResponse(response)
 	end
 
 	return checkbox

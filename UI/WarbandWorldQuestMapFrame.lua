@@ -169,12 +169,12 @@ function WarbandWorldQuestSettingsButtonMixin:OnMouseUp(button, upInside)
 	self.Icon:AdjustPointsOffset(-1, 1)
 end
 
-function WarbandWorldQuestSettingsButtonMixin:OnShow()
-	self:Update()
+function WarbandWorldQuestSettingsButtonMixin:OnLoad()
+	self:Update(true)
 end
 
-function WarbandWorldQuestSettingsButtonMixin:Update()
-	if not self:IsShown() then
+function WarbandWorldQuestSettingsButtonMixin:Update(force)
+	if not force and not self:IsMenuOpen() then
 		return
 	end
 
@@ -236,7 +236,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 				return C_Map.GetMapInfo(mapID).name
 			end
 
-			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName)
+			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName, MenuResponse.CloseAll)
 		end
 
 		rootMenu:CreateDivider()
@@ -244,23 +244,17 @@ function WarbandWorldQuestSettingsButtonMixin:Update()
 		do -- Rewards Filter
 			rootMenu:CreateTitle("Rewards Filter")
 
-			for i, rewardType in ipairs(QuestRewards.RewardTypes) do
-				local title = (rewardType.texture and format("|T%d:14|t ", rewardType.texture) or "") .. (rewardType.name or LFG_LIST_LOADING)
-
-				local checkbox = rootMenu:CreateCheckbox(title, function()
-					return bit.band(2 ^ (i - 1), Settings:Get("reward_type_filters")) ~= 0
-				end, function()
-					Settings:Set("reward_type_filters", bit.bxor(Settings:Get("reward_type_filters"), 2 ^ (i - 1)))
-				end)
-
-				checkbox:SetTooltip(function(tooltip)
-					if rewardType.itemID then
-						tooltip:SetItemByID(rewardType.itemID)
-					elseif rewardType.currencyID then
-						tooltip:SetCurrencyByID(rewardType.currencyID)
-					end
-				end)
+			local allTypes = {}
+			for key, rewardType in pairs(QuestRewards.RewardTypes:GetAll()) do
+				table.insert(allTypes, {
+					index = key,
+					priority = format("%s%s", rewardType.texture and 1 or 0, rewardType.name or rewardType.texture),
+					text = (rewardType.texture and format("|T%d:14|t ", rewardType.texture) or "") .. (rewardType.name or LFG_LIST_LOADING),
+					tooltip = { itemID = rewardType.item, currencyID = rewardType.currency },
+				})
 			end
+
+			Settings:CreateMenuTree("reward_type_filters", rootMenu, nil, allTypes)
 		end
 	end)
 end
@@ -672,8 +666,6 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 end
 
 function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
-	self.dataProvider:SetRewardTypeFilters(Settings:Get("reward_type_filters"))
-
 	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end

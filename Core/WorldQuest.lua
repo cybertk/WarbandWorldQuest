@@ -1,6 +1,7 @@
 local _, ns = ...
 
 local Util = ns.Util
+local RewardTypes = ns.RewardTypes
 
 -- ID, resetTime, map, x, y
 local WorldQuest = {
@@ -126,6 +127,7 @@ end
 
 local QuestRewards = {}
 QuestRewards.__index = QuestRewards
+QuestRewards.RewardTypes = RewardTypes
 
 function QuestRewards:Create(questID)
 	local o = {}
@@ -169,10 +171,6 @@ function QuestRewards:Aggregate(rewardsList)
 	setmetatable(aggregated, QuestRewards)
 
 	return aggregated
-end
-
-function QuestRewards:Release()
-	self.RewardTypeTable[self] = nil
 end
 
 function QuestRewards:Update(questID, force)
@@ -326,82 +324,8 @@ function QuestRewards:IsValid()
 	return (self.money or self.currencies or self.items) ~= nil
 end
 
-QuestRewards.RewardTypeTable = {}
 function QuestRewards:GetRewardType()
-	if self.RewardTypeTable[self] == nil then
-		self:UpdateRewardType()
-	end
-
-	return self.RewardTypeTable[self]
-end
-
-QuestRewards.RewardTypes = {
-	{ name = WORLD_QUEST_REWARD_FILTERS_GOLD, currency = 0 },
-	{ name = WORLD_QUEST_REWARD_FILTERS_EQUIPMENT },
-}
-function QuestRewards:UpdateRewardType()
-	local rewardType = 0
-
-	if self.money and self.money > 0 then
-		rewardType = bit.bor(rewardType, WORLD_QUEST_REWARD_TYPE_FLAG_GOLD)
-	end
-
-	for _, item in ipairs(self.items or {}) do
-		rewardType = bit.bor(rewardType, 2 ^ (self:GetOrAddRewardType(item[1]) - 1))
-	end
-
-	for _, currency in ipairs(self.currencies or {}) do
-		rewardType = bit.bor(rewardType, 2 ^ (self:GetOrAddRewardType(nil, currency[1]) - 1))
-	end
-
-	self.RewardTypeTable[self] = rewardType
-end
-
-QuestRewards.RewardTypesCache = {}
-function QuestRewards:GetOrAddRewardType(itemID, currencyID)
-	local objectID = itemID or currencyID
-
-	local index = self.RewardTypesCache[objectID]
-	if index and self.RewardTypes[index].name then
-		return index
-	end
-
-	local type = self.RewardTypes[index] or { itemID = itemID, currencyID = currencyID }
-	if itemID then
-		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subClassID = C_Item.GetItemInfoInstant(itemID)
-
-		if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
-			local item = Item:CreateFromItemID(itemID)
-
-			local updateName = function()
-				type.name = item:GetItemName()
-			end
-
-			if item:IsItemDataCached() then
-				updateName()
-			else
-				item:ContinueOnItemLoad(updateName)
-			end
-
-			type.texture = icon
-		else
-			self.RewardTypesCache[objectID] = 2
-			return 2
-		end
-	elseif currencyID then
-		local info = C_CurrencyInfo.GetCurrencyInfo(currencyID)
-		if info then
-			type.name = info.name
-			type.texture = info.iconFileID
-		end
-	end
-
-	if index == nil then
-		table.insert(self.RewardTypes, type)
-		self.RewardTypesCache[objectID] = #self.RewardTypes
-	end
-
-	return self.RewardTypesCache[objectID]
+	return self.RewardTypes:GetByRewards(self)
 end
 
 function QuestRewards:PassRewardTypeFilters(mask)
@@ -536,6 +460,7 @@ function WorldQuestList:Scan(continents, isNewSession)
 
 	if isNewSession then
 		self.isScanSessionCompleted = nil
+		RewardTypes:Reset()
 		Util:Debug("Started new scan session")
 	end
 
@@ -606,6 +531,10 @@ function WorldQuestList:Reset(callback)
 	end
 
 	self:UpdateResetStartTime(expiredQuests)
+
+	if #expiredQuests > 0 then
+		RewardTypes:Reset()
+	end
 
 	return expiredQuests
 end

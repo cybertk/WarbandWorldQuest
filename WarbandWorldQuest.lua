@@ -125,10 +125,11 @@ function WarbandWorldQuest:CreateDataProvider()
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
 
-	Settings:InvokeAndRegisterCallback("pins_min_display_level", WarbandWorldQuestDataProviderMixin.SetMinPinDisplayLevel, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_progress_shown", WarbandWorldQuestDataProviderMixin.SetProgressOnPinShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_completed_shown", WarbandWorldQuestDataProviderMixin.SetPinOfCompletedQuestShown, dataProvider)
-	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", WarbandWorldQuestDataProviderMixin.SetShouldPopulateData, dataProvider, true)
+	Settings:InvokeAndRegisterCallback("pins_min_display_level", dataProvider.SetMinPinDisplayLevel, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
+	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
+	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", dataProvider.SetShouldPopulateData, dataProvider, true)
 
 	return dataProvider
 end
@@ -207,7 +208,9 @@ do
 				[2274] = true, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
 			},
-			["reward_type_filters"] = 1,
+			["reward_type_filters"] = {
+				["c:0"] = true, -- Gold
+			},
 			["pins_progress_shown"] = true,
 			["pins_completed_shown"] = true,
 			["pins_tooltip_shown"] = true,
@@ -217,6 +220,12 @@ do
 			["log_is_default_tab"] = true,
 			["next_reset_exclude_types"] = {},
 		}
+
+		do -- Migration
+			if type(WarbandWorldQuestSettings.reward_type_filters) == "number" then
+				WarbandWorldQuestSettings.reward_type_filters = { ["c:0"] = true }
+			end
+		end
 
 		Settings:RegisterSettings("WarbandWorldQuestSettings", DefaultWarbandWorldQuestSettings)
 		WarbandWorldQuestDB = WarbandWorldQuestDB or DefaultWarbandWorldQuestDB

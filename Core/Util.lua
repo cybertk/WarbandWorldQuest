@@ -173,6 +173,12 @@ function Util:DungeonToQuest(dungeonID)
 	return dungeonID + 9000000
 end
 
+function Util:TriggerEventAsync(event)
+	C_Timer.After(0, function()
+		EventRegistry:TriggerEvent(event)
+	end)
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

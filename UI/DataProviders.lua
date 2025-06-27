@@ -19,7 +19,7 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 		color = GRAY_FONT_COLOR
 	elseif rewards:IsClaimed() then
 		color = GREEN_FONT_COLOR
-	elseif not rewards:PassRewardTypeFilters(self.dataProvider.rewardFilters) then
+	elseif not rewards:PassRewardTypeFilters(self.dataProvider.rewardFiltersMask) then
 		color = RED_FONT_COLOR
 	else
 		color = defaultColor or YELLOW_FONT_COLOR
@@ -38,6 +38,7 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.activeQuests = {}
 	self.groupState = {}
 	self.shouldPopulateData = true
+	self.rewardFilters = {}
 
 	self.minPinDisplayLevel = Enum.UIMapType.Continent
 	self.maxPinDisplayLevel = Enum.UIMapType.Zone
@@ -57,12 +58,6 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 	end
 
 	Util:Debug("Populating Characters Data")
-
-	for _, row in ipairs(self.rows) do
-		if row.aggregatedRewards then
-			row.aggregatedRewards:Release()
-		end
-	end
 
 	local rows = {}
 
@@ -84,12 +79,14 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
 		row.dataProvider = self
+		row.aggregatedRewards:PassRewardTypeFilters(0)
 		Mixin(row, WarbandWorldQuestDataRowMixin)
 
 		table.insert(rows, row)
 	end
 
 	self.rows = rows
+	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
 	self.shouldPopulateData = false
 end
 
@@ -108,8 +105,11 @@ function WarbandWorldQuestDataProviderMixin:UpdateGroupState(groupIndex, isColla
 	self.groupState[groupIndex] = isCollapsed
 end
 
-function WarbandWorldQuestDataProviderMixin:SetRewardTypeFilters(filters)
-	self.rewardFilters = filters
+function WarbandWorldQuestDataProviderMixin:UpdateRewardTypeFilters(filters)
+	MergeTable(self.rewardFilters, filters)
+
+	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
+	Util:Debug("RewardTypeFilters updated", self.rewardFiltersMask)
 end
 
 function WarbandWorldQuestDataProviderMixin:SetProgressOnPinShown(shown)
@@ -150,7 +150,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	}
 
 	for _, row in ipairs(self.rows) do
-		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFilters) and not row.quest:IsInactive() then
+		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFiltersMask) and not row.quest:IsInactive() then
 			row.isActive = true
 			table.insert(groups[1].rows, row)
 			table.insert(self.activeQuests, row.quest)
