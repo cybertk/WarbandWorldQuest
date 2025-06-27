@@ -4,6 +4,7 @@ local RewardTypes = {}
 RewardTypes.Predefined = {
 	{ i = 0, name = WORLD_QUEST_REWARD_FILTERS_GOLD, currency = 0 },
 	{ i = 1, name = WORLD_QUEST_REWARD_FILTERS_EQUIPMENT, item = 0 },
+	{ i = 2, name = WORLD_QUEST_REWARD_FILTERS_ANIMA, currency = 1813 },
 }
 
 function RewardTypes:Reset()
@@ -78,7 +79,9 @@ function RewardTypes:GetOrAddRewardType(itemID, currencyID)
 	if itemID then
 		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subClassID = C_Item.GetItemInfoInstant(itemID)
 
-		if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
+		if C_Item.IsAnimaItemByID(itemID) then
+			rewardType = self:CacheByIndex(itemID, 3)
+		elseif itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
 			local item = Item:CreateFromItemID(itemID)
 
 			local updateName = function()
@@ -125,7 +128,7 @@ function RewardTypes:GenerateMask(selectedTypes)
 	return mask
 end
 
-function RewardTypes:GetAll()
+function RewardTypes:GetAll(excludeAnima)
 	local types = {}
 
 	for _, rewardType in ipairs(self) do
@@ -136,6 +139,10 @@ function RewardTypes:GetAll()
 			key = "i:" .. rewardType.item
 		end
 		types[key] = rewardType
+	end
+
+	if excludeAnima then
+		types["c:" .. self.Predefined[3].currency] = nil
 	end
 
 	return types

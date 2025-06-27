@@ -235,9 +235,57 @@ function QuestRewards:Update(questID, force)
 		end
 	end
 
+	if self.items then
+		completed = self:ConvertAnimaItemsToCurrency() and completed
+	end
+
 	if changes > 0 then
 		-- world quests with rep-only rewards are always marked as first-completetion-bonus
 		Util:Debug("Updated rewards:", questID, changes, completed, self.money, self.currencies and #self.currencies, self.items and #self.items)
+	end
+
+	return completed
+end
+
+function QuestRewards:GetAnimaAmount(itemID)
+	self.AnimaCache = self.AnimaCache or {}
+
+	if self.AnimaCache[itemID] then
+		return self.AnimaCache[itemID]
+	end
+
+	local lines = C_TooltipInfo.GetItemByID(itemID).lines
+	for i = 4, #lines do
+		local amount = lines[i].leftText:match("%d+")
+		if amount then
+			self.AnimaCache[itemID] = amount
+			break
+		end
+	end
+
+	return self.AnimaCache[itemID] or 0
+end
+
+function QuestRewards:ConvertAnimaItemsToCurrency()
+	local completed = true
+
+	for i = #self.items, 1, -1 do
+		local itemID, numItems = unpack(self.items[i])
+
+		if C_Item.IsAnimaItemByID(itemID) then
+			local animaAmount = self:GetAnimaAmount(itemID)
+
+			if animaAmount ~= 0 then
+				self.currencies = self.currencies or {}
+
+				table.insert(self.currencies, { 1813, numItems * animaAmount })
+				table.remove(self.items, i)
+			else
+				completed = false
+			end
+
+			print("convert anima", itemID, numItems * animaAmount)
+		end
 	end
 
 	return completed

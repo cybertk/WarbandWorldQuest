@@ -207,6 +207,7 @@ do
 			["maps_to_scan"] = {
 				[2274] = true, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
+				[1550] = false, -- Shadowlands
 			},
 			["reward_type_filters"] = {
 				["c:0"] = true, -- Gold

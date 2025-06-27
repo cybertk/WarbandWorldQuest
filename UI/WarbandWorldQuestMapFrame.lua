@@ -245,7 +245,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 			rootMenu:CreateTitle("Rewards Filter")
 
 			local allTypes = {}
-			for key, rewardType in pairs(QuestRewards.RewardTypes:GetAll()) do
+			for key, rewardType in pairs(QuestRewards.RewardTypes:GetAll(not Settings:Get("maps_to_scan")[1550])) do
 				table.insert(allTypes, {
 					index = key,
 					priority = format("%s%s", rewardType.texture and 1 or 0, rewardType.name or rewardType.texture),
