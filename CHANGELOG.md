@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.14 - 2025-06-28
+
+### Alpha Release
+
+- Added more localizations
+- Added settings to show/hide the time left label in quest log
+
 ## v0.13 - 2025-06-27
 
 ### Alpha Release
