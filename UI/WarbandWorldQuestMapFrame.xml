@@ -75,6 +75,7 @@
 					<Size x="0" y="0" />
 					<Anchors>
 						<Anchor point="LEFT" relativeKey="$parent.TimeLeft" relativePoint="RIGHT" />
+						<Anchor point="TOP" relativeKey="$parent.Name" relativePoint="BOTTOM" y="-4" />
 					</Anchors>
 					<Color color="EVENT_SCHEDULER_LOCATION_COLOR" />
 				</FontString>

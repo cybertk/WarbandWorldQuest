@@ -229,6 +229,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				nil,
 				"Display an icon |A:common-icon-undo:10:10:0:0|a in the quest title if the quest progress hasn't been scanned on all tracked characters"
 			)
+
+			Settings:CreateCheckboxMenu("log_time_left_shown", logMenu, CLOSES_IN, nil, "Show time left label in the quest log")
 		end
 
 		do -- Maps
@@ -375,7 +377,7 @@ function WarbandWorldQuestEntryMixin:UpdateLocation(mapID)
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
-	return Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - "
+	return Settings:Get("log_time_left_shown") and Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - " or ""
 end
 
 function WarbandWorldQuestEntryMixin:AdjustHeight()
@@ -587,6 +589,7 @@ function WarbandWorldQuestPageMixin:OnShow()
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
+	Settings:RegisterCallback("log_time_left_shown", self.Refresh, self, true)
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
@@ -597,6 +600,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
+	Settings:UnregisterCallback("log_time_left_shown", self)
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)

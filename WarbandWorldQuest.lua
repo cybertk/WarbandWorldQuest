@@ -219,6 +219,7 @@ do
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,
+			["log_time_left_shown"] = true,
 			["next_reset_exclude_types"] = {},
 		}
 
