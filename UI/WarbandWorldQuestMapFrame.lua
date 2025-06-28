@@ -1,5 +1,6 @@
 local addonName, ns = ...
 
+local L = ns.L
 local Util = ns.Util
 local QuestRewards = ns.QuestRewards
 local WorldQuestList = ns.WorldQuestList
@@ -12,7 +13,7 @@ function WarbandWorldQuestNextResetButtonMixin:OnLoad()
 	self.settingsKey = "next_reset_exclude_types"
 
 	self:SetupMenu(function(_, rootMenu)
-		rootMenu:CreateTitle("Exclude World Quest Types")
+		rootMenu:CreateTitle(L["next_reset_dropdown_exclude_types"])
 
 		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
 		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
@@ -24,7 +25,7 @@ end
 function WarbandWorldQuestNextResetButtonMixin:Update()
 	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey))
 
-	self.ButtonText:SetText(format("Next Reset: %s (%d)", resetTime and date("%m-%d %H:%M", resetTime) or UNKNOWN, #quests))
+	self.ButtonText:SetText(L["next_reset_button_text"]:format(resetTime and date("%m-%d %H:%M", resetTime) or UNKNOWN, #quests))
 
 	self:SetWidth(self.ButtonText:GetStringWidth())
 end
@@ -34,12 +35,14 @@ function WarbandWorldQuestNextResetButtonMixin:OnEnter()
 	local tooltip = GetAppropriateTooltip()
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
-	tooltip:SetText("Upcomming Reset of World Quests", 1, 1, 1)
+	tooltip:SetText(L["next_reset_tooltip_title"], WHITE_FONT_COLOR:GetRGB())
 	tooltip:AddLine(
-		format("|cnNORMAL_FONT_COLOR:Time Left:|r |cnWHITE_FONT_COLOR:%s|r", resetTime and Util.FormatTimeDuration(resetTime - GetServerTime()) or UNKNOWN)
+		AUCTION_HOUSE_TIME_LEFT_FORMAT_ACTIVE:format(resetTime and Util.FormatTimeDuration(resetTime - GetServerTime()) or UNKNOWN),
+		NORMAL_FONT_COLOR:GetRGB()
 	)
 	tooltip:AddLine(" ")
-	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Quests Count:|r |cnWHITE_FONT_COLOR:%d|r", #quests))
+	tooltip:AddLine(L["next_reset_tooltip_quest_num"]:format(#quests), NORMAL_FONT_COLOR:GetRGB())
+
 	for _, quest in ipairs(quests) do
 		local icon = CreateAtlasMarkup(QuestUtil.GetWorldQuestAtlasInfo(quest.ID, C_QuestLog.GetQuestTagInfo(quest.ID)))
 
@@ -63,7 +66,7 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Update, self)
 
 	self:SetupMenu(function(_, rootMenu)
-		rootMenu:CreateTitle("Exclude Characters")
+		rootMenu:CreateTitle(L["characters_dropdown_title"])
 
 		local function CharactersFilter(character)
 			return not CharacterStore.IsCurrentPlayer(character)
@@ -87,7 +90,7 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 		end, CharactersFilter)
 
 		rootMenu:CreateSpacer()
-		rootMenu:CreateTitle("|cnGREEN_FONT_COLOR:Press CTRL + |A:NPE_LeftClick:16:16|a to delete the character|r")
+		rootMenu:CreateTitle(GREEN_FONT_COLOR:WrapTextInColorCode(L["characters_dropdown_instruction"]:format("CTRL + |A:NPE_LeftClick:16:16|a")))
 	end)
 end
 
@@ -131,23 +134,17 @@ function WarbandWorldQuestCharactersButtonMixin:OnEnter()
 	local resetStartTime = WorldQuestList:GetResetStartTime(Settings:Get("next_reset_exclude_types"))
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
-	tooltip:SetText("Characters Scanned", 1, 1, 1)
-	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Last Reset Time:|r |cnWHITE_FONT_COLOR:%s|r", date("%m-%d %H:%M", resetStartTime)))
+	tooltip:SetText(L["characters_tooltip_title"], WHITE_FONT_COLOR:GetRGB())
+	tooltip:AddLine(L["characters_tooltip_last_reset_time"]:format(date("%m-%d %H:%M", resetStartTime)), NORMAL_FONT_COLOR:GetRGB())
 
-	for groupName, records in pairs({ ["Pending"] = pending, ["Scanned"] = scanned }) do
+	for groupName, records in pairs({ [NOT_COLLECTED] = pending, [COLLECTED] = scanned }) do
 		tooltip:AddLine(" ")
 		tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:%s:|r |cnWHITE_FONT_COLOR:%d|r", groupName, #records))
 		for _, record in ipairs(records) do
 			local character, state = unpack(record)
 			tooltip:AddDoubleLine(
 				state .. " " .. character:GetNameInClassColor(),
-				CURRENCY_TRANSFER_LOG_TIME_FORMAT:format(Util.FormatLastUpdateTime(character.updatedAt)),
-				1,
-				1,
-				1,
-				1,
-				1,
-				1
+				WHITE_FONT_COLOR_CODE .. CURRENCY_TRANSFER_LOG_TIME_FORMAT:format(Util.FormatLastUpdateTime(character.updatedAt)) .. "|r"
 			)
 		end
 	end
@@ -179,51 +176,57 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 	end
 
 	self:SetupMenu(function(_, rootMenu)
-		rootMenu:CreateTitle("Settings")
+		rootMenu:CreateTitle(SETTINGS)
 
 		do -- Map Pins
-			local pinsMenu = rootMenu:CreateButton("Map Pins")
+			local pinsMenu = rootMenu:CreateButton(MAP_PIN)
 
-			Settings:CreateCheckboxMenu("pins_progress_shown", pinsMenu, "Show Warband Progress on Pins")
+			Settings:CreateCheckboxMenu("pins_progress_shown", pinsMenu, L["settings_pins_progress_label_shown_text"])
 
 			Settings:CreateOptionsTree(
 				"pins_tooltip_shown",
 				pinsMenu,
-				"Warband Progress in Tooltip",
-				{ { text = "Always", value = "" }, { text = CTRL_KEY, value = "CTRL" }, { text = ALT_KEY, value = "ALT" } },
-				"Show quest progress and rewards for all tracked characters in the map pin's tooltip",
+				L["settings_pins_tooltip_progress_shown_text"],
+				{ { text = ALWAYS, value = "" }, { text = CTRL_KEY, value = "CTRL" }, { text = ALT_KEY, value = "ALT" } },
+				L["settings_pins_tooltip_progress_shown_tooltip"],
 				MenuResponse.Refresh
 			)
 
 			pinsMenu:CreateCheckbox(
-				"Show Pins on the Continent Maps",
+				L["settings_pins_continent_maps_shown_text"],
 				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.Continent),
 				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.Continent, Enum.UIMapType.Zone })
 			)
 
-			Settings:CreateCheckboxMenu("pins_completed_shown", pinsMenu, "Show Pins for Completed Quests")
+			Settings:CreateCheckboxMenu(
+				"pins_completed_shown",
+				pinsMenu,
+				TRACKER_FILTER_COMPLETED_QUESTS,
+				nil,
+				L["settings_pins_completed_quest_shown_tooltip"]
+			)
 		end
 
 		do -- Quest Log
-			local logMenu = rootMenu:CreateButton("World Quest Log")
+			local logMenu = rootMenu:CreateButton(QUEST_LOG)
 
 			Settings:CreateCheckboxMenu(
 				"log_is_default_tab",
 				logMenu,
-				"Default Tab",
+				L["settings_log_default_tab_text"],
 				nil,
-				"Set |cff00d9ffWarband World Quest|r as the default tab, it opens automatically when opening the World Map for the first time after logging in"
+				L["settings_log_default_tab_tooltip"]:format("|cff00d9ffWarband World Quest|r")
 			)
 
 			Settings:CreateCheckboxMenu(
 				"log_scanning_icon_shown",
 				logMenu,
-				"Show Pending Scan Icon",
+				L["settings_log_scanning_icon_shown_text"],
 				nil,
-				"Display an icon |A:common-icon-undo:10:10:0:0|a in the quest title if the quest progress hasn't been scanned on all tracked characters"
+				L["settings_log_scanning_icon_shown_tooltip"]:format("|A:common-icon-undo:10:10:0:0|a")
 			)
 
-			Settings:CreateCheckboxMenu("log_time_left_shown", logMenu, CLOSES_IN, nil, "Show time left label in the quest log")
+			Settings:CreateCheckboxMenu("log_time_left_shown", logMenu, CLOSES_IN, nil, L["settings_log_time_left_shown_tooltip"])
 		end
 
 		do -- Maps
@@ -231,13 +234,13 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				return C_Map.GetMapInfo(mapID).name
 			end
 
-			Settings:CreateMenuTree("maps_to_scan", rootMenu, "Scanning Maps", GetMapName, MenuResponse.CloseAll)
+			Settings:CreateMenuTree("maps_to_scan", rootMenu, L["settings_maps_title"], GetMapName, MenuResponse.CloseAll)
 		end
 
 		rootMenu:CreateDivider()
 
-		do -- Rewards Filter
-			rootMenu:CreateTitle("Rewards Filter")
+		do -- Quests Filter
+			rootMenu:CreateTitle(L["settings_filters_title"])
 
 			local allTypes = {}
 			for key, rewardType in pairs(QuestRewards.RewardTypes:GetAll(not Settings:Get("maps_to_scan")[1550])) do
@@ -458,11 +461,11 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 
 	tooltip:SetOwner(self, "ANCHOR_RIGHT")
 	tooltip:SetText(quest:GetName(), 1, 1, 1)
-	tooltip:AddLine(format("|cnNORMAL_FONT_COLOR:Time Left:|r |cnWHITE_FONT_COLOR:%s|r", Util.FormatTimeDuration(quest.resetTime - GetServerTime())))
+	tooltip:AddLine(AUCTION_HOUSE_TIME_LEFT_FORMAT_ACTIVE:format(Util.FormatTimeDuration(quest.resetTime - GetServerTime())), NORMAL_FONT_COLOR:GetRGB())
 
 	tooltip:AddLine(" ")
-	tooltip:AddLine(format("Characters Scanned: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
-	tooltip:AddLine(format("Characters Completed: |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
+	tooltip:AddLine(L["log_entry_tooltip_characters_scanned"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
+	tooltip:AddLine(L["log_entry_tooltip_characters_completed"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
 	for _, character in self.owner.dataProvider:EnumerateCharacters() do
 		local rewards = character:GetRewards(quest.ID)
 
@@ -475,7 +478,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	end
 
 	tooltip:AddLine(" ")
-	tooltip:AddLine("Warband Rewards:")
+	tooltip:AddLine(L["log_entry_tooltip_total_rewards"])
 	for _, reward in ipairs(self.data.aggregatedRewards:Summary(true)) do
 		tooltip:AddLine(reward, 1, 1, 1)
 	end

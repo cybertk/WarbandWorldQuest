@@ -20,6 +20,7 @@
 ## X-Wago-ID: 
 ## X-WoWI-ID: 
 
+Locales\Locales.xml
 
 Core\Util.lua
 Core\Settings.lua

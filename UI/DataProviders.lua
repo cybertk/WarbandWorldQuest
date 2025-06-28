@@ -144,7 +144,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 			virtual = true,
 		},
 		{
-			name = "Inactive",
+			name = FACTION_INACTIVE,
 			rows = {},
 		},
 	}
