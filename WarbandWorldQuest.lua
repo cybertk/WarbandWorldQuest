@@ -34,12 +34,8 @@ function WarbandWorldQuest:Init()
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
 
-			if Settings:Get("pins_tooltip_shown") then
-				local tooltipModifier = Settings:Get("pins_tooltip_modifier")
-
-				if not tooltipModifier or (tooltipModifier == "CTRL" and IsControlKeyDown()) or (tooltipModifier == "ALT" and IsAltKeyDown()) then
-					self.dataProvider:UpdatePinTooltip(GameTooltip, pin)
-				end
+			if Settings:MatchOption("pins_tooltip_shown", { ["CTRL"] = IsControlKeyDown, ["ALT"] = IsALTKeyDown }) then
+				self.dataProvider:UpdatePinTooltip(GameTooltip, pin)
 			end
 		end)
 
@@ -214,8 +210,7 @@ do
 			},
 			["pins_progress_shown"] = true,
 			["pins_completed_shown"] = true,
-			["pins_tooltip_shown"] = true,
-			["pins_tooltip_modifier"] = nil,
+			["pins_tooltip_shown"] = { enabled = true },
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,
@@ -226,6 +221,12 @@ do
 		do -- Migration
 			if type(WarbandWorldQuestSettings.reward_type_filters) == "number" then
 				WarbandWorldQuestSettings.reward_type_filters = { ["c:0"] = true }
+			end
+
+			if type(WarbandWorldQuestSettings.pins_tooltip_shown) == "boolean" then
+				WarbandWorldQuestSettings.pins_tooltip_shown =
+					{ enabled = WarbandWorldQuestSettings.pins_tooltip_shown, option = WarbandWorldQuestSettings.pins_tooltip_modifier }
+				WarbandWorldQuestSettings.pins_tooltip_modifier = nil
 			end
 		end
 

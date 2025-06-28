@@ -186,21 +186,14 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 
 			Settings:CreateCheckboxMenu("pins_progress_shown", pinsMenu, "Show Warband Progress on Pins")
 
-			do -- Show Warband Progress in Tooltip
-				local tooltipMenu = Settings:CreateCheckboxMenu("pins_tooltip_shown", pinsMenu, "Show Warband Progress in Tooltip")
-
-				local options = {
-					["Always"] = false,
-					["Press CTRL"] = "CTRL",
-					["Press ALT"] = "ALT",
-				}
-				for description, mode in pairs(options) do
-					local radio = Settings:CreateRadio("pins_tooltip_modifier", tooltipMenu, description, mode or nil)
-
-					radio:SetResponse(MenuResponse.Refresh)
-					radio:SetEnabled(Settings:GenerateGetter("pins_tooltip_shown"))
-				end
-			end
+			Settings:CreateOptionsTree(
+				"pins_tooltip_shown",
+				pinsMenu,
+				"Warband Progress in Tooltip",
+				{ { text = "Always", value = "" }, { text = CTRL_KEY, value = "CTRL" }, { text = ALT_KEY, value = "ALT" } },
+				"Show quest progress and rewards for all tracked characters in the map pin's tooltip",
+				MenuResponse.Refresh
+			)
 
 			pinsMenu:CreateCheckbox(
 				"Show Pins on the Continent Maps",

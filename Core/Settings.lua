@@ -92,13 +92,22 @@ function Settings:Toggle(key)
 	self:Set(key, not self.settings[key])
 end
 
+function Settings:MatchOption(key, predicates)
+	if not self.settings[key].enabled then
+		return false
+	end
+
+	local predicate = predicates[self.settings[key].option]
+	return predicate == nil or predicate()
+end
+
 function Settings:GenerateGetter(key)
 	return GenerateClosure(self.Get, self, key)
 end
 
-function Settings:GenerateTableGetter(key)
+function Settings:GenerateTableGetter(key, constTableIndex)
 	return function(tableIndex)
-		return self.settings[key][tableIndex]
+		return self.settings[key][constTableIndex or tableIndex]
 	end
 end
 
@@ -190,6 +199,44 @@ end
 
 function Settings:CreateRadio(key, menu, text, data)
 	return menu:CreateRadio(text, Settings:GenerateComparator(key), Settings:GenerateSetter(key), data)
+end
+
+function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, response)
+	local disableAllowed = type(Settings:Get(key)) == "table"
+
+	local rootMenu, Comparator, Setter
+	if disableAllowed then
+		rootMenu = self:CreateCheckboxMenu(key, menu, text, "enabled", tooltipText)
+
+		Comparator = function(v)
+			return self.settings[key]["option"] == v
+		end
+
+		Setter = function(v)
+			self:Set(key, { ["option"] = v })
+		end
+	else
+		rootMenu = menu:CreateButton(text)
+		rootMenu:SetTooltip(function(tooltip)
+			GameTooltip_SetTitle(tooltip, text)
+			GameTooltip_AddNormalLine(tooltip, tooltipText)
+		end)
+
+		Comparator = Settings:GenerateComparator(key)
+		Setter = Settings:GenerateSetter(key)
+	end
+
+	for _, option in ipairs(options) do
+		local radio = rootMenu:CreateRadio(option.text, Comparator, Setter, option.value)
+
+		if response then
+			radio:SetResponse(response)
+		end
+
+		if disableAllowed then
+			radio:SetEnabled(Settings:GenerateTableGetter("pins_tooltip_shown", "enabled"))
+		end
+	end
 end
 
 namespace.Settings = Settings
