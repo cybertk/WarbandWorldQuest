@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.15 - 2025-06-29
+
+### Alpha Release
+
+- Added Russian localization
+- Added quest log reward text customization options:
+    - Warband total rewards
+    - Warband uncollected rewards
+    - Current player rewards
+
 ## v0.14 - 2025-06-28
 
 ### Alpha Release
