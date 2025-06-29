@@ -28,6 +28,22 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 	return color:GenerateHexColor()
 end
 
+function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards()
+	local rewards = {}
+	local numClaimed = 0
+
+	for character, reward in pairs(self.rewards) do
+		if not reward:IsClaimed() then
+			rewards[character] = reward
+		else
+			numClaimed = numClaimed + 1
+		end
+	end
+
+	self.uncollectedRewards = QuestRewards:Aggregate(rewards)
+	self.progress.claimed = numClaimed
+end
+
 WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
@@ -39,6 +55,7 @@ function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.groupState = {}
 	self.shouldPopulateData = true
 	self.rewardFilters = {}
+	self.filterUncollectedRewards = true
 
 	self.minPinDisplayLevel = Enum.UIMapType.Continent
 	self.maxPinDisplayLevel = Enum.UIMapType.Zone
@@ -77,10 +94,11 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 			progress.total = progress.total + 1
 		end
 
-		local row = { quest = quest, rewards = rewards, progress = progress, aggregatedRewards = QuestRewards:Aggregate(rewards) }
+		local row = { quest = quest, rewards = rewards, progress = progress, totalRewards = QuestRewards:Aggregate(rewards) }
 		row.dataProvider = self
-		row.aggregatedRewards:PassRewardTypeFilters(0)
+		row.totalRewards:PassRewardTypeFilters(0)
 		Mixin(row, WarbandWorldQuestDataRowMixin)
+		row:UpdateRemainingRewards()
 
 		table.insert(rows, row)
 	end
@@ -97,7 +115,20 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 		return
 	end
 
-	row.progress.claimed = row.progress.claimed + 1
+	row:UpdateRemainingRewards()
+
+	if self.filterUncollectedRewards and row.isActive and not row.uncollectedRewards:PassRewardTypeFilters(self.rewardFiltersMask) then
+		self:MoveElementDataToIndex(row)
+
+		for i, quest in ipairs(self.activeQuests) do
+			if quest == row.quest then
+				table.remove(self.activeQuests, i)
+				Util:Debug("Removed active quest:", quest.ID)
+				break
+			end
+		end
+	end
+
 	Util:Debug("Updated rewards progress", questID, row.quest:GetName())
 end
 
@@ -122,6 +153,10 @@ end
 
 function WarbandWorldQuestDataProviderMixin:SetPinOfCompletedQuestShown(shown)
 	self.showPinOfCompletedQuest = shown
+end
+
+function WarbandWorldQuestDataProviderMixin:SetFilterUncollectedRewards(enabled)
+	self.filterUncollectedRewards = enabled
 end
 
 function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
@@ -150,7 +185,8 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	}
 
 	for _, row in ipairs(self.rows) do
-		if row.aggregatedRewards:PassRewardTypeFilters(self.rewardFiltersMask) and not row.quest:IsInactive() then
+		local rewards = self.filterUncollectedRewards and row.uncollectedRewards or row.totalRewards
+		if not row.quest:IsInactive() and rewards:PassRewardTypeFilters(self.rewardFiltersMask) then
 			row.isActive = true
 			table.insert(groups[1].rows, row)
 			table.insert(self.activeQuests, row.quest)

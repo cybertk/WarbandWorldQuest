@@ -101,6 +101,14 @@ function Settings:MatchOption(key, predicates)
 	return predicate == nil or predicate()
 end
 
+function Settings:GetOption(key)
+	if not self.settings[key].enabled then
+		return
+	end
+
+	return self.settings[key].option
+end
+
 function Settings:GenerateGetter(key)
 	return GenerateClosure(self.Get, self, key)
 end
@@ -227,6 +235,10 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 	end
 
 	for _, option in ipairs(options) do
+		if type(option) == "string" then
+			option = { text = _G[option], value = option }
+		end
+
 		local radio = rootMenu:CreateRadio(option.text, Comparator, Setter, option.value)
 
 		if response then
@@ -234,7 +246,7 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 		end
 
 		if disableAllowed then
-			radio:SetEnabled(Settings:GenerateTableGetter("pins_tooltip_shown", "enabled"))
+			radio:SetEnabled(Settings:GenerateTableGetter(key, "enabled"))
 		end
 	end
 end

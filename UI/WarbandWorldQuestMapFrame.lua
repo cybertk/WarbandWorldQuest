@@ -227,6 +227,15 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 			)
 
 			Settings:CreateCheckboxMenu("log_time_left_shown", logMenu, CLOSES_IN, nil, L["settings_log_time_left_shown_tooltip"])
+
+			Settings:CreateOptionsTree(
+				"log_warband_rewards_shown",
+				logMenu,
+				RENOWN_REWARD_ACCOUNT_UNLOCK_LABEL,
+				{ "NOT_COLLECTED", "TOTAL" },
+				L["settings_log_warband_rewards_shown_tooltip"],
+				MenuResponse.Refresh
+			)
 		end
 
 		do -- Maps
@@ -334,7 +343,7 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 
 	self.Name:SetText(elementData.quest:GetName())
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
-	self.Rewards:SetText(elementData.aggregatedRewards:Summary())
+	self.Rewards:SetText(self:FormatRewards(elementData))
 
 	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
 	self.IconButton:Update(elementData.quest.ID)
@@ -374,6 +383,21 @@ end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
 	return Settings:Get("log_time_left_shown") and Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - " or ""
+end
+
+function WarbandWorldQuestEntryMixin:FormatRewards(elementData)
+	local rewards
+
+	local option = Settings:GetOption("log_warband_rewards_shown")
+	if option == nil then
+		rewards = elementData.rewards[CharacterStore.Get():CurrentPlayer()]
+	elseif option == "NOT_COLLECTED" then
+		rewards = elementData.uncollectedRewards
+	else
+		rewards = elementData.totalRewards
+	end
+
+	return rewards and rewards:Summary() or ""
 end
 
 function WarbandWorldQuestEntryMixin:AdjustHeight()
@@ -479,7 +503,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine(L["log_entry_tooltip_total_rewards"])
-	for _, reward in ipairs(self.data.aggregatedRewards:Summary(true)) do
+	for _, reward in ipairs(self.data.totalRewards:Summary(true)) do
 		tooltip:AddLine(reward, 1, 1, 1)
 	end
 
@@ -586,6 +610,7 @@ function WarbandWorldQuestPageMixin:OnShow()
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
 	Settings:RegisterCallback("log_time_left_shown", self.Refresh, self, true)
+	Settings:RegisterCallback("log_warband_rewards_shown", self.Refresh, self, true)
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
@@ -597,6 +622,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
 	Settings:UnregisterCallback("log_time_left_shown", self)
+	Settings:UnregisterCallback("log_warband_rewards_shown", self)
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)
@@ -615,11 +641,11 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 		self.RewardsText:SetFontObject("GameFontNormalSmall")
 	end
 
-	self.RewardsText:SetText(
-		WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData) .. C_Map.GetMapInfo(elementData.quest.map).name .. elementData.aggregatedRewards:Summary()
-	)
+	local entry = WarbandWorldQuestEntryMixin
 
-	return self.RewardsText:GetStringWidth() > WarbandWorldQuestEntryMixin.MaxNameWidth + 35
+	self.RewardsText:SetText(entry:FormatTimeLeft(elementData) .. C_Map.GetMapInfo(elementData.quest.map).name .. entry:FormatRewards(elementData))
+
+	return self.RewardsText:GetStringWidth() > entry.MaxNameWidth + 35
 end
 
 function WarbandWorldQuestPageMixin:OnMapUpdate()
@@ -666,6 +692,7 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 end
 
 function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
+	self.dataProvider:SetFilterUncollectedRewards(Settings:GetOption("log_warband_rewards_shown") == "NOT_COLLECTED")
 	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end

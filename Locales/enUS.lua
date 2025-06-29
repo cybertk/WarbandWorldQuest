@@ -24,6 +24,8 @@ L["settings_log_default_tab_tooltip"] = "Set %s as the default tab, it opens aut
 L["settings_log_scanning_icon_shown_text"] = "Pending Scan Icon"
 L["settings_log_scanning_icon_shown_tooltip"] = "Display an icon %s in the quest title if the quest progress hasn't been scanned on all tracked characters"
 L["settings_log_time_left_shown_tooltip"] = "Show time left label in the quest log"
+L["settings_log_warband_rewards_shown_tooltip"] =
+	"Show accumulated rewards for all characters in the quest log, either as a total or uncollected.|nWhen disabled, show rewards of current logged-in character"
 L["settings_maps_title"] = "Scanning Maps"
 L["settings_filters_title"] = "Quest Filters by Rewards"
 

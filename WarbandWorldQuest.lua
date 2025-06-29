@@ -215,6 +215,7 @@ do
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,
 			["log_time_left_shown"] = true,
+			["log_warband_rewards_shown"] = { enabled = true, option = "NOT_COLLECTED" },
 			["next_reset_exclude_types"] = {},
 		}
 
