@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.16 - 2025-07-01
+
+### Alpha Release
+
+- Quest Log now scrolls to the highlighted row when hovering over map pins
+- Added instant PvP quests scanning when turning on War Mode
+- Quest Log UI now updates dynamically when uncollected rewards change
+
 ## v0.15 - 2025-06-29
 
 ### Alpha Release
