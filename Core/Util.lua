@@ -179,6 +179,10 @@ function Util:TriggerEventAsync(event)
 	end)
 end
 
+function Util:IsWarModeEnabled()
+	return GetPVPTimer() == 301000 and not IsPVPTimerRunning()
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end
