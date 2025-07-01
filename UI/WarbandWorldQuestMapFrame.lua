@@ -709,6 +709,11 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 	end)
 
 	if frame == nil or not frame:IsShown() then
+		local index = self.ScrollBox:FindElementDataIndexByPredicate(function(elementData)
+			return elementData.quest and elementData.quest.ID == questID
+		end)
+
+		self.ScrollBox:ScrollToElementDataIndex(index)
 		return
 	end
 
