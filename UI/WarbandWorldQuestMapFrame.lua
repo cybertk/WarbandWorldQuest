@@ -269,15 +269,28 @@ end
 WarbandWorldQuestHeaderMixin = {}
 
 function WarbandWorldQuestHeaderMixin:Init(elementData)
-	self.ButtonText:SetText(format("%s (%d)", elementData.name, elementData.numQuests))
-	self.CollapseButton:UpdateCollapsedState(elementData.isCollapsed)
-
 	self.data = elementData
+
+	self:UpdateTitle()
+	self.CollapseButton:UpdateCollapsedState(elementData.isCollapsed)
+end
+
+function WarbandWorldQuestHeaderMixin:UpdateTitle()
+	self.ButtonText:SetText(format("%s (%d)", self.data.name, self.data.numQuests))
+	self.data.dirty = nil
 end
 
 function WarbandWorldQuestHeaderMixin:OnLoad()
 	self:CheckHighlightTitle(false)
 	self:SetPushedTextOffset(1, -1)
+end
+
+function WarbandWorldQuestHeaderMixin:OnShow()
+	if not self.data.dirty then
+		return
+	end
+
+	self:UpdateTitle()
 end
 
 function WarbandWorldQuestHeaderMixin:OnClick(button)
@@ -343,7 +356,6 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 
 	self.Name:SetText(elementData.quest:GetName())
 	self.TimeLeft:SetText(self:FormatTimeLeft(elementData))
-	self.Rewards:SetText(self:FormatRewards(elementData))
 
 	self.Background:SetShown(elementData.isActive or elementData.quest:IsInactive())
 	self.IconButton:Update(elementData.quest.ID)
@@ -351,7 +363,10 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self:UpdateStatus()
 	self:UpdateProgress()
 	self:UpdateLocation()
+	self:UpdateRewards()
 	self:AdjustHeight()
+
+	elementData.dirty = nil
 end
 
 function WarbandWorldQuestEntryMixin:UpdateStatus()
@@ -379,6 +394,10 @@ function WarbandWorldQuestEntryMixin:UpdateLocation(mapID)
 
 	mapID = mapID or WorldMapFrame:GetMapID()
 	self.Location:SetText(mapID == self.data.quest.map and YELLOW_FONT_COLOR:WrapTextInColorCode(location) or location)
+end
+
+function WarbandWorldQuestEntryMixin:UpdateRewards()
+	self.Rewards:SetText(self:FormatRewards(self.data))
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
@@ -415,8 +434,13 @@ function WarbandWorldQuestEntryMixin:ToggleTracked()
 end
 
 function WarbandWorldQuestEntryMixin:OnShow()
-	if self.data then
+	if self.data and self.data.dirty then
+		Util:Debug("Updated dirty entry", self.data.quest:GetName())
+
 		self:UpdateProgress()
+		self:UpdateRewards()
+
+		self.data.dirty = nil
 	end
 
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.UpdateLocation, self)

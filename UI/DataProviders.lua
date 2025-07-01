@@ -118,7 +118,19 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 	row:UpdateRemainingRewards()
 
 	if self.filterUncollectedRewards and row.isActive and not row.uncollectedRewards:PassRewardTypeFilters(self.rewardFiltersMask) then
-		self:MoveElementDataToIndex(row)
+		if #self.headers then
+			local header = self.headers[#self.headers]
+
+			header.numQuests = header.numQuests + 1
+			header.dirty = true
+			Util:Debug("Updated Inactive numQuests:", header.numQuests)
+		end
+
+		if self.groupState[2] then
+			self:Remove(row)
+		else
+			self:MoveElementDataToIndex(row)
+		end
 
 		for i, quest in ipairs(self.activeQuests) do
 			if quest == row.quest then
@@ -127,6 +139,8 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 				break
 			end
 		end
+	else
+		row.dirty = true
 	end
 
 	Util:Debug("Updated rewards progress", questID, row.quest:GetName())
@@ -167,6 +181,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	self:PopulateCharactersData()
 
 	self.activeQuests = {}
+	self.headers = {}
 
 	if #self.rows == 0 then
 		return
@@ -202,6 +217,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 		if not group.virtual then
 			table.insert(rows, { isHeader = true, isCollapsed = isCollapsed, name = group.name, index = i, numQuests = #group.rows })
+			table.insert(self.headers, rows[#rows])
 		end
 
 		for _, row in ipairs(isCollapsed and {} or group.rows) do
