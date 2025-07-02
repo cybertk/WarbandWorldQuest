@@ -229,7 +229,7 @@ do
 			["next_reset_exclude_types"] = {},
 		}
 
-		do -- Migration
+		if WarbandWorldQuestSettings then -- Migration
 			if type(WarbandWorldQuestSettings.reward_type_filters) == "number" then
 				WarbandWorldQuestSettings.reward_type_filters = { ["c:0"] = true }
 			end

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.17 - 2025-07-02
+
+### Alpha Release
+
+Fixed crash on first installation: WarbandWorldQuest.lua:233: attempt to index global 'WarbandWorldQuestSettings' (a nil value)
+
 ## v0.16 - 2025-07-01
 
 ### Alpha Release
