@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.18 - 2025-07-03
+
+### Alpha Release
+
+Fixed crash when no inactive quests are shown in quest log: WarbandWorldQuestMapFrame.lua:289: attempt to index field 'data' (a nil value)
+
 ## v0.17 - 2025-07-02
 
 ### Alpha Release

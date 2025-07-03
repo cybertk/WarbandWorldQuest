@@ -286,7 +286,7 @@ function WarbandWorldQuestHeaderMixin:OnLoad()
 end
 
 function WarbandWorldQuestHeaderMixin:OnShow()
-	if not self.data.dirty then
+	if not self.data or not self.data.dirty then
 		return
 	end
 
