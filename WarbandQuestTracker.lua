@@ -233,6 +233,11 @@ do
 
 	WarbandWorldQuest:RegisterEvent("QUEST_TURNED_IN", function(event, questID, xpReward, moneyReward)
 		WarbandWorldQuest:SetRewardsClaimed(questID)
+
+		if WarbandQuestTrackerPinMixin.waypointQuest.ID == questID then
+			print("remove waypoint", questID)
+			C_Map.ClearUserWaypoint()
+		end
 	end)
 
 	WarbandWorldQuest:RegisterEvent("ADDON_LOADED", function(event, name)

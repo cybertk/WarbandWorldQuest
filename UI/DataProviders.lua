@@ -398,6 +398,22 @@ WarbandQuestTrackerPinMixin = WarbandWorldQuestPinMixin
 
 function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
 
+function WarbandWorldQuestPinMixin:OnClick()
+	print("WarbandWorldQuestPinMixin:OnClick", self.questID)
+
+	local quest = WorldQuestList:GetQuest(self.questID)
+	if C_Map.CanSetUserWaypointOnMap(quest.map) then
+		local pos = C_Map.GetPlayerMapPosition(quest.map, "player")
+		local mapPoint = UiMapPoint.CreateFromCoordinates(quest.map, quest.x, quest.y)
+		C_Map.SetUserWaypoint(mapPoint)
+		C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+
+		WarbandWorldQuestPinMixin.waypointQuest = quest
+	else
+		print("Cannot set waypoints on this map")
+	end
+end
+
 hooksecurefunc(WorldMapFrame, "RegisterPin", function(mapCanvas, pin)
 	if pin.CheckMouseButtonPassthrough ~= nop then
 		pin.CheckMouseButtonPassthrough = nop
