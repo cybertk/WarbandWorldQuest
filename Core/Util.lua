@@ -183,6 +183,36 @@ function Util:IsWarModeEnabled()
 	return GetPVPTimer() == 301000 and not IsPVPTimerRunning()
 end
 
+function Util:GetFactionCurrencyID(factionID)
+	local currencies = {
+		[2590] = 2897, -- Council of Dornogal
+		[2570] = 2899, -- Hallowfall Arathi
+		[2594] = 2902, -- The Assembly of the Deeps
+		[2600] = 2903, -- The Severed Threads
+		[2653] = 3118, -- The Cartels of Undermine
+
+		[2671] = 3176, -- Venture Company
+		[2669] = 3177, -- Darkfuse Solutions
+		[2673] = 3169, -- Bilgewater Cartel
+		[2675] = 3171, -- Blackwater Cartel
+		[2677] = 3173, -- Steamwheedle Cartel
+	}
+
+	return currencies[factionID]
+end
+
+function Util:GetFactionReputationBonusMultiplier(factionID)
+	local multipliers = {
+		[2653] = 2, -- The Cartels of Undermine
+		[2671] = 2, -- Venture Company
+		[2673] = 2, -- Bilgewater Cartel
+		[2675] = 2, -- Blackwater Cartel
+		[2677] = 2, -- Steamwheedle Cartel
+	}
+
+	return multipliers[factionID] or 1
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

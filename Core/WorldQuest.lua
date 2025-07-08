@@ -42,23 +42,41 @@ function WorldQuest:UpdateResetTime()
 	return true
 end
 
-function WorldQuest:UpdateFirstCompletionBonus()
-	if self.currencies or not C_QuestInfoSystem.HasQuestRewardCurrencies(self.ID) then
+function WorldQuest:UpdateFirstCompletionBonus(force)
+	if not HaveQuestRewardData(self.ID) or not C_QuestLog.QuestContainsFirstTimeRepBonusForPlayer(self.ID) then
 		return
 	end
 
+	if not force and self.currencies then
+		return
+	end
+
+	local factionID = select(2, C_TaskQuest.GetQuestInfoByQuestID(self.ID))
+
 	local currencies = {}
 
-	for _, currency in ipairs(C_QuestInfoSystem.GetQuestRewardCurrencies(self.ID)) do
-		if currency.questRewardContextFlags == Enum.QuestRewardContextFlags.FirstCompletionBonus then
+	for _, currency in ipairs(C_QuestInfoSystem.GetQuestRewardCurrencies(self.ID) or {}) do
+		if currency.questRewardContextFlags == Enum.QuestRewardContextFlags.FirstCompletionBonus and currency.totalRewardAmount > 15 then
 			table.insert(currencies, { currency.currencyID, currency.totalRewardAmount })
+		end
+	end
+
+	if #currencies == 0 then
+		local factionCurrency = Util:GetFactionCurrencyID(factionID)
+		if factionCurrency ~= nil then
+			table.insert(currencies, { factionCurrency, 50 * Util:GetFactionReputationBonusMultiplier(factionID) })
 		end
 	end
 
 	if #currencies > 0 then
 		self.currencies = currencies
-		Util:Debug("Updated FirstCompletionBonus:", self.ID, self:GetName(), #currencies)
 	end
+
+	Util:Debug("Updated FirstCompletionBonus:", self.ID, self:GetName(), factionID, #currencies, unpack(currencies[1] or {}))
+end
+
+function WorldQuest:IsFirstCompletionBonusClaimed()
+	return not C_QuestLog.QuestContainsFirstTimeRepBonusForPlayer(self.ID)
 end
 
 function WorldQuest:GetName()
@@ -171,6 +189,19 @@ function QuestRewards:Aggregate(rewardsList)
 	setmetatable(aggregated, QuestRewards)
 
 	return aggregated
+end
+
+function QuestRewards:AddFirstCompletionBonus(currencies)
+	if currencies == nil or #currencies == 0 then
+		return
+	end
+
+	self.currencies = self.currencies or {}
+
+	for _, reward in ipairs(currencies) do
+		local currencyID, amount = unpack(reward)
+		table.insert(self.currencies, { currencyID, amount, true })
+	end
 end
 
 function QuestRewards:Update(questID, force)
@@ -301,11 +332,15 @@ function QuestRewards:Summary(asList)
 	end
 
 	for _, currency in ipairs(self.currencies or {}) do
-		local currencyID, amount = unpack(currency)
+		local currencyID, amount, firstCompletionBonus = unpack(currency)
 		local info = C_CurrencyInfo.GetCurrencyInfo(currencyID)
 
 		if info then
-			s = s .. format(" |T%d:15|t %d", info.iconFileID, amount)
+			if firstCompletionBonus then
+				s = format("|T%d:15|t |cnACCOUNT_WIDE_FONT_COLOR:%d|r ", info.iconFileID, amount) .. s
+			else
+				s = s .. format(" |T%d:15|t %d", info.iconFileID, amount)
+			end
 
 			local color = ITEM_QUALITY_COLORS[info.quality].color:GenerateHexColor()
 			table.insert(records, 1, format(" |T%d:15|t |c%s[%s]|r x%d", info.iconFileID, color, info.name, amount))
@@ -313,6 +348,10 @@ function QuestRewards:Summary(asList)
 			table.insert(records, 1, LFG_LIST_LOADING)
 		else
 			return LFG_LIST_LOADING
+		end
+
+		if firstCompletionBonus and asList then
+			records[1] = records[1] .. CreateAtlasMarkup("questlog-questtypeicon-account", 15, 15, 8)
 		end
 	end
 

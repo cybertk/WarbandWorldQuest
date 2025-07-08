@@ -41,6 +41,9 @@ function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards()
 	end
 
 	self.uncollectedRewards = QuestRewards:Aggregate(rewards)
+	if not self.quest:IsFirstCompletionBonusClaimed() then
+		self.uncollectedRewards:AddFirstCompletionBonus(self.quest.currencies)
+	end
 	self.progress.claimed = numClaimed
 end
 
@@ -96,6 +99,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 		local row = { quest = quest, rewards = rewards, progress = progress, totalRewards = QuestRewards:Aggregate(rewards) }
 		row.dataProvider = self
+		row.totalRewards:AddFirstCompletionBonus(quest.currencies)
 		row.totalRewards:PassRewardTypeFilters(0)
 		Mixin(row, WarbandWorldQuestDataRowMixin)
 		row:UpdateRemainingRewards()
