@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.19 - 2025-07-08
+
+### Alpha Release
+
+Added Warband one-time rewards display (in blue) with filtering
+
 ## v0.18 - 2025-07-03
 
 ### Alpha Release
