@@ -93,7 +93,7 @@ function WarbandWorldQuest:Update(isNewScanSession)
 		self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
 
-		self.warModeScanned = Util:IsWarModeEnabled() or self.warModeScanned
+		self.warModeScanned = C_PvP.IsWarModeActive() or self.warModeScanned
 	end
 
 	changed = self.character:Update() or changed
@@ -189,8 +189,8 @@ do
 		WarbandWorldQuest:SetRewardsClaimed(questID)
 	end)
 
-	WarbandWorldQuest:RegisterEvent("PVP_TIMER_UPDATE", function()
-		if not WarbandWorldQuest.warModeScanned and Util:IsWarModeEnabled() then
+	WarbandWorldQuest:RegisterEvent("PLAYER_FLAGS_CHANGED", function()
+		if not WarbandWorldQuest.warModeScanned and C_PvP.IsWarModeActive() then
 			Util:Debug("War Mode is on")
 
 			WarbandWorldQuest:Update(true)

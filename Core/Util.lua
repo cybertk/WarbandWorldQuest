@@ -179,10 +179,6 @@ function Util:TriggerEventAsync(event)
 	end)
 end
 
-function Util:IsWarModeEnabled()
-	return GetPVPTimer() == 301000 and not IsPVPTimerRunning()
-end
-
 function Util:GetFactionCurrencyID(factionID)
 	local currencies = {
 		[2590] = 2897, -- Council of Dornogal
