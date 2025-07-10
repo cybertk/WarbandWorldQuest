@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20 - 2025-07-10
+
+### Alpha Release
+
+- Enhanced War Mode quest scanning functionality
+- Added sound feedback when interacting with quest log
+- Introduced a War Mode Bonus button - Quickly toggle War Mode without opening the Talent page
+- Resolved an issue where first completion bonuses occasionally didn't display as claimed
+
 ## v0.19 - 2025-07-08
 
 ### Alpha Release
