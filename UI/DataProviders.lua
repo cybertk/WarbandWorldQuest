@@ -28,7 +28,7 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 	return color:GenerateHexColor()
 end
 
-function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards()
+function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
 	local rewards = {}
 	local numClaimed = 0
 
@@ -41,7 +41,7 @@ function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards()
 	end
 
 	self.uncollectedRewards = QuestRewards:Aggregate(rewards)
-	if not self.quest:IsFirstCompletionBonusClaimed() then
+	if not claimed and not self.quest:IsFirstCompletionBonusClaimed() then
 		self.uncollectedRewards:AddFirstCompletionBonus(self.quest.currencies)
 	end
 	self.progress.claimed = numClaimed
@@ -119,7 +119,7 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 		return
 	end
 
-	row:UpdateRemainingRewards()
+	row:UpdateRemainingRewards(true)
 
 	if self.filterUncollectedRewards and row.isActive and not row.uncollectedRewards:PassRewardTypeFilters(self.rewardFiltersMask) then
 		if #self.headers then
