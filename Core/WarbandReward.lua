@@ -68,6 +68,11 @@ function WarbandReward:UpdateResetTime()
 	return
 end
 
+function WarbandReward:Reset()
+	self.attempts = 0
+	self:UpdateResetTime()
+end
+
 function WarbandReward:GetName()
 	if self.NameCache[self] then
 		return self.NameCache[self]
@@ -150,7 +155,7 @@ function WarbandRewardList:Reset(callback)
 
 	for _, reward in ipairs(self.rewards) do
 		if now > reward.resetTime then
-			reward.attempts = 0
+			reward:Reset()
 			table.insert(expiredRewards, reward)
 		end
 	end
@@ -175,7 +180,7 @@ function WarbandRewardList:CacheReward(reward)
 		if self.encounterCache[encounterID] == nil then
 			local name, description, bossID, rootSectionID, link, instanceID, dungeonEncounterID, dungeonID = EJ_GetEncounterInfo(encounterID)
 
-			self.encounterCache[encounterID] = self
+			self.encounterCache[encounterID] = reward
 			self.dungeonEncounterCache[dungeonEncounterID] = encounterID
 		end
 	end

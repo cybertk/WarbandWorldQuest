@@ -562,7 +562,9 @@ function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
 					end
 				end
 
-				table.insert(encounters, data)
+				if data.encounter then
+					table.insert(encounters, data)
+				end
 				numUniqueEncounters[encounterID] = true
 			end
 		end
