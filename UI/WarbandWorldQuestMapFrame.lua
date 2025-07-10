@@ -560,6 +560,7 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 		if IsShiftKeyDown() then
 			ChatEdit_TryInsertQuestLinkForQuestID(quest.ID)
 		else
+			PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
 			C_Map.OpenWorldMap(quest.map)
 		end
 	elseif button == "RightButton" then
