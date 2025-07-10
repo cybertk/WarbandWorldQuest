@@ -13,6 +13,8 @@ L["characters_dropdown_instruction"] = "Press %s to delete the character"
 L["characters_tooltip_title"] = "Tracked Characters Status"
 L["characters_tooltip_last_reset_time"] = "Last World Quests Reset Time: |cnWHITE_FONT_COLOR:%s|r"
 
+L["warmode_tooltip_instruction"] = "Click to %s War Mode button"
+
 L["settings_pins_progress_label_shown_text"] = "Warband Progress Label"
 L["settings_pins_tooltip_progress_shown_text"] = "Progress in Tooltip"
 L["settings_pins_tooltip_progress_shown_tooltip"] = "Show quest progress and rewards for all tracked characters in the map pin's tooltip"

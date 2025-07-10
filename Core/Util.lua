@@ -213,6 +213,14 @@ function Util:GetFactionReputationBonusMultiplier(factionID)
 	return multipliers[factionID] or 1
 end
 
+function Util:IsPvPCurrency(currencyID)
+	local currencies = {
+		[2123] = true, -- Bloody Tokens
+	}
+
+	return currencies[currencyID] or false
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

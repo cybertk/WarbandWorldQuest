@@ -59,6 +59,98 @@ function WarbandWorldQuestNextResetButtonMixin:OnLeave()
 	GetAppropriateTooltip():Hide()
 end
 
+WarbandWorldQuestWarmodeButtonMixin = {}
+
+function WarbandWorldQuestWarmodeButtonMixin:OnShow()
+	self:Update()
+
+	self:RegisterEvent("PVP_TIMER_UPDATE")
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:OnHide()
+	self:UnregisterEvent("PVP_TIMER_UPDATE")
+
+	self:SetWarmodeButtonShown(false)
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:OnEnter()
+	local tooltip = GetAppropriateTooltip()
+
+	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+	if self.warmodeButton then
+		tooltip:SetText(L["warmode_tooltip_instruction"]:format(HIDE), GREEN_FONT_COLOR:GetRGB())
+	else
+		tooltip:SetText(WAR_MODE_BONUS, WHITE_FONT_COLOR:GetRGB())
+		tooltip:AddLine(
+			C_PvP.IsWarModeDesired() and GREEN_FONT_COLOR:WrapTextInColorCode(ERR_PVP_WARMODE_TOGGLE_ON)
+				or RED_FONT_COLOR:WrapTextInColorCode(ERR_PVP_WARMODE_TOGGLE_OFF)
+		)
+
+		tooltip:AddLine(" ")
+		tooltip:AddLine(PVP_ENLISTMENT_BONUS_TITLE .. ": " .. WHITE_FONT_COLOR:WrapTextInColorCode(C_PvP.GetWarModeRewardBonus() .. "%"))
+
+		tooltip:AddLine(" ")
+		tooltip:AddLine(L["warmode_tooltip_instruction"]:format(SHOW), GREEN_FONT_COLOR:GetRGB())
+	end
+
+	tooltip:Show()
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:OnLeave()
+	GetAppropriateTooltip():Hide()
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:OnClick()
+	PlaySound(self.warmodeButton and SOUNDKIT.UI_CLASS_TALENT_CLOSE_WINDOW or SOUNDKIT.UI_CLASS_TALENT_OPEN_WINDOW)
+	self:SetWarmodeButtonShown(not self.warmodeButton)
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:OnEvent()
+	self:Update()
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:Update()
+	local isDesired = C_PvP.IsWarModeDesired()
+
+	self.ButtonText:SetFormattedText(
+		"%s%d%%",
+		CreateAtlasMarkup("pvptalents-warmode-swords" .. (isDesired and "" or "-disabled"), 18, 18),
+		C_PvP.GetWarModeRewardBonus()
+	)
+	self.ButtonText:SetTextColor((isDesired and GREEN_FONT_COLOR or DISABLED_FONT_COLOR):GetRGB())
+
+	self:SetWidth(self.ButtonText:GetUnboundedStringWidth())
+end
+
+function WarbandWorldQuestWarmodeButtonMixin:SetWarmodeButtonShown(show)
+	if not show and not self.warmodeButton then
+		return
+	end
+
+	if show then
+		if not PlayerSpellsFrame then
+			PlayerSpellsFrame_LoadUI()
+		end
+
+		local button = PlayerSpellsFrame.TalentsFrame.WarmodeButton
+
+		self.warmodeButton = button
+
+		button:SetParent(self)
+		button:SetFrameLevel(1000)
+		button:ClearAllPoints()
+		button:SetPoint("BOTTOM", self, "TOP", 0, -5)
+	else
+		local button = self.warmodeButton
+
+		self.warmodeButton = nil
+
+		button:SetParent(PlayerSpellsFrame.TalentsFrame)
+		button:ClearAllPoints()
+		button:SetPoint("RIGHT", PlayerSpellsFrame.TalentsFrame.BottomBar, "RIGHT", -6, 2)
+	end
+end
+
 WarbandWorldQuestCharactersButtonMixin = {}
 
 function WarbandWorldQuestCharactersButtonMixin:OnLoad()
@@ -106,6 +198,7 @@ function WarbandWorldQuestCharactersButtonMixin:Update()
 	local scanned, pending = self:PopulateCharactersData()
 
 	self.ButtonText:SetText(format("%s %d/%d", CreateAtlasMarkup("common-icon-undo", 16, 16), #scanned, #pending + #scanned))
+	self:SetWidth(self.ButtonText:GetUnboundedStringWidth())
 end
 
 function WarbandWorldQuestCharactersButtonMixin:PopulateCharactersData()

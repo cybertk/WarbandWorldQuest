@@ -246,7 +246,7 @@
 				</Scripts>
 			</DropdownButton>
 			<DropdownButton parentKey="CharactersButton" mixin="WarbandWorldQuestCharactersButtonMixin">
-				<Size x="60" y="24" />
+				<Size x="0" y="24" />
 				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
 					<Anchors>
 						<Anchor point="RIGHT" x="-8" />
@@ -263,6 +263,29 @@
 					<OnEnter method="OnEnter" />
 					<OnLeave method="OnLeave" />
 					<OnMouseDown method="OnLeave" />
+				</Scripts>
+			</DropdownButton>
+			<DropdownButton parentKey="WarmodeButton" mixin="WarbandWorldQuestWarmodeButtonMixin">
+				<Size x="0" y="24" />
+				<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8" />
+					</Anchors>
+				</ButtonText>
+				<HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
+				<NormalFont style="GameFontDisableSmall" />
+				<HighlightFont style="GameFontHighlightSmall" />
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.CharactersButton" relativePoint="BOTTOMLEFT" x="-10" />
+				</Anchors>
+				<Scripts>
+					<OnShow method="OnShow" />
+					<OnHide method="OnHide" />
+					<OnEnter method="OnEnter" />
+					<OnLeave method="OnLeave" />
+					<OnMouseDown method="OnLeave" />
+					<OnClick method="OnClick" />
+					<OnEvent method="OnEvent" />
 				</Scripts>
 			</DropdownButton>
 		</Frames>

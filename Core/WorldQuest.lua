@@ -238,7 +238,7 @@ function QuestRewards:Update(questID, force)
 		for _, currency in ipairs(C_QuestInfoSystem.GetQuestRewardCurrencies(questID)) do
 			if currency.questRewardContextFlags == Enum.QuestRewardContextFlags.FirstCompletionBonus then
 				hasFirstCompletionBonus = true
-			else
+			elseif not Util:IsPvPCurrency(currency.currencyID) or (C_QuestLog.GetQuestTagInfo(questID) or {}).worldQuestType == Enum.QuestTagType.PvP then
 				table.insert(currencies, { currency.currencyID, currency.totalRewardAmount })
 			end
 		end
