@@ -17,8 +17,8 @@
 ## Category-zhTW: 任務
 ## X-Website: https://github.com/cybertk/WarbandWorldQuest
 ## X-Curse-Project-ID: 1271870
-## X-Wago-ID: 
-## X-WoWI-ID: 
+## X-Wago-ID: EGPXlOG1
+## X-WoWI-ID: 26936
 
 Locales\Locales.xml
 
