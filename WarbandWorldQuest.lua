@@ -127,6 +127,7 @@ function WarbandWorldQuest:CreateDataProvider()
 	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
 	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
+	Settings:InvokeAndRegisterCallback(Settings:WrapOptionCallback("log_progress_shown", dataProvider.SetProgressTextOption, dataProvider))
 	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", dataProvider.SetShouldPopulateData, dataProvider, true)
 
 	return dataProvider
@@ -226,6 +227,7 @@ do
 			["log_is_default_tab"] = true,
 			["log_time_left_shown"] = true,
 			["log_warband_rewards_shown"] = { enabled = true, option = "NOT_COLLECTED" },
+			["log_progress_shown"] = { enabled = true, option = "CLAIMED" },
 			["next_reset_exclude_types"] = {},
 		}
 

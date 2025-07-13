@@ -109,6 +109,27 @@ function Settings:GetOption(key)
 	return self.settings[key].option
 end
 
+function Settings:WrapOptionCallback(key, callback, owner)
+	local NotifyNewOption = function()
+		callback(owner, Settings:GetOption(key))
+	end
+
+	return key, NotifyNewOption, owner
+end
+
+function Settings:GenerateTooltip(description, title)
+	return function(tooltip)
+		if type(description) == "string" then
+			GameTooltip_SetTitle(tooltip, title)
+			GameTooltip_AddNormalLine(tooltip, description)
+		elseif description.itemID then
+			tooltip:SetItemByID(description.itemID)
+		elseif description.currencyID then
+			tooltip:SetCurrencyByID(description.currencyID)
+		end
+	end
+end
+
 function Settings:GenerateGetter(key)
 	return GenerateClosure(self.Get, self, key)
 end
@@ -186,16 +207,7 @@ function Settings:CreateCheckboxMenu(key, menu, text, tableIndex, tooltipText, r
 	end
 
 	if tooltipText then
-		checkbox:SetTooltip(function(tooltip)
-			if type(tooltipText) == "string" then
-				GameTooltip_SetTitle(tooltip, text)
-				GameTooltip_AddNormalLine(tooltip, tooltipText)
-			elseif tooltipText.itemID then
-				tooltip:SetItemByID(tooltipText.itemID)
-			elseif tooltipText.currencyID then
-				tooltip:SetCurrencyByID(tooltipText.currencyID)
-			end
-		end)
+		checkbox:SetTooltip(self:GenerateTooltip(tooltipText, text))
 	end
 
 	if response then
@@ -243,6 +255,10 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 
 		if response then
 			radio:SetResponse(response)
+		end
+
+		if option.tooltip then
+			radio:SetTooltip(self:GenerateTooltip(option.tooltip, option.text))
 		end
 
 		if disableAllowed then

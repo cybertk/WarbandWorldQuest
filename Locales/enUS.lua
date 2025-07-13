@@ -25,6 +25,15 @@ L["settings_log_default_tab_text"] = "Default Tab"
 L["settings_log_default_tab_tooltip"] = "Set %s as the default tab, it opens automatically when opening the World Map for the first time after logging in"
 L["settings_log_scanning_icon_shown_text"] = "Pending Scan Icon"
 L["settings_log_scanning_icon_shown_tooltip"] = "Display an icon %s in the quest title if the quest progress hasn't been scanned on all tracked characters"
+L["settings_log_progress_shown_text"] = "Warband Progress"
+L["settings_log_progress_shown_tooltip"] =
+	"Show progress label indicating quest completion status across your characters|n|n|cnWHITE_FONT_COLOR:Red Text|r|nThe quest does not provide any filtered rewards for the current character|n|n|cnWHITE_FONT_COLOR:Green Text|r|nThe quest is completed by the current character."
+L["settings_log_progress_shown_option_1_text"] = "Rewards Claimed Characters"
+L["settings_log_progress_shown_option_1_tooltip"] =
+	"Show progress as |cnWHITE_FONT_COLOR:X/Y|r|n|n|cnWHITE_FONT_COLOR:X|r|nThe number of characters who have completed the quest and claimed the filtered rewards|n|n|cnWHITE_FONT_COLOR:Y|r|nThe number of characters eligible to claim the filtered reward from the quest"
+L["settings_log_progress_shown_option_2_text"] = "Remaining Characters"
+L["settings_log_progress_shown_option_2_tooltip"] =
+	"Show the number of characters who are eligible to claim the filtered rewards from the quest but have not yet completed it"
 L["settings_log_time_left_shown_tooltip"] = "Show time left label in the quest log"
 L["settings_log_warband_rewards_shown_tooltip"] =
 	"Show accumulated rewards for all characters in the quest log, either as a total or uncollected.|nWhen disabled, show rewards of current logged-in character"

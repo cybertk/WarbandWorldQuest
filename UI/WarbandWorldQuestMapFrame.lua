@@ -329,6 +329,15 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				L["settings_log_warband_rewards_shown_tooltip"],
 				MenuResponse.Refresh
 			)
+
+			Settings:CreateOptionsTree("log_progress_shown", logMenu, L["settings_log_progress_shown_text"], {
+				{ text = L["settings_log_progress_shown_option_1_text"], tooltip = L["settings_log_progress_shown_option_1_tooltip"], value = "CLAIMED" },
+				{
+					text = L["settings_log_progress_shown_option_2_text"],
+					tooltip = L["settings_log_progress_shown_option_2_tooltip"],
+					value = "REMAINING",
+				},
+			}, L["settings_log_progress_shown_tooltip"], MenuResponse.Refresh)
 		end
 
 		do -- Maps
@@ -479,7 +488,7 @@ function WarbandWorldQuestEntryMixin:UpdateStatus()
 end
 
 function WarbandWorldQuestEntryMixin:UpdateProgress()
-	self.Progress:SetText(format("|c%s%d/%d|r", self.data:GetProgressColor(), self.data.progress.claimed, self.data.progress.total))
+	self.Progress:SetText(self.data:GetProgressText())
 end
 
 function WarbandWorldQuestEntryMixin:UpdateLocation(mapID)
@@ -727,6 +736,7 @@ function WarbandWorldQuestPageMixin:OnShow()
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
 	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
+	Settings:RegisterCallback("log_progress_shown", self.Refresh, self, true)
 	Settings:RegisterCallback("log_time_left_shown", self.Refresh, self, true)
 	Settings:RegisterCallback("log_warband_rewards_shown", self.Refresh, self, true)
 end
@@ -739,6 +749,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
+	Settings:UnregisterCallback("log_progress_shown", self)
 	Settings:UnregisterCallback("log_time_left_shown", self)
 	Settings:UnregisterCallback("log_warband_rewards_shown", self)
 end

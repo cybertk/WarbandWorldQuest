@@ -12,20 +12,40 @@ function WarbandWorldQuestDataRowMixin:GetProgressColor(character, defaultColor)
 		return GRAY_FONT_COLOR:GenerateHexColor()
 	end
 
+	character = character or CharacterStore.Get():CurrentPlayer()
+
 	local color
-	local rewards = (character or CharacterStore.Get():CurrentPlayer()):GetRewards(self.quest.ID)
+	local rewards = character:GetRewards(self.quest.ID)
 
 	if rewards == nil then
 		color = GRAY_FONT_COLOR
 	elseif rewards:IsClaimed() then
 		color = GREEN_FONT_COLOR
-	elseif not rewards:PassRewardTypeFilters(self.dataProvider.rewardFiltersMask) then
+	elseif
+		not rewards:PassRewardTypeFilters(self.dataProvider.rewardFiltersMask) and not (self.progress.eligible == 1 and CharacterStore.IsCurrentPlayer(character))
+	then
 		color = RED_FONT_COLOR
 	else
 		color = defaultColor or YELLOW_FONT_COLOR
 	end
 
 	return color:GenerateHexColor()
+end
+
+function WarbandWorldQuestDataRowMixin:GetProgressText()
+	local text = ""
+
+	if self.dataProvider.progressTextOption == "CLAIMED" then
+		if self.progress.claimed == 0 and self.progress.eligible == 0 then
+			text = "-"
+		else
+			text = format("|c%s%d/%d|r", self:GetProgressColor(), self.progress.claimed, self.progress.eligible)
+		end
+	elseif self.dataProvider.progressTextOption == "REMAINING" then
+		text = format("|c%s%d|r", self:GetProgressColor(), self.progress.eligible - self.progress.claimed)
+	end
+
+	return text
 end
 
 function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
@@ -72,6 +92,35 @@ function WarbandWorldQuestDataProviderMixin:EnumerateCharacters()
 	end))
 end
 
+function WarbandWorldQuestDataProviderMixin:UpdateEligibleCharactersData()
+	Util:Debug("Update Eligible Characters Data")
+
+	for _, row in ipairs(self.rows) do
+		local quest, progress = row.quest, row.progress
+
+		progress.eligible = 0
+		progress.claimed = 0
+
+		for _, reward in pairs(row.rewards) do
+			if reward:PassRewardTypeFilters(self.rewardFiltersMask) then
+				progress.eligible = progress.eligible + 1
+
+				if reward:IsClaimed() then
+					progress.claimed = progress.claimed + 1
+				end
+			end
+		end
+
+		if progress.eligible == 0 and row.totalRewards:PassRewardTypeFilters(self.rewardFiltersMask) then
+			progress.eligible = 1
+
+			if quest:IsFirstCompletionBonusClaimed() then
+				progress.claimed = 1
+			end
+		end
+	end
+end
+
 function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 	if not self.shouldPopulateData then
 		return
@@ -90,8 +139,6 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 			if rewards[character] == nil then
 				progress.unknown = progress.unknown + 1
-			elseif rewards[character]:IsClaimed() then
-				progress.claimed = progress.claimed + 1
 			end
 
 			progress.total = progress.total + 1
@@ -109,6 +156,8 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 	self.rows = rows
 	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
+	self:UpdateEligibleCharactersData()
+
 	self.shouldPopulateData = false
 end
 
@@ -157,12 +206,23 @@ end
 function WarbandWorldQuestDataProviderMixin:UpdateRewardTypeFilters(filters)
 	MergeTable(self.rewardFilters, filters)
 
-	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
+	local newMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
+	if newMask == self.rewardFiltersMask then
+		return
+	end
+
+	self.rewardFiltersMask = newMask
+	self:UpdateEligibleCharactersData()
+
 	Util:Debug("RewardTypeFilters updated", self.rewardFiltersMask)
 end
 
 function WarbandWorldQuestDataProviderMixin:SetProgressOnPinShown(shown)
 	self.showProgressOnPin = shown
+end
+
+function WarbandWorldQuestDataProviderMixin:SetProgressTextOption(option)
+	self.progressTextOption = option
 end
 
 function WarbandWorldQuestDataProviderMixin:SetMinPinDisplayLevel(uiMapType)
@@ -340,7 +400,7 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
 			self.progressFrames[pin] = progress
 		end
 
-		progress:SetText(format("|c%s%d/%d|r", row:GetProgressColor(), row.progress.claimed, row.progress.total))
+		progress:SetText(row:GetProgressText())
 		progress:Show()
 
 		updated = true
