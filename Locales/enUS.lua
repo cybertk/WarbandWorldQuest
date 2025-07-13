@@ -15,12 +15,17 @@ L["characters_tooltip_last_reset_time"] = "Last World Quests Reset Time: |cnWHIT
 
 L["warmode_tooltip_instruction"] = "Click to %s War Mode button"
 
+L["settings_pins_section_all"] = "Applied to All Pins"
+L["settings_pins_section_filtered"] = "Pins of Filtered Quests Only"
 L["settings_pins_progress_label_shown_text"] = "Warband Progress Label"
+L["settings_pins_progress_label_shown_tooltip"] =
+	"Show progress text on quest pins offering filtered rewards|n|nThe text format can be adjusted in the |cnWHITE_FONT_COLOR:Quest Log|r settings"
 L["settings_pins_tooltip_progress_shown_text"] = "Progress in Tooltip"
 L["settings_pins_tooltip_progress_shown_tooltip"] = "Show quest progress and rewards for all tracked characters in the map pin's tooltip"
 L["settings_pins_continent_maps_shown_text"] = "Continent Maps"
+L["settings_pins_continent_maps_shown_tooltip"] = "Show quest pins on continent maps"
 L["settings_pins_completed_quest_shown_text"] = "Completed Quests"
-L["settings_pins_completed_quest_shown_tooltip"] = "Show map pins for completed World Quests"
+L["settings_pins_completed_quest_shown_tooltip"] = "Show pins for completed quests, with a |A:common-icon-checkmark:15:15:0:0|a indicator"
 L["settings_log_default_tab_text"] = "Default Tab"
 L["settings_log_default_tab_tooltip"] = "Set %s as the default tab, it opens automatically when opening the World Map for the first time after logging in"
 L["settings_log_scanning_icon_shown_text"] = "Pending Scan Icon"

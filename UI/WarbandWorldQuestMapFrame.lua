@@ -274,7 +274,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 		do -- Map Pins
 			local pinsMenu = rootMenu:CreateButton(MAP_PIN)
 
-			Settings:CreateCheckboxMenu("pins_progress_shown", pinsMenu, L["settings_pins_progress_label_shown_text"])
+			pinsMenu:CreateTitle(L["settings_pins_section_all"])
 
 			Settings:CreateOptionsTree(
 				"pins_tooltip_shown",
@@ -285,10 +285,24 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				MenuResponse.Refresh
 			)
 
-			pinsMenu:CreateCheckbox(
+			pinsMenu:CreateDivider()
+			pinsMenu:CreateTitle(L["settings_pins_section_filtered"])
+
+			Settings:CreateCheckboxMenu(
+				"pins_progress_shown",
+				pinsMenu,
+				L["settings_pins_progress_label_shown_text"],
+				nil,
+				L["settings_pins_progress_label_shown_tooltip"]
+			)
+
+			local continentsCheckbox = pinsMenu:CreateCheckbox(
 				L["settings_pins_continent_maps_shown_text"],
 				Settings:GenerateComparator("pins_min_display_level", Enum.UIMapType.Continent),
 				Settings:GenerateRotator("pins_min_display_level", { Enum.UIMapType.Continent, Enum.UIMapType.Zone })
+			)
+			continentsCheckbox:SetTooltip(
+				Settings:GenerateTooltip(L["settings_pins_continent_maps_shown_tooltip"], L["settings_pins_continent_maps_shown_text"])
 			)
 
 			Settings:CreateCheckboxMenu(
