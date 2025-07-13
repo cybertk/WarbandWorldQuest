@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.21 - 2025-07-13
+
+### Alpha Release
+
+- Improved UI of Map Pins Settings
+- Added quest log progress text customization options:
+    - Show count of characters who have claimed the filtered quest rewards
+    - Show count of characters who haven't claimed the filtered quest rewards
+    - Hide progress text entirely
+
 ## v0.20 - 2025-07-10
 
 ### Alpha Release
