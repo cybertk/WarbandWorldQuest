@@ -83,6 +83,14 @@ function Character:GetEncounter(encounterID)
 	return self.encounters[encounterID]
 end
 
+function Character:GetOrCreateEncounter(encounterID)
+	self.encounters = self.encounters or {}
+	if self.encounters[encounterID] == nil then
+		self.encounters[encounterID] = Encounter:New()
+	end
+	return self.encounters[encounterID]
+end
+
 function Character:SetEncounters(encounters)
 	Character.Encounters = Util:Filter(encounters, function(encounterID)
 		local encounter = self:GetEncounter(encounterID)
@@ -93,23 +101,22 @@ function Character:SetEncounters(encounters)
 	Util:Debug("Encounters to update:", #Character.Encounters, #encounters)
 end
 
-function Character:Update()
+function Character:Update(encouterCompletedCallback)
+	encouterCompletedCallback = encouterCompletedCallback or nop
+
 	if self.Encounters == nil or #self.Encounters == 0 then
 		return
 	end
 
 	for i = #self.Encounters, 1, -1 do
-		local encounter = self:GetEncounter(self.Encounters[i])
+		local encounter = self:GetOrCreateEncounter(self.Encounters[i])
+		local numCompleted = encounter:Update(self.Encounters[i])
 
-		if encounter == nil then
-			self.encounters[self.Encounters[i]] = Encounter:Create(self.Encounters[i])
-		else
-			encounter:Update(self.Encounters[i])
+		if numCompleted > 0 then
+			encouterCompletedCallback(self.Encounters[i], numCompleted)
 		end
 
-		if encounter then
-			table.remove(self.Encounters, i)
-		end
+		table.remove(self.Encounters, i)
 	end
 
 	Util:Debug("Remaining encounters:", #self.Encounters)

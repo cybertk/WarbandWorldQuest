@@ -5,13 +5,9 @@ local Util = ns.Util
 local Encounter = { NameCache = {}, IDCache = {}, DungeonCache = {}, DungeonEncounterCache = {}, DungeonAreaMapCache = {} }
 Encounter.__index = Encounter
 
-function Encounter:Create(encounterID)
+function Encounter:New()
 	local o = {}
-
 	setmetatable(o, self)
-
-	o:Update(encounterID)
-
 	return o
 end
 
@@ -23,6 +19,8 @@ function Encounter:Update(encounterID)
 	self.DungeonCache[self] = dungeonID
 	self.DungeonEncounterCache[self] = dungeonEncounterID
 
+	local numCompleted = 0
+
 	EJ_SelectInstance(instanceID)
 
 	for _, difficultyID in pairs(DifficultyUtil.ID) do
@@ -31,11 +29,14 @@ function Encounter:Update(encounterID)
 
 			if C_RaidLocks.IsEncounterComplete(dungeonID, dungeonEncounterID, difficultyID) then
 				self:SetCompleted(difficultyID)
+				numCompleted = numCompleted + 1
 			end
 		end
 	end
 
 	self.DungeonAreaMapCache[self] = select(7, EJ_GetInstanceInfo(instanceID))
+
+	return numCompleted
 end
 
 function Encounter:GetName()

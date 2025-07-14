@@ -57,6 +57,20 @@ function WarbandWorldQuest:RemoveEncountersFromAllCharacters(reward)
 	Util:Debug("Removed encounters for reward:", reward:GetName())
 end
 
+function WarbandWorldQuest:UpdateAttempts(encounterID, numCompleted)
+	local reward = WarbandRewardList:FindByEncounterID(encounterID)
+	if reward == nil then
+		Util:Debug("Failed to update attempts", encounterID)
+		return
+	end
+
+	for i = 1, numCompleted do
+		reward:Attempted()
+	end
+
+	Util:Debug("Updated attempts", encounterID, reward:GetName(), numCompleted)
+end
+
 function WarbandWorldQuest:Update(isNewScanSession)
 	if self.dataProvider == nil then
 		return
@@ -73,7 +87,7 @@ function WarbandWorldQuest:Update(isNewScanSession)
 
 	self.character:SetEncounters(WarbandRewardList:GetAllEncounters())
 
-	local changed = self.character:Update() or changed
+	local changed = self.character:Update(GenerateClosure(WarbandWorldQuest.UpdateAttempts, self))
 	if changed then
 		self.dataProvider:SetShouldPopulateData(true)
 	end
@@ -137,7 +151,7 @@ do
 
 	WarbandWorldQuest:RegisterEvent("ENCOUNTER_END", function(event, dungeonEncounterID, encounterName, difficultyID, groupSize, success)
 		local reward, encounterID = WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
-		print("ENCOUNTER_END", reward, encounterID)
+		Util:Debug("ENCOUNTER_END", reward, encounterID, C_EncounterJournal.IsEncounterComplete(encounterID))
 
 		if reward == nil then
 			return
@@ -154,12 +168,7 @@ do
 			return
 		end
 
-		C_Timer.After(1, function()
-			encounter:Update(encounterID)
-			if encounter:IsComplete(difficultyID) then
-				reward:Attempted()
-			end
-		end)
+		RequestRaidInfo()
 	end)
 
 	WarbandWorldQuest:RegisterEvent("ADDON_LOADED", function(event, name)

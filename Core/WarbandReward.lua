@@ -169,8 +169,6 @@ function WarbandRewardList:Reset(callback)
 	return expiredRewards
 end
 
-_G["WarbandRewardList"] = WarbandRewardList
-
 function WarbandRewardList:CacheReward(reward)
 	if reward.mount then
 		self.mountCache[reward.mount] = reward
@@ -192,6 +190,10 @@ end
 
 function WarbandRewardList:FindByMountID(mountID)
 	return self.mountCache[mountID]
+end
+
+function WarbandRewardList:FindByEncounterID(encounterID)
+	return self.encounterCache[encounterID]
 end
 
 function WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
