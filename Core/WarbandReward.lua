@@ -24,8 +24,6 @@ function WarbandReward:CreateFromEncounters(encounters, difficulties)
 		return
 	end
 
-	WarbandReward.UpdateClaimedAt(o, 0)
-
 	setmetatable(o, self)
 
 	return o
@@ -279,6 +277,7 @@ function WarbandRewardList:AddFromEncounters(encounters, difficulties, mountItem
 	end
 
 	reward.mount = mountItemID
+	reward:UpdateClaimedAt(0)
 
 	table.insert(self.rewards, reward)
 	self:CacheReward(reward)
