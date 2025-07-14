@@ -3,6 +3,9 @@ local _, ns = ...
 local L = {}
 ns.L = L
 
+L["info_reward_claimed"] = "Congratulations! You have collected %s"
+L["info_reward_attempt"] = "%s encountered. This is the %d attempts this week, %d attempts in total"
+
 L["next_reset_dropdown_exclude_types"] = "Exclude World Quest Types"
 L["next_reset_button_text"] = "Next Reset: %s (%d)"
 L["next_reset_tooltip_title"] = "Upcomming Reset of World Quests"

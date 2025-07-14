@@ -1,5 +1,6 @@
 local addonName, ns = ...
 
+local L = ns.L
 local Util = ns.Util
 local CharacterStore = ns.CharacterStore
 local WarbandRewardList = ns.WarbandRewardList
@@ -26,8 +27,10 @@ function WarbandWorldQuest:Init()
 
 	for _, candidate in ipairs(ns.DB:GetAllCandidates()) do
 		local entry = candidate.entries[1]
-		WarbandRewardList:AddFromEncounters(entry.encounters, entry.difficulties, entry.mount)
+		local mountItemID = candidate.items[1].item
+		WarbandRewardList:AddFromEncounters(entry.encounters, entry.difficulties, mountItemID, entry.mount)
 	end
+	self.rewardList = WarbandRewardList
 
 	self.dataProvider = self:CreateDataProvider()
 	RequestRaidInfo()
@@ -137,6 +140,16 @@ do
 		self.frame:RegisterEvent(name)
 	end
 
+	EventRegistry:RegisterCallback("CK_LOOT_SCANNER_ITEM_LOOTED", function(self, source, quantity, item, currency)
+		if IsInInstance() and item then
+			local reward = WarbandRewardList:FindByItemID(item)
+			if reward then
+				reward:SetClaimed()
+				Util:Info(L["info_reward_claimed"]:format(reward:GetLink()))
+			end
+		end
+	end, WarbandWorldQuest)
+
 	WarbandWorldQuest:RegisterEvent("PLAYER_ENTERING_WORLD", function(event, isInitialLogin, isReloadingUi)
 		if isInitialLogin == false and isReloadingUi == false then
 			return
@@ -149,9 +162,18 @@ do
 		WarbandWorldQuest:Update()
 	end)
 
+	WarbandWorldQuest:RegisterEvent("ENCOUNTER_START", function(event, dungeonEncounterID, encounterName, difficultyID, groupSize)
+		local reward, encounterID = WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
+		Util:Debug("ENCOUNTER_START", reward, encounterID, encounterID and C_EncounterJournal.IsEncounterComplete(encounterID))
+
+		if reward then
+			Util:Info(L["info_reward_attempt"]:format(reward:GetLink(), reward.attempts, reward.totalAttempts))
+		end
+	end)
+
 	WarbandWorldQuest:RegisterEvent("ENCOUNTER_END", function(event, dungeonEncounterID, encounterName, difficultyID, groupSize, success)
 		local reward, encounterID = WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
-		Util:Debug("ENCOUNTER_END", reward, encounterID, C_EncounterJournal.IsEncounterComplete(encounterID))
+		Util:Debug("ENCOUNTER_END", reward, encounterID, encounterID and C_EncounterJournal.IsEncounterComplete(encounterID))
 
 		if reward == nil then
 			return
@@ -163,8 +185,9 @@ do
 		end
 
 		if success == 1 then
-			encounter:SetCompleted(difficultyID)
-			reward:Attempted()
+			-- encounter:SetCompleted(difficultyID)
+			-- reward:Attempted()
+			WarbandWorldQuest:Update()
 			return
 		end
 

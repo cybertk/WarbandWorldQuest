@@ -5,6 +5,8 @@ local Util = ns.Util
 -- mount, map, x, y, instance, encounters, difficulties, resetTime, totalAttempts, attempts
 local WarbandReward = {
 	NameCache = {},
+	MountIDCache = {},
+	LinkCache = {},
 }
 WarbandReward.__index = WarbandReward
 
@@ -21,6 +23,8 @@ function WarbandReward:CreateFromEncounters(encounters, difficulties)
 	if not WarbandReward.UpdateResetTime(o) then
 		return
 	end
+
+	WarbandReward.UpdateClaimedAt(o, 0)
 
 	setmetatable(o, self)
 
@@ -79,20 +83,60 @@ function WarbandReward:GetName()
 	end
 
 	if self.mount then
-		self.NameCache[self] = C_MountJournal.GetMountInfoByID(self.mount)
+		self.NameCache[self] = C_MountJournal.GetMountInfoByID(self:GetMountID())
 	end
 
 	return self.NameCache[self]
 end
 
-function WarbandReward:IsClaimed()
-	local isClaimed
+function WarbandReward:GetLink()
+	if self.LinkCache[self] == nil then
+		local item = Item:CreateFromItemID(self.mount)
 
-	if self.mount then
-		isClaimed = select(11, C_MountJournal.GetMountInfoByID(self.mount))
+		local updateCache = function()
+			self.LinkCache[self] = item:GetItemLink()
+		end
+
+		if item:IsItemDataCached() then
+			updateCache()
+		else
+			item:ContinueOnItemLoad(updateCache)
+		end
 	end
 
-	return isClaimed == true
+	return self.LinkCache[self] or self:GetName()
+end
+
+function WarbandReward:GetMountID()
+	if self.MountIDCache[self] == nil then
+		self.MountIDCache[self] = C_MountJournal.GetMountFromItem(self.mount)
+	end
+
+	return self.MountIDCache[self]
+end
+
+function WarbandReward:UpdateClaimedAt(defaultClaimedAt)
+	if self.claimedAt then
+		return
+	end
+
+	local isClaimed
+	if self.mount then
+		isClaimed = select(11, C_MountJournal.GetMountInfoByID(self:GetMountID() or 0))
+	end
+
+	if isClaimed then
+		self.claimedAt = defaultClaimedAt or GetServerTime()
+	end
+end
+
+function WarbandReward:SetClaimed()
+	self.claimedAt = GetServerTime()
+	Util:Debug("Reward Claimed", self:GetName())
+end
+
+function WarbandReward:IsClaimed()
+	return self.claimedAt ~= nil
 end
 
 function WarbandReward:GetClaimableDifficulties()
@@ -132,6 +176,7 @@ end
 
 local WarbandRewardList = {
 	mountCache = {},
+	itemCache = {},
 	encounterCache = {},
 	dungeonEncounterCache = {},
 }
@@ -171,7 +216,8 @@ end
 
 function WarbandRewardList:CacheReward(reward)
 	if reward.mount then
-		self.mountCache[reward.mount] = reward
+		self.itemCache[reward.mount] = reward
+		self.mountCache[reward:GetMountID() or 0] = reward
 	end
 
 	for _, encounterID in ipairs(reward.encounters) do
@@ -192,6 +238,10 @@ function WarbandRewardList:FindByMountID(mountID)
 	return self.mountCache[mountID]
 end
 
+function WarbandRewardList:FindByItemID(ItemID)
+	return self.itemCache[ItemID]
+end
+
 function WarbandRewardList:FindByEncounterID(encounterID)
 	return self.encounterCache[encounterID]
 end
@@ -202,8 +252,23 @@ function WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
 	return self.encounterCache[encounterID], encounterID
 end
 
-function WarbandRewardList:AddFromEncounters(encounters, difficulties, mount)
-	if self:FindByMountID(mount) then
+function WarbandRewardList:AddFromEncounters(encounters, difficulties, mountItemID, mount)
+	-- local mountID = C_MountJournal.GetMountFromItem(mountItemID)
+	-- if mountID ~= mount then
+	-- 	print("|cnRED_FONT_COLOR:xxxxxxxx", mountItemID, mount)
+	-- end
+
+	if self:FindByItemID(mount) then -- migration
+		Util:Debug("migrated", mountItemID, mount)
+		local reward = self:FindByItemID(mount)
+
+		reward.mount = mountItemID
+		self:CacheReward(reward)
+		return
+	end
+
+	local rewerd = self:FindByItemID(mountItemID)
+	if rewerd then
 		return
 	end
 
@@ -213,7 +278,7 @@ function WarbandRewardList:AddFromEncounters(encounters, difficulties, mount)
 		return
 	end
 
-	reward.mount = mount
+	reward.mount = mountItemID
 
 	table.insert(self.rewards, reward)
 	self:CacheReward(reward)
@@ -231,6 +296,8 @@ function WarbandRewardList:Update()
 				table.insert(changed, reward:GetName())
 			end
 		end
+
+		reward:UpdateClaimedAt()
 	end
 
 	Util:Debug("Updated reward:", #changed, unpack(changed))

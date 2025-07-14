@@ -196,16 +196,18 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 	self:SetupMenu(function(_, rootMenu)
 		rootMenu:CreateTitle(SETTINGS)
 
+		Settings:CreateCheckboxMenu(
+			"log_is_default_tab",
+			rootMenu,
+			L["settings_log_default_tab_text"],
+			nil,
+			L["settings_log_default_tab_tooltip"]:format(Util:GetAddonTitle())
+		)
+
+		rootMenu:CreateDivider()
+
 		do -- Quest Log
 			local logMenu = rootMenu:CreateButton("Reward Log")
-
-			Settings:CreateCheckboxMenu(
-				"log_is_default_tab",
-				logMenu,
-				L["settings_log_default_tab_text"],
-				nil,
-				L["settings_log_default_tab_tooltip"]:format("|cff00d9ffWarband World Quest|r")
-			)
 
 			Settings:CreateCheckboxMenu("log_time_left_shown", logMenu, CLOSES_IN, nil, L["settings_log_time_left_shown_tooltip"])
 			-- Settings:CreateCheckboxMenu("log_attempts_shown", logMenu, "Attempts", nil, L["settings_log_time_left_shown_tooltip"])

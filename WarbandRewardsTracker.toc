@@ -32,6 +32,7 @@ Core\WorldQuest.lua
 Core\WarbandReward.lua
 Core\Character.lua
 Core\CharacterStore.lua
+Core\SelectableLootScanner.lua
 
 UI\DataProviders.xml
 UI\WarbandWorldQuestMapFrame.xml

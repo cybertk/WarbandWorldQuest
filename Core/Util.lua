@@ -1,4 +1,4 @@
-local _, namespace = ...
+local addonName, namespace = ...
 
 local Util = {
 	debug = false,
@@ -242,6 +242,14 @@ function Util:GetNumSavedInstanceEncounters()
 	end
 
 	return num
+end
+
+function Util:GetAddonTitle()
+	return select(2, C_AddOns.GetAddOnInfo(addonName))
+end
+
+function Util:Info(...)
+	print(self:GetAddonTitle() .. "|cnYELLOW_FONT_COLOR::", ... .. "|r")
 end
 
 function Util.FormatTimeDuration(seconds, useAbbreviation)

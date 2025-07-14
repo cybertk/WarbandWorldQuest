@@ -28,7 +28,7 @@ function WarbandRewardSourceIconButtonMixin:OnMouseUp()
 		C_Map.SetUserWaypoint(point)
 
 		if point.position:IsZero() then
-			print(YELLOW_FONT_COLOR:WrapTextInColorCode(L["log_entry_position_unknown"]:format(select(8, EJ_GetInstanceInfo(reward.instance)))))
+			Util:Info(YELLOW_FONT_COLOR:WrapTextInColorCode(L["log_entry_position_unknown"]:format(select(8, EJ_GetInstanceInfo(reward.instance)))))
 			PlaySound(SOUNDKIT.QUEST_SESSION_DECLINE)
 		else
 			PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_ON)
@@ -251,7 +251,7 @@ function WarbandRewardsTrackerInstanceEntryMixin:OnClick(button)
 			local link = select(8, EJ_GetInstanceInfo(reward.instance))
 			ChatEdit_TryInsertChatLink(link)
 		elseif IsControlKeyDown() then
-			DressUpMount(reward.mount)
+			DressUpMount(reward:GetMountID())
 		else
 			PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
 			C_Map.OpenWorldMap(reward.map)
@@ -281,7 +281,7 @@ function WarbandRewardsTrackerInstanceEntryMixin:UpdateTooltip()
 	tooltip:SetOwner(self, "ANCHOR_RIGHT")
 
 	if self.data.reward.mount then
-		tooltip:SetSpellByID(select(2, C_MountJournal.GetMountInfoByID(self.data.reward.mount)))
+		tooltip:SetSpellByID(select(2, C_MountJournal.GetMountInfoByID(self.data.reward:GetMountID())))
 	end
 
 	tooltip:AddLine(" ")
