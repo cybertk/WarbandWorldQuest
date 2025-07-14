@@ -110,7 +110,7 @@ function WarbandReward:GetMountID()
 		self.MountIDCache[self] = C_MountJournal.GetMountFromItem(self.mount)
 	end
 
-	return self.MountIDCache[self]
+	return self.MountIDCache[self] or 0
 end
 
 function WarbandReward:UpdateClaimedAt(defaultClaimedAt)
