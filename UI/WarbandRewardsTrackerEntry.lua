@@ -23,6 +23,14 @@ function WarbandRewardSourceIconButtonMixin:OnMouseUp()
 		C_Map.ClearUserWaypoint()
 
 		WarbandRewardSourceIconButtonMixin.tracking = nil
+	elseif reward.poi then
+		if C_SuperTrack.IsSuperTrackingMapPin() then
+			PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_OFF)
+			C_SuperTrack.ClearSuperTrackedMapPin()
+		else
+			PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_ON)
+			C_SuperTrack.SetSuperTrackedMapPin(Enum.SuperTrackingMapPinType.AreaPOI, reward.poi)
+		end
 	elseif C_Map.CanSetUserWaypointOnMap(reward.map) then
 		local point = reward:GenerateMapPoint()
 		C_Map.SetUserWaypoint(point)

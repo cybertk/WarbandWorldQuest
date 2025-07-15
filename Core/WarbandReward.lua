@@ -53,6 +53,7 @@ function WarbandReward:UpdateDungeonPosition()
 	end
 
 	self.x, self.y = dungeonEntrance.position:GetXY()
+	self.poi = dungeonEntrance.areaPoiID
 
 	return true
 end
@@ -290,7 +291,7 @@ end
 function WarbandRewardList:Update()
 	local changed = {}
 	for _, reward in ipairs(self.rewards) do
-		if reward.x == nil then
+		if reward.poi == nil then
 			if reward:UpdateDungeonPosition() then
 				table.insert(changed, reward:GetName())
 			end
