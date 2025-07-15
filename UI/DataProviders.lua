@@ -526,7 +526,7 @@ WarbandRewardsTrackerDataProviderMixin = CreateFromMixins(WarbandWorldQuestDataP
 function WarbandRewardsTrackerDataProviderMixin:RefreshAllData() end
 
 function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
-	if self.locked then
+	if not self.shouldPopulateData then
 		return
 	end
 
@@ -577,8 +577,7 @@ function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
 	end
 
 	self.rows = rows
-
-	self.locked = true
+	self.shouldPopulateData = false
 end
 
 function WarbandRewardsTrackerDataProviderMixin:Reset()

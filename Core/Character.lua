@@ -108,25 +108,27 @@ function Character:Update(encouterCompletedCallback)
 		return
 	end
 
+	local changed = false
 	for i = #self.Encounters, 1, -1 do
 		local encounter = self:GetOrCreateEncounter(self.Encounters[i])
 		local numCompleted = encounter:Update(self.Encounters[i])
 
 		if numCompleted > 0 then
 			encouterCompletedCallback(self.Encounters[i], numCompleted)
+			changed = true
 		end
 
 		table.remove(self.Encounters, i)
 	end
 
-	Util:Debug("Remaining encounters:", #self.Encounters)
+	Util:Debug("Remaining encounters:", #self.Encounters, changed)
 
 	if #self.Encounters == 0 then
 		self.updatedAt = GetServerTime()
 		-- Util:TriggerEventAsync("CharacterStore.CharacterStateChanged")
-
-		return true
 	end
+
+	return changed
 end
 
 ns.Character = Character

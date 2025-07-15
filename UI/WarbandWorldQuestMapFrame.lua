@@ -454,7 +454,7 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 			if self.data.isActive or isInactive then
 				rootDescription:CreateButton((isInactive and CANCEL .. ": " or "") .. MOVE_TO_INACTIVE, function()
 					quest:SetInactive(not isInactive)
-					self.owner:Refresh()
+					self.owner:Refresh(true, true)
 				end)
 			end
 		end)
@@ -592,24 +592,24 @@ function WarbandWorldQuestPageMixin:OnLoad()
 end
 
 function WarbandWorldQuestPageMixin:OnShow()
-	self:RegisterEvent("QUEST_LOG_UPDATE")
-	self:RegisterEvent("QUEST_TURNED_IN")
+	-- self:RegisterEvent("QUEST_LOG_UPDATE")
+	self:RegisterEvent("ENCOUNTER_END")
 
-	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
+	-- WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
 	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
-	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
+	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self, true, true)
 	-- Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
-	Settings:RegisterCallback("log_time_left_shown", self.Refresh, self, true)
-	Settings:RegisterCallback("log_attempts_shown", self.Refresh, self, true)
+	Settings:RegisterCallback("log_time_left_shown", self.QueueRefresh, self)
+	Settings:RegisterCallback("log_attempts_shown", self.QueueRefresh, self)
 
 	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
-	self:UnregisterEvent("QUEST_LOG_UPDATE")
-	self:UnregisterEvent("QUEST_TURNED_IN")
+	-- self:UnregisterEvent("QUEST_LOG_UPDATE")
+	self:UnregisterEvent("ENCOUNTER_END")
 
-	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
+	-- WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	-- Settings:UnregisterCallback("log_scanning_icon_shown", self)
@@ -618,13 +618,21 @@ function WarbandWorldQuestPageMixin:OnHide()
 end
 
 function WarbandWorldQuestPageMixin:OnEvent(event)
-	if event == "QUEST_LOG_UPDATE" then
-		self.CharactersButton:Update()
-		self.NextResetButton:Update()
-		self.SettingsDropdown:Update()
-	else
+	self:QueueRefresh()
+end
+
+function WarbandWorldQuestPageMixin:QueueRefresh()
+	if self:GetScript("OnUpdate") then
+		return
+	end
+
+	local function OnUpdate(self)
+		self:SetScript("OnUpdate", nil)
 		self:Refresh(true)
 	end
+
+	self:SetScript("OnUpdate", OnUpdate)
+	Util:Debug("Queued Refresh")
 end
 
 function WarbandWorldQuestPageMixin:IsEncountersOverlapped(elementData)
@@ -681,7 +689,16 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 	frame:SetDrawLayerEnabled("HIGHLIGHT", shown)
 end
 
-function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
+function WarbandWorldQuestPageMixin:Refresh(frameOnShow, force)
+	if not self.dataProvider:IsEmpty() and not force then
+		Util:Debug("Skip Refresh")
+
+		self.ScrollBox:ReinitializeFrames()
+		return
+	end
+
+	Util:Debug("Refresh", force)
+
 	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end

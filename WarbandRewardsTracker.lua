@@ -94,6 +94,7 @@ function WarbandWorldQuest:Update(isNewScanSession)
 	if changed then
 		self.dataProvider:SetShouldPopulateData(true)
 	end
+	self.dataProvider:Flush()
 end
 
 function WarbandWorldQuest:CreateDataProvider()
@@ -175,19 +176,7 @@ do
 		local reward, encounterID = WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
 		Util:Debug("ENCOUNTER_END", reward, encounterID, encounterID and C_EncounterJournal.IsEncounterComplete(encounterID))
 
-		if reward == nil then
-			return
-		end
-
-		local encounter = WarbandWorldQuest.character:GetEncounter(encounterID)
-		if encounter:IsComplete(difficultyID) then
-			return
-		end
-
-		if success == 1 then
-			-- encounter:SetCompleted(difficultyID)
-			-- reward:Attempted()
-			WarbandWorldQuest:Update()
+		if reward == nil or WarbandWorldQuest.character:GetEncounter(encounterID):IsComplete(difficultyID) then
 			return
 		end
 
