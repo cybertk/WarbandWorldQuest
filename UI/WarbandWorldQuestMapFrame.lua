@@ -204,6 +204,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 			L["settings_log_default_tab_tooltip"]:format(Util:GetAddonTitle())
 		)
 
+		Settings:CreateCheckboxMenu("reward_announcement", rootMenu, CHAT_ANNOUNCE, nil, L["settings_reward_announcement_tooltip"])
+
 		rootMenu:CreateDivider()
 
 		do -- Quest Log

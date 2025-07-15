@@ -146,7 +146,11 @@ do
 			local reward = WarbandRewardList:FindByItemID(item)
 			if reward then
 				reward:SetClaimed()
-				Util:Info(L["info_reward_claimed"]:format(reward:GetLink()))
+
+				if Settings:Get("reward_announcement") then
+					Util:Info(L["info_reward_claimed"]:format(reward:GetLink()))
+					PlaySound(SOUNDKIT.LFG_REWARDS)
+				end
 			end
 		end
 	end, WarbandWorldQuest)
@@ -167,8 +171,8 @@ do
 		local reward, encounterID = WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
 		Util:Debug("ENCOUNTER_START", reward, encounterID, encounterID and C_EncounterJournal.IsEncounterComplete(encounterID))
 
-		if reward then
-			Util:Info(L["info_reward_attempt"]:format(reward:GetLink(), reward.attempts, reward.totalAttempts))
+		if reward and Settings:Get("reward_announcement") then
+			Util:Info(L["info_reward_attempt"]:format(reward:GetLink(), reward.attempts + 1, reward.totalAttempts + 1))
 		end
 	end)
 
@@ -194,6 +198,7 @@ do
 		}
 
 		local DefaultWarbandRewardsTrackerSettings = {
+			["reward_announcement"] = true,
 			["group_collapsed_states"] = {},
 			["log_is_default_tab"] = true,
 			["log_time_left_shown"] = true,
