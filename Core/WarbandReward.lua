@@ -85,7 +85,7 @@ function WarbandReward:GetName()
 		self.NameCache[self] = C_MountJournal.GetMountInfoByID(self:GetMountID())
 	end
 
-	return self.NameCache[self]
+	return self.NameCache[self] or LFG_LIST_LOADING
 end
 
 function WarbandReward:GetLink()
