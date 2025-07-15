@@ -203,6 +203,28 @@ function Util:GetDungeonMap(mapID)
 	return Util:GetDungeonMap(map.parentMapID)
 end
 
+function Util:GetDungeonEntrance(instanceID)
+	EJ_SelectInstance(instanceID)
+
+	local entranceMap = self:GetDungeonMap(select(7, EJ_GetInstanceInfo(instanceID)))
+
+	for _, entrance in ipairs(C_EncounterJournal.GetDungeonEntrancesForMap(entranceMap.mapID) or {}) do
+		if entrance.journalInstanceID == instanceID then
+			return entrance, entranceMap
+		end
+	end
+
+	for _, map in ipairs(C_Map.GetMapChildrenInfo(entranceMap.mapID, Enum.UIMapType.Micro) or {}) do
+		for _, entrance in ipairs(C_EncounterJournal.GetDungeonEntrancesForMap(map.mapID) or {}) do
+			if entrance.journalInstanceID == instanceID then
+				return entrance, map
+			end
+		end
+	end
+
+	return nil, entranceMap
+end
+
 function Util:UnitFactionGroupEnum(unitName)
 	local factionNameToEnum = { ["Alliance"] = 1, ["Horde"] = 2 }
 

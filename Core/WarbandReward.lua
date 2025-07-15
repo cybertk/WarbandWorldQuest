@@ -33,16 +33,7 @@ function WarbandReward:UpdateDungeonPosition()
 	local encounterID = self.encounters[1]
 	local name, description, bossID, rootSectionID, link, instanceID, dungeonEncounterID, dungeonID = EJ_GetEncounterInfo(encounterID)
 
-	EJ_SelectInstance(instanceID)
-
-	local map = Util:GetDungeonMap(select(7, EJ_GetInstanceInfo(instanceID)))
-
-	local dungeonEntrance
-	for _, entrance in ipairs(C_EncounterJournal.GetDungeonEntrancesForMap(map.mapID) or {}) do
-		if entrance.journalInstanceID == instanceID then
-			dungeonEntrance = entrance
-		end
-	end
+	local dungeonEntrance, map = Util:GetDungeonEntrance(instanceID)
 
 	self.instance = instanceID
 	self.dungeon = dungeonID
