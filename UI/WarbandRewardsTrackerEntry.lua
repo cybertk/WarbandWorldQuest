@@ -146,11 +146,17 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:OnClick(button)
 		C_Map.OpenWorldMap(self.data.encounter:GetDungeonAreaMapID())
 	elseif button == "RightButton" then
 		local difficultyID = self.data.difficultyID
-		if IsLegacyDifficulty(difficultyID) then
-			SetLegacyRaidDifficultyID(difficultyID, true)
+
+		if difficultyID == GetRaidDifficultyID() or difficultyID == GetLegacyRaidDifficultyID() then
+			PlaySound(SOUNDKIT.LFG_DENIED)
 		else
-			SetDungeonDifficultyID(difficultyID)
-			SetRaidDifficultyID(difficultyID)
+			PlaySound(SOUNDKIT.LFG_ROLE_CHECK)
+			if IsLegacyDifficulty(difficultyID) then
+				SetLegacyRaidDifficultyID(difficultyID, true)
+			else
+				SetDungeonDifficultyID(difficultyID)
+				SetRaidDifficultyID(difficultyID)
+			end
 		end
 	end
 end
