@@ -91,15 +91,9 @@ function WarbandReward:GetLink()
 	if self.LinkCache[self] == nil then
 		local item = Item:CreateFromItemID(self.mount)
 
-		local updateCache = function()
+		item:ContinueOnItemLoad(function()
 			self.LinkCache[self] = item:GetItemLink()
-		end
-
-		if item:IsItemDataCached() then
-			updateCache()
-		else
-			item:ContinueOnItemLoad(updateCache)
-		end
+		end)
 	end
 
 	return self.LinkCache[self] or self:GetName()
@@ -107,20 +101,22 @@ end
 
 function WarbandReward:GetMountID()
 	if self.MountIDCache[self] == nil then
-		self.MountIDCache[self] = C_MountJournal.GetMountFromItem(self.mount)
+		Item:CreateFromItemID(self.mount):ContinueOnItemLoad(function()
+			self.MountIDCache[self] = C_MountJournal.GetMountFromItem(self.mount)
+		end)
 	end
 
 	return self.MountIDCache[self] or 0
 end
 
-function WarbandReward:UpdateClaimedAt(defaultClaimedAt)
+function WarbandReward:UpdateClaimedAt(defaultClaimedAt, mountID)
 	if self.claimedAt then
 		return
 	end
 
 	local isClaimed
 	if self.mount then
-		isClaimed = select(11, C_MountJournal.GetMountInfoByID(self:GetMountID() or 0))
+		isClaimed = select(11, C_MountJournal.GetMountInfoByID(mountID or self:GetMountID()))
 	end
 
 	if isClaimed then
@@ -135,6 +131,10 @@ end
 
 function WarbandReward:IsClaimed()
 	return self.claimedAt ~= nil
+end
+
+function WarbandReward:HasClaimedDate()
+	return self.claimedAt and self.claimedAt > 0
 end
 
 function WarbandReward:GetClaimableDifficulties()
@@ -277,7 +277,7 @@ function WarbandRewardList:AddFromEncounters(encounters, difficulties, mountItem
 	end
 
 	reward.mount = mountItemID
-	reward:UpdateClaimedAt(0)
+	reward:UpdateClaimedAt(0, mount)
 
 	table.insert(self.rewards, reward)
 	self:CacheReward(reward)

@@ -277,16 +277,21 @@ end
 
 function WarbandRewardsTrackerInstanceEntryMixin:UpdateTooltip()
 	local tooltip = GetAppropriateTooltip()
+	local reward = self.data.reward
 
 	tooltip:SetOwner(self, "ANCHOR_RIGHT")
 
-	if self.data.reward.mount then
-		tooltip:SetSpellByID(select(2, C_MountJournal.GetMountInfoByID(self.data.reward:GetMountID())))
+	if reward.mount then
+		tooltip:SetSpellByID(select(2, C_MountJournal.GetMountInfoByID(reward:GetMountID())))
 	end
 
 	tooltip:AddLine(" ")
-	tooltip:AddLine(L["log_entry_tooltip_attempts_reset"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(self.data.reward.attempts), NORMAL_FONT_COLOR:GetRGB()))
-	tooltip:AddLine(L["log_entry_tooltip_attempts_total"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(self.data.reward.totalAttempts), NORMAL_FONT_COLOR:GetRGB()))
+	if reward:HasClaimedDate() then
+		tooltip:AddLine(COLLECTED .. ": " .. date("%m-%d %H:%M", reward.claimedAt), GREEN_FONT_COLOR:GetRGB())
+		tooltip:AddLine(" ")
+	end
+	tooltip:AddLine(L["log_entry_tooltip_attempts_reset"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(reward.attempts), NORMAL_FONT_COLOR:GetRGB()))
+	tooltip:AddLine(L["log_entry_tooltip_attempts_total"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(reward.totalAttempts), NORMAL_FONT_COLOR:GetRGB()))
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine(VIEW_IN_DRESSUP_FRAME .. " (CTRL+|A:NPE_LeftClick:16:16|a)", GREEN_FONT_COLOR:GetRGB())
