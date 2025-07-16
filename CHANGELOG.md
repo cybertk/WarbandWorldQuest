@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.22 - 2025-07-16
+
+### Alpha Release
+
+- Now the the completed world quests can be shown under new "Completed" section, turn it on in Settings -> Quest Log
+- Resolved an issue where first completion bonuses sometimes did not appear under the "Not Collected" mode in Warband Rewards
+
 ## v0.21 - 2025-07-13
 
 ### Alpha Release
