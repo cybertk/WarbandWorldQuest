@@ -76,7 +76,11 @@ function WorldQuest:UpdateFirstCompletionBonus(force)
 end
 
 function WorldQuest:IsFirstCompletionBonusClaimed()
-	return not C_QuestLog.QuestContainsFirstTimeRepBonusForPlayer(self.ID)
+	if HaveQuestRewardData(self.ID) then
+		return not C_QuestLog.QuestContainsFirstTimeRepBonusForPlayer(self.ID)
+	else
+		return C_QuestLog.IsQuestFlaggedCompletedOnAccount(self.ID)
+	end
 end
 
 function WorldQuest:GetName()
