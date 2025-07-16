@@ -48,6 +48,43 @@ function WarbandWorldQuestDataRowMixin:GetProgressText()
 	return text
 end
 
+function WarbandWorldQuestDataRowMixin:UpdateFocused()
+	local wasFocused = self.isActive or false
+	local rewards = self.dataProvider.filterUncollectedRewards and self.uncollectedRewards or self.totalRewards
+
+	if not self.quest:IsInactive() and rewards:PassRewardTypeFilters(self.dataProvider.rewardFiltersMask) then
+		self.isActive = true
+	else
+		self.isActive = false
+	end
+
+	if wasFocused == self.isActive then
+		return
+	end
+
+	if self.isActive then
+		table.insert(self.dataProvider.activeQuests, self.quest)
+	else
+		tDeleteItem(self.dataProvider.activeQuests, self.quest)
+	end
+
+	return true
+end
+
+function WarbandWorldQuestDataRowMixin:IsFlaggedCompleted(questCompletedForPlayer)
+	local option = self.dataProvider.questCompleteOption
+
+	if option == "ALL" then
+		return self.progress.eligible > 0 and self.progress.eligible == self.progress.claimed
+	elseif questCompletedForPlayer and option == "CURRENT" then
+		return true
+	elseif option == "CURRENT" then
+		return C_QuestLog.IsQuestFlaggedCompleted(self.quest.ID)
+	else
+		return false
+	end
+end
+
 function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
 	local rewards = {}
 	local numClaimed = 0
@@ -155,6 +192,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 	end
 
 	self.rows = rows
+	self.activeQuests = {}
 	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
 	self:UpdateEligibleCharactersData()
 
@@ -168,35 +206,16 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 		return
 	end
 
+	local groupChanged = false
+
 	row:UpdateRemainingRewards(true)
-
-	if self.filterUncollectedRewards and row.isActive and not row.uncollectedRewards:PassRewardTypeFilters(self.rewardFiltersMask) then
-		if #self.headers then
-			local header = self.headers[#self.headers]
-
-			header.numQuests = header.numQuests + 1
-			header.dirty = true
-			Util:Debug("Updated Inactive numQuests:", header.numQuests)
-		end
-
-		if self.groupState[2] then
-			self:Remove(row)
-		else
-			self:MoveElementDataToIndex(row)
-		end
-
-		for i, quest in ipairs(self.activeQuests) do
-			if quest == row.quest then
-				table.remove(self.activeQuests, i)
-				Util:Debug("Removed active quest:", quest.ID)
-				break
-			end
-		end
-	else
-		row.dirty = true
+	if row:UpdateFocused() or row:IsFlaggedCompleted(true) then
+		groupChanged = true
 	end
 
-	Util:Debug("Updated rewards progress", questID, row.quest:GetName())
+	Util:Debug("Updated rewards progress", questID, row.quest:GetName(), groupChanged)
+
+	return groupChanged
 end
 
 function WarbandWorldQuestDataProviderMixin:UpdateGroupState(groupIndex, isCollapsed)
@@ -215,6 +234,10 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardTypeFilters(filters)
 	self:UpdateEligibleCharactersData()
 
 	Util:Debug("RewardTypeFilters updated", self.rewardFiltersMask)
+end
+
+function WarbandWorldQuestDataProviderMixin:SetQuestCompleteOption(option)
+	self.questCompleteOption = option
 end
 
 function WarbandWorldQuestDataProviderMixin:SetProgressOnPinShown(shown)
@@ -239,39 +262,34 @@ end
 
 function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
 	self.shouldPopulateData = shouldPopulateData
+	Util:Debug("Queued PopulateCharactersData")
 end
 
 function WarbandWorldQuestDataProviderMixin:Reset()
 	self:PopulateCharactersData()
-
-	self.activeQuests = {}
-	self.headers = {}
 
 	if #self.rows == 0 then
 		return
 	end
 
 	local groups = {
-		{
-			name = "Active Quests",
-			rows = {},
-			virtual = true,
-		},
-		{
-			name = FACTION_INACTIVE,
-			rows = {},
-		},
+		FOCUSED = 1,
+		{ rows = {}, virtual = true, index = 1 },
+		COMPLETED = 2,
+		{ name = CRITERIA_COMPLETED, rows = {}, virtual = self.questCompleteOption == nil },
+		INACTIVE = 3,
+		{ name = FACTION_INACTIVE, rows = {} },
 	}
 
 	for _, row in ipairs(self.rows) do
-		local rewards = self.filterUncollectedRewards and row.uncollectedRewards or row.totalRewards
-		if not row.quest:IsInactive() and rewards:PassRewardTypeFilters(self.rewardFiltersMask) then
-			row.isActive = true
-			table.insert(groups[1].rows, row)
-			table.insert(self.activeQuests, row.quest)
+		row:UpdateFocused()
+
+		if row:IsFlaggedCompleted() then
+			table.insert(groups[groups.COMPLETED].rows, row)
+		elseif row.isActive then
+			table.insert(groups[groups.FOCUSED].rows, row)
 		else
-			row.isActive = false
-			table.insert(groups[2].rows, row)
+			table.insert(groups[groups.INACTIVE].rows, row)
 		end
 	end
 
@@ -281,7 +299,6 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 		if not group.virtual then
 			table.insert(rows, { isHeader = true, isCollapsed = isCollapsed, name = group.name, index = i, numQuests = #group.rows })
-			table.insert(self.headers, rows[#rows])
 		end
 
 		for _, row in ipairs(isCollapsed and {} or group.rows) do
@@ -325,11 +342,11 @@ function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, 
 end
 
 function WarbandWorldQuestDataProviderMixin:FindByQuestID(questID, isActiveOnly)
-	local index, row = self:FindByPredicate(function(row)
-		return (not isActiveOnly or row.isActive) and row.quest and row.quest.ID == questID
-	end)
-
-	return row
+	for _, row in ipairs(self.rows) do
+		if (not isActiveOnly or row.isActive) and row.quest and row.quest.ID == questID then
+			return row
+		end
+	end
 end
 
 function WarbandWorldQuestDataProviderMixin:FindPinByQuestID(questID)

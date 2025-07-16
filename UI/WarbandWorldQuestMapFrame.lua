@@ -317,6 +317,8 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 		do -- Quest Log
 			local logMenu = rootMenu:CreateButton(QUEST_LOG)
 
+			logMenu:CreateTitle(L["settings_pins_section_all"])
+
 			Settings:CreateCheckboxMenu(
 				"log_is_default_tab",
 				logMenu,
@@ -324,6 +326,18 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				nil,
 				L["settings_log_default_tab_tooltip"]:format("|cff00d9ffWarband World Quest|r")
 			)
+
+			Settings:CreateOptionsTree("log_section_completed_shown", logMenu, L["settings_section_text"]:format(CRITERIA_COMPLETED), {
+				{ text = L["settings_section_completed_option_all_text"], tooltip = L["settings_section_completed_option_all_tooltip"], value = "ALL" },
+				{
+					text = L["settings_section_completed_option_current_text"],
+					tooltip = L["settings_section_completed_option_current_tooltip"],
+					value = "CURRENT",
+				},
+			}, L["settings_section_completed_tooltip"], MenuResponse.Refresh)
+
+			logMenu:CreateDivider()
+			logMenu:CreateTitle(L["settings_pins_section_filtered"])
 
 			Settings:CreateCheckboxMenu(
 				"log_scanning_icon_shown",
@@ -393,20 +407,11 @@ end
 
 function WarbandWorldQuestHeaderMixin:UpdateTitle()
 	self.ButtonText:SetText(format("%s (%d)", self.data.name, self.data.numQuests))
-	self.data.dirty = nil
 end
 
 function WarbandWorldQuestHeaderMixin:OnLoad()
 	self:CheckHighlightTitle(false)
 	self:SetPushedTextOffset(1, -1)
-end
-
-function WarbandWorldQuestHeaderMixin:OnShow()
-	if not self.data or not self.data.dirty then
-		return
-	end
-
-	self:UpdateTitle()
 end
 
 function WarbandWorldQuestHeaderMixin:OnClick(button)
@@ -481,8 +486,6 @@ function WarbandWorldQuestEntryMixin:Init(elementData)
 	self:UpdateLocation()
 	self:UpdateRewards()
 	self:AdjustHeight()
-
-	elementData.dirty = nil
 end
 
 function WarbandWorldQuestEntryMixin:UpdateStatus()
@@ -550,15 +553,6 @@ function WarbandWorldQuestEntryMixin:ToggleTracked()
 end
 
 function WarbandWorldQuestEntryMixin:OnShow()
-	if self.data and self.data.dirty then
-		Util:Debug("Updated dirty entry", self.data.quest:GetName())
-
-		self:UpdateProgress()
-		self:UpdateRewards()
-
-		self.data.dirty = nil
-	end
-
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.UpdateLocation, self)
 end
 
@@ -612,7 +606,7 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 			if self.data.isActive or isInactive then
 				rootDescription:CreateButton((isInactive and CANCEL .. ": " or "") .. MOVE_TO_INACTIVE, function()
 					quest:SetInactive(not isInactive)
-					self.owner:Refresh()
+					self.owner:Update()
 				end)
 			end
 		end)
@@ -747,12 +741,15 @@ function WarbandWorldQuestPageMixin:OnShow()
 	self:RegisterEvent("QUEST_TURNED_IN")
 
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
-	Settings:RegisterCallback("reward_type_filters", self.Refresh, self)
-	Settings:RegisterCallback("group_collapsed_states", self.Refresh, self)
-	Settings:RegisterCallback("log_scanning_icon_shown", self.Refresh, self, true)
-	Settings:RegisterCallback("log_progress_shown", self.Refresh, self, true)
-	Settings:RegisterCallback("log_time_left_shown", self.Refresh, self, true)
-	Settings:RegisterCallback("log_warband_rewards_shown", self.Refresh, self, true)
+	Settings:RegisterCallback("reward_type_filters", self.Update, self)
+	Settings:RegisterCallback("group_collapsed_states", self.Update, self)
+	Settings:RegisterCallback("log_section_completed_shown", self.Update, self)
+	Settings:RegisterCallback("log_scanning_icon_shown", self.QueueRefresh, self)
+	Settings:RegisterCallback("log_progress_shown", self.QueueRefresh, self)
+	Settings:RegisterCallback("log_time_left_shown", self.Update, self)
+	Settings:RegisterCallback("log_warband_rewards_shown", self.QueueRefresh, self)
+
+	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
@@ -762,6 +759,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
+	Settings:UnregisterCallback("log_section_completed_shown", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
 	Settings:UnregisterCallback("log_progress_shown", self)
 	Settings:UnregisterCallback("log_time_left_shown", self)
@@ -774,7 +772,7 @@ function WarbandWorldQuestPageMixin:OnEvent(event)
 		self.NextResetButton:Update()
 		self.SettingsDropdown:Update()
 	else
-		self:Refresh(true)
+		self:QueueRefresh()
 	end
 end
 
@@ -799,7 +797,7 @@ end
 
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
 	self.dataProvider = dataProvider
-	self:Refresh()
+	self:Update()
 end
 
 function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)
@@ -839,8 +837,34 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 	frame:SetDrawLayerEnabled("HIGHLIGHT", shown)
 end
 
-function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
+function WarbandWorldQuestPageMixin:QueueRefresh()
+	if self:GetScript("OnUpdate") then
+		return
+	end
+
+	local function OnUpdate(self)
+		self:SetScript("OnUpdate", nil)
+		self:Refresh()
+	end
+
+	self:SetScript("OnUpdate", OnUpdate)
+	Util:Debug("Queued Refresh")
+end
+
+function WarbandWorldQuestPageMixin:Refresh()
+	if self.dataProvider:IsEmpty() then
+		self:Update()
+		return
+	end
+
+	self.ScrollBox:ReinitializeFrames()
+	Util:Debug("Page Refreshed")
+end
+
+function WarbandWorldQuestPageMixin:Update()
 	self.dataProvider:SetFilterUncollectedRewards(Settings:GetOption("log_warband_rewards_shown") == "NOT_COLLECTED")
+	self.dataProvider:SetQuestCompleteOption(Settings:GetOption("log_section_completed_shown"))
+
 	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
 	end
@@ -849,5 +873,7 @@ function WarbandWorldQuestPageMixin:Refresh(frameOnShow)
 		self.LoadingFrame:Hide()
 	end
 
-	self.ScrollBox:SetDataProvider(self.dataProvider, frameOnShow and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition)
+	self.ScrollBox:SetDataProvider(self.dataProvider, self:IsVisible() and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition)
+
+	Util:Debug("Page Updated", self:IsVisible())
 end

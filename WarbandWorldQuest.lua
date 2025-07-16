@@ -114,7 +114,9 @@ function WarbandWorldQuest:SetRewardsClaimed(questID)
 	end
 
 	rewards:SetClaimed()
-	self.dataProvider:UpdateRewardsClaimed(questID)
+	if self.dataProvider:UpdateRewardsClaimed(questID) then
+		self.dataProvider:Flush()
+	end
 end
 
 function WarbandWorldQuest:CreateDataProvider()
@@ -225,6 +227,7 @@ do
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,
+			["log_section_completed_shown"] = { enabled = true, option = "CURRENT" },
 			["log_time_left_shown"] = true,
 			["log_warband_rewards_shown"] = { enabled = true, option = "NOT_COLLECTED" },
 			["log_progress_shown"] = { enabled = true, option = "CLAIMED" },

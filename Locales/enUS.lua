@@ -44,6 +44,12 @@ L["settings_log_warband_rewards_shown_tooltip"] =
 	"Show accumulated rewards for all characters in the quest log, either as a total or uncollected.|nWhen disabled, show rewards of current logged-in character"
 L["settings_maps_title"] = "Scanning Maps"
 L["settings_filters_title"] = "Quest Filters by Rewards"
+L["settings_section_text"] = "%s Section"
+L["settings_section_completed_tooltip"] = "Show completed quests under the Completed section|n|nWhen disabled, completed quests will be shown under the Inactive section"
+L["settings_section_completed_option_all_text"] = "All Eligible Characters"
+L["settings_section_completed_option_all_tooltip"] = "The quest is considered completed only if all characters have claimed the filtered rewards"
+L["settings_section_completed_option_current_text"] = "Current Character Only"
+L["settings_section_completed_option_current_tooltip"] = "The quest is considered completed if the current character has completed it"
 
 L["log_entry_tooltip_characters_scanned"] = "Characters Scanned"
 L["log_entry_tooltip_characters_completed"] = "Characters Completed"
