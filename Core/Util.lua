@@ -193,20 +193,21 @@ function Util:GetContinentMap(mapID)
 	return Util:GetContinentMap(map.parentMapID)
 end
 
-function Util:GetDungeonMap(mapID)
+function Util:GetDungeonMap(mapID, dungeonMapID)
 	local map = C_Map.GetMapInfo(mapID)
 
-	if map.mapType < Enum.UIMapType.Dungeon then
+	if dungeonMapID ~= nil and map.mapType < Enum.UIMapType.Dungeon then
 		return map
 	end
 
-	return Util:GetDungeonMap(map.parentMapID)
+	return Util:GetDungeonMap(map.parentMapID, dungeonMapID or map.mapID)
 end
 
 function Util:GetDungeonEntrance(instanceID)
 	EJ_SelectInstance(instanceID)
 
-	local entranceMap = self:GetDungeonMap(select(7, EJ_GetInstanceInfo(instanceID)))
+	local dungeonMapID = select(7, EJ_GetInstanceInfo(instanceID))
+	local entranceMap = self:GetDungeonMap(dungeonMapID)
 
 	for _, entrance in ipairs(C_EncounterJournal.GetDungeonEntrancesForMap(entranceMap.mapID) or {}) do
 		if entrance.journalInstanceID == instanceID then
