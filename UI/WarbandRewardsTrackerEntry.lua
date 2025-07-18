@@ -299,11 +299,13 @@ function WarbandRewardsTrackerInstanceEntryMixin:UpdateTooltip()
 		tooltip:SetSpellByID(select(2, C_MountJournal.GetMountInfoByID(reward:GetMountID())))
 	end
 
-	tooltip:AddLine(" ")
 	if reward:HasClaimedDate() then
 		tooltip:AddLine(COLLECTED .. ": " .. date("%m-%d %H:%M", reward.claimedAt), GREEN_FONT_COLOR:GetRGB())
-		tooltip:AddLine(" ")
+	elseif not reward:IsClaimed() then
+		tooltip:AddLine(MOUNT_JOURNAL_NOT_COLLECTED, RED_FONT_COLOR:GetRGB())
 	end
+
+	tooltip:AddLine(" ")
 	tooltip:AddLine(L["log_entry_tooltip_attempts_reset"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(reward.attempts), NORMAL_FONT_COLOR:GetRGB()))
 	tooltip:AddLine(L["log_entry_tooltip_attempts_total"]:format(WHITE_FONT_COLOR:WrapTextInColorCode(reward.totalAttempts), NORMAL_FONT_COLOR:GetRGB()))
 
