@@ -147,7 +147,7 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:OnClick(button)
 	elseif button == "RightButton" then
 		local difficultyID = self.data.difficultyID
 
-		if difficultyID == GetRaidDifficultyID() or difficultyID == GetLegacyRaidDifficultyID() then
+		if difficultyID == GetRaidDifficultyID() or difficultyID == GetLegacyRaidDifficultyID() or difficultyID == GetDungeonDifficultyID() then
 			PlaySound(SOUNDKIT.LFG_DENIED)
 		else
 			PlaySound(SOUNDKIT.LFG_ROLE_CHECK)
