@@ -14,6 +14,11 @@ end
 function Encounter:Update(encounterID)
 	local name, description, bossID, rootSectionID, link, instanceID, dungeonEncounterID, dungeonID = EJ_GetEncounterInfo(encounterID or self:GetID())
 
+	if name == nil then
+		Util:Debug("|cnRED_FONT_COLOR:ENCOUNTER_UPDATE_FAILED:", encounterID, self:GetID())
+		return 0
+	end
+
 	self.IDCache[self] = encounterID
 	self.NameCache[self] = name
 	self.DungeonCache[self] = dungeonID

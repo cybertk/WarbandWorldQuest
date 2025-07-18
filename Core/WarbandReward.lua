@@ -211,11 +211,28 @@ function WarbandRewardList:CacheReward(reward)
 	end
 
 	for _, encounterID in ipairs(reward.encounters) do
-		if self.encounterCache[encounterID] == nil then
+		self.encounterCache[encounterID] = self.encounterCache[encounterID] or {}
+		if not self.encounterCache[encounterID][reward] then
 			local name, description, bossID, rootSectionID, link, instanceID, dungeonEncounterID, dungeonID = EJ_GetEncounterInfo(encounterID)
 
-			self.encounterCache[encounterID] = reward
+			self.encounterCache[encounterID][reward] = true
+			-- table.insert(self.encounterCache[encounterID], reward)
 			self.dungeonEncounterCache[dungeonEncounterID] = encounterID
+
+			if dungeonEncounterID == nil then
+				Util:Debug(
+					"|cnRED_FONT_COLOR:oh nonononononono: dungeonEncounterID",
+					encounterID,
+					name,
+					description,
+					bossID,
+					rootSectionID,
+					link,
+					instanceID,
+					dungeonEncounterID,
+					dungeonID
+				)
+			end
 		end
 	end
 end
@@ -233,13 +250,13 @@ function WarbandRewardList:FindByItemID(ItemID)
 end
 
 function WarbandRewardList:FindByEncounterID(encounterID)
-	return self.encounterCache[encounterID]
+	return GetKeysArray(self.encounterCache[encounterID] or {})
 end
 
 function WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
 	local encounterID = self.dungeonEncounterCache[dungeonEncounterID]
 
-	return self.encounterCache[encounterID], encounterID
+	return self:FindByEncounterID(encounterID), encounterID
 end
 
 function WarbandRewardList:AddFromEncounters(encounters, difficulties, mountItemID, mount)
