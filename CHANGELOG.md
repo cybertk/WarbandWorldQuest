@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.8 - 2025-07-18
+
+- Fixed Navigation to Underrot
+- The warnings now work correctly when Dungeon difficulty is set already
+- Enhanced mount collection status tracking
+- Added support for tracking attempts when an encounter contains multiple rewards. I.e. Blazing Drake and Life-Binder's Handmaiden from Deathwing
+
+## v0.7 - 2025-07-15
+
+- Added navigation to Dragon Soul
+- Added settings to turn on/off reward announcement
+- Added sound feedback when adjusting difficulty settings
+- Improved UI responsiveness for content updates
+- Fixed tooltip crashes - (Thanks @martinboy1974)
+    - WarbandRewardsTrackerEntry.lua:96: Usage: GameTooltip:SetText("text" [, color, wrap])
+    - WarbandRewardsTracker.lua:170: bad argument #1 to 'format' (string expected, got nil)
+
+## v0.6 - 2025-07-15
+
+- Added Dungeon Entrance SuperTrack support with clear navigation routes
+- Enhanced collected mount detection accuracy
+
+## v0.5 - 2025-07-15
+
+- Fixed the crash: bad argument #1 to '? C_MountJournal.GetMountInfoByID
+
+## v0.4 - 2025-07-14
+
+- Announce the mount looted
+- Enhanced the attempts counting
+- fix: crashes when killed boss and CD reset
+
 ## v0.1 - 2025-07-09
 
 ### Alpha Release
