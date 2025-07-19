@@ -262,6 +262,15 @@ function Util:GetDifficultyResetTime(difficultyID)
 	return GetServerTime() + timeToReset
 end
 
+function Util:IsInInstance(desiredDungeonID, desiredDifficultyID)
+	local difficultyID, _, _, _, _, dungeonID = select(3, GetInstanceInfo())
+	if difficultyID == 0 or difficultyID == nil then
+		return false
+	end
+
+	return desiredDungeonID == dungeonID, desiredDifficultyID == difficultyID
+end
+
 function Util:GetNumSavedInstanceEncounters()
 	local num = 0
 

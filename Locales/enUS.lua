@@ -42,5 +42,6 @@ L["log_entry_tooltip_attempts_reset"] = "This CD Attempts: %s"
 L["log_entry_tooltip_attempts_total"] = "Total Attempts: %s"
 
 L["log_enounter_tooltip_difficulity_instruction"] = "%s(Set)"
+L["log_enounter_tooltip_difficulty_invalid"] = "Reward is not available in current difficulty"
 
 L["log_entry_position_unknown"] = "Position of %s is unknown"

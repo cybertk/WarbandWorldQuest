@@ -82,18 +82,19 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:SetDifficultyShown(sh
 end
 
 function WarbandRewardsTrackerEncounterProgressButtonMixin:UpdateHighlight()
-	local difficultyID, _, _, _, _, dungeonID = select(3, GetInstanceInfo())
-	if difficultyID == 0 or difficultyID == nil then
+	if not IsInInstance() then
 		return
 	end
 
-	local show = difficultyID == self.data.difficultyID and self.data.encounter:GetDungeonID() == dungeonID
+	local isCurrentInstance, isCurrentDifficulty = Util:IsInInstance(self.data.encounter:GetDungeonID(), self.data.difficultyID)
 
-	self.Background:SetDesaturation(show and 0 or 0.9)
-	self.Progress:SetTextColor((show and YELLOW_FONT_COLOR or DISABLED_FONT_COLOR):GetRGB())
+	local color = not isCurrentInstance and DISABLED_FONT_COLOR or not isCurrentDifficulty and RED_FONT_COLOR or YELLOW_FONT_COLOR
+
+	self.Background:SetDesaturation(isCurrentInstance and 0 or 0.9)
+	self.Progress:SetTextColor(color:GetRGB())
 
 	if self.difficultyShown then
-		self.Difficulty:SetTextColor((show and YELLOW_FONT_COLOR or DISABLED_FONT_COLOR):GetRGB())
+		self.Difficulty:SetTextColor(color:GetRGB())
 	end
 end
 
@@ -106,6 +107,13 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:OnEnter()
 		LFG_LIST_DIFFICULTY .. ": " .. WHITE_FONT_COLOR:WrapTextInColorCode(DifficultyUtil.GetDifficultyName(self.data.difficultyID)),
 		GREEN_FONT_COLOR:WrapTextInColorCode(L["log_enounter_tooltip_difficulity_instruction"]:format("|A:NPE_RightClick:16:16|a"))
 	)
+
+	if IsInInstance() then
+		local isCurrentInstance, isCurrentDifficulty = Util:IsInInstance(self.data.encounter:GetDungeonID(), self.data.difficultyID)
+		if isCurrentInstance and not isCurrentDifficulty then
+			tooltip:AddLine(L["log_enounter_tooltip_difficulty_invalid"], RED_FONT_COLOR:GetRGB())
+		end
+	end
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine(L["log_entry_tooltip_characters_completed"] .. ": " .. WHITE_FONT_COLOR:WrapTextInColorCode(#self.data.fulfilled), NORMAL_FONT_COLOR:GetRGB())
