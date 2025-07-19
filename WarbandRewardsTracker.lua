@@ -9,6 +9,16 @@ local Settings = ns.Settings
 
 local WarbandWorldQuest = {}
 
+function WarbandWorldQuest:Migrate()
+	if self.db.version ~= "v0.22" then
+		for _, reward in WarbandRewardList:EnumerateAll() do
+			reward:UpdateResetTime()
+		end
+		self.db.version = "v0.22"
+		Util:Debug("DB migrated to v0.22")
+	end
+end
+
 function WarbandWorldQuest:Init()
 	CharacterStore.Load(self.db.characters)
 
@@ -24,6 +34,8 @@ function WarbandWorldQuest:Init()
 
 	WarbandRewardList:Load(self.db.rewards, self.db.resetStartTime)
 	WarbandRewardList:Reset(GenerateClosure(self.RemoveEncountersFromAllCharacters, self))
+
+	self:Migrate()
 
 	for _, candidate in ipairs(ns.DB:GetAllCandidates()) do
 		local entry = candidate.entries[1]

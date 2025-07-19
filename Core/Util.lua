@@ -250,6 +250,18 @@ function Util:GetDifficultyCode(difficultyID)
 	return DifficultyCodes[difficultyID] or difficultyID
 end
 
+function Util:GetDifficultyResetTime(difficultyID)
+	-- DifficultyUtil.ID
+	local dailyDifficulties = {
+		[1] = true, -- DungeonNormal
+		[2] = true, -- DungeonHeroic
+	}
+
+	local timeToReset = dailyDifficulties[difficultyID] and C_DateAndTime.GetSecondsUntilDailyReset() or C_DateAndTime.GetSecondsUntilWeeklyReset()
+
+	return GetServerTime() + timeToReset
+end
+
 function Util:GetNumSavedInstanceEncounters()
 	local num = 0
 

@@ -51,15 +51,10 @@ end
 
 function WarbandReward:UpdateResetTime()
 	if self.difficulties then
-		local timeToReset = DifficultyUtil.GetMaxPlayers(self.difficulties[1]) > 5 and C_DateAndTime.GetSecondsUntilWeeklyReset()
-			or C_DateAndTime.GetSecondsUntilDailyReset()
-
-		self.resetTime = GetServerTime() + timeToReset
-
-		return true
+		self.resetTime = Util:GetDifficultyResetTime(self.difficulties[1])
 	end
 
-	return
+	return self.resetTime ~= nil
 end
 
 function WarbandReward:Reset()
