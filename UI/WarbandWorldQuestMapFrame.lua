@@ -317,8 +317,6 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 		do -- Quest Log
 			local logMenu = rootMenu:CreateButton(QUEST_LOG)
 
-			logMenu:CreateTitle(L["settings_pins_section_all"])
-
 			Settings:CreateCheckboxMenu(
 				"log_is_default_tab",
 				logMenu,
@@ -337,7 +335,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 			}, L["settings_section_completed_tooltip"], MenuResponse.Refresh)
 
 			logMenu:CreateDivider()
-			logMenu:CreateTitle(L["settings_pins_section_filtered"])
+			logMenu:CreateTitle(L["settings_log_section_fields"])
 
 			Settings:CreateCheckboxMenu(
 				"log_scanning_icon_shown",
