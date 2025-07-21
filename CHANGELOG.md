@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.23 - 2025-07-21
+
+### Alpha Release
+
+- Resolved an issue that caused the quest log is not updated sometimes
+
 ## v0.22 - 2025-07-16
 
 ### Alpha Release
