@@ -737,9 +737,12 @@ function WarbandWorldQuestPageMixin:OnLoad()
 end
 
 function WarbandWorldQuestPageMixin:OnShow()
+	self:Refresh()
+
 	self:RegisterEvent("QUEST_LOG_UPDATE")
 	self:RegisterEvent("QUEST_TURNED_IN")
 
+	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
 	Settings:RegisterCallback("reward_type_filters", self.Update, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Update, self)
@@ -748,14 +751,13 @@ function WarbandWorldQuestPageMixin:OnShow()
 	Settings:RegisterCallback("log_progress_shown", self.QueueRefresh, self)
 	Settings:RegisterCallback("log_time_left_shown", self.Update, self)
 	Settings:RegisterCallback("log_warband_rewards_shown", self.QueueRefresh, self)
-
-	self:Refresh()
 end
 
 function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
 
+	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
@@ -838,7 +840,7 @@ function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
 end
 
 function WarbandWorldQuestPageMixin:QueueRefresh()
-	if self:GetScript("OnUpdate") then
+	if self:GetScript("OnUpdate") or self:IsUpdateLocked() then
 		return
 	end
 
@@ -861,7 +863,21 @@ function WarbandWorldQuestPageMixin:Refresh()
 	Util:Debug("Page Refreshed")
 end
 
+function WarbandWorldQuestPageMixin:SetUpdateLocked(locked)
+	self.updateLock = locked
+end
+
+function WarbandWorldQuestPageMixin:IsUpdateLocked()
+	return self.updateLock
+end
+
 function WarbandWorldQuestPageMixin:Update()
+	if self:IsUpdateLocked() then
+		return
+	end
+
+	self:SetUpdateLocked(true)
+
 	self.dataProvider:SetFilterUncollectedRewards(Settings:GetOption("log_warband_rewards_shown") == "NOT_COLLECTED")
 	self.dataProvider:SetQuestCompleteOption(Settings:GetOption("log_section_completed_shown"))
 
@@ -875,5 +891,6 @@ function WarbandWorldQuestPageMixin:Update()
 
 	self.ScrollBox:SetDataProvider(self.dataProvider, self:IsVisible() and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition)
 
+	self:SetUpdateLocked(false)
 	Util:Debug("Page Updated", self:IsVisible())
 end

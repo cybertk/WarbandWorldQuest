@@ -263,6 +263,10 @@ end
 function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
 	self.shouldPopulateData = shouldPopulateData
 	Util:Debug("Queued PopulateCharactersData")
+
+	if not self:IsEmpty() then
+		self:Flush()
+	end
 end
 
 function WarbandWorldQuestDataProviderMixin:Reset()
@@ -270,6 +274,10 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 	if #self.rows == 0 then
 		return
+	end
+
+	if not self:IsEmpty() then
+		self:Flush()
 	end
 
 	local groups = {
@@ -306,7 +314,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		end
 	end
 
-	self:Init(rows)
+	self:InsertTable(rows)
 
 	return true
 end
