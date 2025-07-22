@@ -125,11 +125,17 @@ function WarbandReward:HasClaimedDate()
 end
 
 function WarbandReward:GetClaimableDifficulties()
+	local sharedDifficulties = {}
+
 	if IsLegacyDifficulty(self.difficulties[1]) then
-		return { math.max(unpack(self.difficulties)) }
+		sharedDifficulties[self.difficulties[1]] = self.difficulties
+	else
+		for _, difficultyID in ipairs(self.difficulties) do
+			sharedDifficulties[difficultyID] = {}
+		end
 	end
 
-	return self.difficulties
+	return sharedDifficulties
 end
 
 function WarbandReward:GenerateMapPoint()

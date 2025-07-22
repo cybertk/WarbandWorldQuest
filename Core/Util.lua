@@ -262,13 +262,30 @@ function Util:GetDifficultyResetTime(difficultyID)
 	return GetServerTime() + timeToReset
 end
 
-function Util:IsInInstance(desiredDungeonID, desiredDifficultyID)
+function Util:GetDifficultyName(difficultyID)
+	local name = DifficultyUtil.GetDifficultyName(difficultyID)
+
+	if difficultyID ~= DifficultyUtil.ID.RaidTimewalker and not DifficultyUtil.IsPrimaryRaid(difficultyID) then
+		return ENCOUNTER_JOURNAL_DIFF_TEXT:format(DifficultyUtil.GetMaxPlayers(difficultyID), name)
+	else
+		return name
+	end
+end
+
+function Util:IsInInstance(desiredDungeonID, ...)
 	local difficultyID, _, _, _, _, dungeonID = select(3, GetInstanceInfo())
 	if difficultyID == 0 or difficultyID == nil then
 		return false
 	end
 
-	return desiredDungeonID == dungeonID, desiredDifficultyID == difficultyID
+	local isDesiredDifficulty = false
+	for i = 1, select("#", ...) do
+		if difficultyID == select(i, ...) then
+			isDesiredDifficulty = true
+		end
+	end
+
+	return desiredDungeonID == dungeonID, isDesiredDifficulty
 end
 
 function Util:GetNumSavedInstanceEncounters()

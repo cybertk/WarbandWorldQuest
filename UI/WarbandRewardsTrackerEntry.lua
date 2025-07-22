@@ -65,7 +65,7 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:Init(elementData)
 	end
 
 	self.Difficulty:SetText(self.difficultyShown and Util:GetDifficultyCode(self.data.difficultyID) or "")
-	local complete = self.data.encounter:IsComplete(self.data.difficultyID)
+	local complete = self:IsFlaggedDefeat()
 
 	self.Progress:SetText(format("%d/%d", #self.data.fulfilled, #self.data.fulfilled + #self.data.unknown + #self.data.pending))
 	self.Progress:SetTextColor((complete and GREEN_FONT_COLOR or YELLOW_FONT_COLOR):GetRGB())
@@ -79,6 +79,14 @@ end
 
 function WarbandRewardsTrackerEncounterProgressButtonMixin:SetDifficultyShown(show)
 	self.difficultyShown = show
+end
+
+function WarbandRewardsTrackerEncounterProgressButtonMixin:IsFlaggedDefeat()
+	if self.data.sharedDifficulties then
+		return self.data.encounter:IsAnyDifficultyComplete()
+	else
+		return self.data.encounter:IsComplete(self.data.difficultyID)
+	end
 end
 
 function WarbandRewardsTrackerEncounterProgressButtonMixin:UpdateHighlight()
@@ -100,16 +108,30 @@ end
 
 function WarbandRewardsTrackerEncounterProgressButtonMixin:OnEnter()
 	local tooltip = GetAppropriateTooltip()
+	local encounter = self.data.encounter
 
 	tooltip:SetOwner(self, "ANCHOR_RIGHT")
 	tooltip:SetText(self.data.encounter:GetName(), WHITE_FONT_COLOR:GetRGB())
-	tooltip:AddDoubleLine(
-		LFG_LIST_DIFFICULTY .. ": " .. WHITE_FONT_COLOR:WrapTextInColorCode(DifficultyUtil.GetDifficultyName(self.data.difficultyID)),
-		GREEN_FONT_COLOR:WrapTextInColorCode(L["log_enounter_tooltip_difficulity_instruction"]:format("|A:NPE_RightClick:16:16|a"))
-	)
+
+	if self.data.sharedDifficulties then
+		tooltip:AddLine(L["log_enounter_tooltip_difficulty_shared"])
+		for _, difficultyID in ipairs(self.data.sharedDifficulties) do
+			local defeated = self.data.encounter:IsComplete(difficultyID)
+			tooltip:AddDoubleLine(
+				WHITE_FONT_COLOR:WrapTextInColorCode(Util:GetDifficultyName(difficultyID)),
+				format("|cn%s_FONT_COLOR:%s|r", defeated and "RED" or "GREEN", defeated and BOSS_DEAD or AVAILABLE)
+			)
+		end
+	else
+		tooltip:AddDoubleLine(
+			LFG_LIST_DIFFICULTY .. ": " .. WHITE_FONT_COLOR:WrapTextInColorCode(Util:GetDifficultyName(self.data.difficultyID)),
+			GREEN_FONT_COLOR:WrapTextInColorCode(L["log_enounter_tooltip_difficulity_instruction"]:format("|A:NPE_RightClick:16:16|a"))
+		)
+	end
 
 	if IsInInstance() then
-		local isCurrentInstance, isCurrentDifficulty = Util:IsInInstance(self.data.encounter:GetDungeonID(), self.data.difficultyID)
+		local isCurrentInstance, isCurrentDifficulty =
+			Util:IsInInstance(self.data.encounter:GetDungeonID(), unpack(self.data.sharedDifficulties or {}) or self.data.difficultyID)
 		if isCurrentInstance and not isCurrentDifficulty then
 			tooltip:AddLine(L["log_enounter_tooltip_difficulty_invalid"], RED_FONT_COLOR:GetRGB())
 		end

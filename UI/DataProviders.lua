@@ -537,13 +537,16 @@ function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
 		local encounters = {}
 		local numUniqueEncounters = {}
 
-		for _, difficultyID in ipairs(reward:GetClaimableDifficulties()) do
+		for difficultyID, sharedDifficulties in pairs(reward:GetClaimableDifficulties()) do
+			sharedDifficulties = #sharedDifficulties > 0 and sharedDifficulties or nil
+
 			for _, encounterID in ipairs(reward.encounters) do
 				-- ID, difficulty, pending[], fulfilled[], unknown[]
 				local data = {}
 
 				data.ID = encounterID
 				data.difficultyID = difficultyID
+				data.sharedDifficulties = sharedDifficulties
 				data.unknown = {}
 				data.fulfilled = {}
 				data.pending = {}
@@ -555,7 +558,9 @@ function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
 
 					if encounter == nil then
 						table.insert(data.unknown, character)
-					elseif encounter:IsComplete(difficultyID) then
+					elseif sharedDifficulties and encounter:IsAnyDifficultyComplete() then
+						table.insert(data.fulfilled, character)
+					elseif not sharedDifficulties and encounter:IsComplete(difficultyID) then
 						table.insert(data.fulfilled, character)
 					else
 						table.insert(data.pending, character)
