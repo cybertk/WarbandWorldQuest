@@ -128,7 +128,7 @@ function WarbandReward:GetClaimableDifficulties()
 	local sharedDifficulties = {}
 
 	if IsLegacyDifficulty(self.difficulties[1]) then
-		sharedDifficulties[self.difficulties[1]] = self.difficulties
+		sharedDifficulties[self.difficulties[#self.difficulties]] = self.difficulties
 	else
 		for _, difficultyID in ipairs(self.difficulties) do
 			sharedDifficulties[difficultyID] = {}
@@ -159,6 +159,10 @@ function WarbandReward:IsInactive()
 end
 
 function WarbandReward:Attempted()
+	if self:IsClaimed() then
+		return
+	end
+
 	self.attempts = self.attempts + 1
 	self.totalAttempts = self.totalAttempts + 1
 

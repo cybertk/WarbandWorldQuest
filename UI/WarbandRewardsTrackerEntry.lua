@@ -94,11 +94,14 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:UpdateHighlight()
 		return
 	end
 
-	local isCurrentInstance, isCurrentDifficulty = Util:IsInInstance(self.data.encounter:GetDungeonID(), self.data.difficultyID)
+	local isCurrentInstance, isCurrentDifficulty =
+		Util:IsInInstance(self.data.encounter:GetDungeonID(), unpack(self.data.sharedDifficulties or { self.data.difficultyID }))
 
-	local color = not isCurrentInstance and DISABLED_FONT_COLOR or not isCurrentDifficulty and RED_FONT_COLOR or YELLOW_FONT_COLOR
+	local color = isCurrentInstance
+			and (isCurrentDifficulty and (self:IsFlaggedDefeat() and GREEN_FONT_COLOR or YELLOW_FONT_COLOR) or self.data.sharedDifficulties and RED_FONT_COLOR or DISABLED_FONT_COLOR)
+		or DISABLED_FONT_COLOR
 
-	self.Background:SetDesaturation(isCurrentInstance and 0 or 0.9)
+	self.Background:SetDesaturation((isCurrentInstance and isCurrentDifficulty) and 0 or 0.9)
 	self.Progress:SetTextColor(color:GetRGB())
 
 	if self.difficultyShown then
@@ -131,7 +134,8 @@ function WarbandRewardsTrackerEncounterProgressButtonMixin:OnEnter()
 
 	if IsInInstance() then
 		local isCurrentInstance, isCurrentDifficulty =
-			Util:IsInInstance(self.data.encounter:GetDungeonID(), unpack(self.data.sharedDifficulties or {}) or self.data.difficultyID)
+			Util:IsInInstance(self.data.encounter:GetDungeonID(), unpack(self.data.sharedDifficulties or { self.data.difficultyID }))
+
 		if isCurrentInstance and not isCurrentDifficulty then
 			tooltip:AddLine(L["log_enounter_tooltip_difficulty_invalid"], RED_FONT_COLOR:GetRGB())
 		end

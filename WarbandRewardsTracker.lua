@@ -180,7 +180,9 @@ do
 		Util:Debug("ENCOUNTER_START", #rewards, encounterID, encounterID and C_EncounterJournal.IsEncounterComplete(encounterID))
 
 		for _, reward in ipairs(Settings:Get("reward_announcement") and rewards or {}) do
-			Util:Info(L["info_reward_attempt"]:format(reward:GetLink(), reward.attempts + 1, reward.totalAttempts + 1))
+			if not reward:IsClaimed() then
+				Util:Info(L["info_reward_attempt"]:format(reward:GetLink(), reward.attempts + 1, reward.totalAttempts + 1))
+			end
 		end
 	end)
 

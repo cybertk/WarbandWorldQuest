@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.11 - 2025-07-27
+
+- Enhanced encounter button UI when player is in instance
+- Now only unclaimed rewards are tracked for encounters with multiple rewards
+
+## v0.10 - 2025-07-22
+
+- Added support of Shared Legacy Raid Difficulties
+
+## v0.9 - 2025-07-19
+
+- Show encouter progress in red color if current instance difficulty is invalid to get the reward
+- Fixed reset time of 5N and 5H dungeons
+- Added German locale support - Thanks @GogadonLive
+
 ## v0.8 - 2025-07-18
 
 - Fixed Navigation to Underrot

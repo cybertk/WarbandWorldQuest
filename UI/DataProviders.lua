@@ -574,6 +574,10 @@ function WarbandRewardsTrackerDataProviderMixin:PopulateCharactersData()
 			end
 		end
 
+		table.sort(encounters, function(x, y)
+			return x.difficultyID > y.difficultyID
+		end)
+
 		local row = { reward = reward, encounters = encounters, numUniqueEncounters = #GetKeysArray(numUniqueEncounters) }
 
 		row.dataProvider = self
