@@ -192,6 +192,8 @@ function Util:GetFactionCurrencyID(factionID)
 		[2673] = 3169, -- Bilgewater Cartel
 		[2675] = 3171, -- Blackwater Cartel
 		[2677] = 3173, -- Steamwheedle Cartel
+
+		[2658] = 3129, -- The K'aresh Trust
 	}
 
 	return currencies[factionID]
