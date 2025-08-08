@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.24 - 2025-08-08
+
+### Alpha Release
+
+- Bump TOC to 11.2.0
+- Added tracking of first completion bouns of K'aresh World Quests
+
 ## v0.23 - 2025-07-21
 
 ### Alpha Release
