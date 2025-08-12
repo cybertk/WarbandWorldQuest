@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.25 - 2025-08-12
+
+### Alpha Release
+
+Now the Map Pins of Inactive Quests could be hidden or faded via the settings "Inactive Quests Opacity"
+
 ## v0.24 - 2025-08-08
 
 ### Alpha Release
