@@ -62,11 +62,7 @@ function WarbandWorldQuestDataRowMixin:UpdateFocused()
 		return
 	end
 
-	if self.isActive then
-		table.insert(self.dataProvider.activeQuests, self.quest)
-	else
-		tDeleteItem(self.dataProvider.activeQuests, self.quest)
-	end
+	self.dataProvider.activeQuests[self.quest.ID] = self.isActive and self.quest or nil
 
 	return true
 end
@@ -256,6 +252,10 @@ function WarbandWorldQuestDataProviderMixin:SetPinOfCompletedQuestShown(shown)
 	self.showPinOfCompletedQuest = shown
 end
 
+function WarbandWorldQuestDataProviderMixin:SetPinOfInactiveQuestOpacity(alpha)
+	self.pinOfInactiveQuestOpacity = alpha
+end
+
 function WarbandWorldQuestDataProviderMixin:SetFilterUncollectedRewards(enabled)
 	self.filterUncollectedRewards = enabled
 end
@@ -319,10 +319,14 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 	return true
 end
 
+function WarbandWorldQuestDataProviderMixin:IsFilteredQuest(questID)
+	return self.activeQuests[questID] ~= nil
+end
+
 function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, includeCompleted, completedOnly)
 	self.questsOnMap[mapID] = {}
 
-	for i, quest in ipairs(self.activeQuests) do
+	for _, quest in pairs(self.activeQuests) do
 		local matched = true
 		if not includeCompleted and quest:IsCompleted() then
 			matched = false
@@ -477,6 +481,18 @@ function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
 	end
 end
 
+function WarbandWorldQuestDataProviderMixin:UpdateAllPinsOpacity(force)
+	if self.pinOfInactiveQuestOpacity or force then
+		for pin in self:GetMap():EnumeratePinsByTemplate(WorldMap_WorldQuestDataProviderMixin:GetPinTemplate()) do
+			pin:SetAlpha(self:IsFilteredQuest(pin.questID) and 1 or self.pinOfInactiveQuestOpacity)
+		end
+	end
+
+	if self.pinOfInactiveQuestOpacity == 1 then
+		self.pinOfInactiveQuestOpacity = nil
+	end
+end
+
 function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 	local pinsToRemove = {}
 	for questID in pairs(self.activePins) do
@@ -515,6 +531,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 	end
 
 	self:UpdateAllPinsProgress()
+	self:UpdateAllPinsOpacity()
 end
 
 function WarbandWorldQuestDataProviderMixin:GetPinTemplate()

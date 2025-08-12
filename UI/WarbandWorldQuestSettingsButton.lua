@@ -32,6 +32,16 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 		do -- Map Pins
 			local pinsMenu = rootMenu:CreateButton(MAP_PIN)
 
+			Settings:CreateOptionsTree(
+				"pins_inactive_opacity",
+				pinsMenu,
+				L["settings_pins_inactive_opacity_text"],
+				{ range = { 0, 100, 10 }, percentage = true },
+				L["settings_pins_inactive_opacity_tooltip"],
+				MenuResponse.Refresh
+			)
+
+			pinsMenu:CreateDivider()
 			pinsMenu:CreateTitle(L["settings_pins_section_all"])
 
 			Settings:CreateOptionsTree(

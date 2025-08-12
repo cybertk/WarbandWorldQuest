@@ -128,6 +128,7 @@ function WarbandWorldQuest:CreateDataProvider()
 	Settings:InvokeAndRegisterCallback("pins_min_display_level", dataProvider.SetMinPinDisplayLevel, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
 	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
+	Settings:InvokeAndRegisterCallback("pins_inactive_opacity", dataProvider.SetPinOfInactiveQuestOpacity, dataProvider)
 	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
 	Settings:InvokeAndRegisterCallback(Settings:WrapOptionCallback("log_progress_shown", dataProvider.SetProgressTextOption, dataProvider))
 	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", dataProvider.SetShouldPopulateData, dataProvider, true)
@@ -224,6 +225,7 @@ do
 			["pins_progress_shown"] = true,
 			["pins_completed_shown"] = true,
 			["pins_tooltip_shown"] = { enabled = true },
+			["pins_inactive_opacity"] = 0.6,
 			["pins_min_display_level"] = Enum.UIMapType.Continent,
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,

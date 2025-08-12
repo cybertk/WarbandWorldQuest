@@ -20,6 +20,8 @@ L["settings_pins_section_filtered"] = "Pins of Filtered Quests Only"
 L["settings_pins_progress_label_shown_text"] = "Warband Progress Label"
 L["settings_pins_progress_label_shown_tooltip"] =
 	"Show progress text on quest pins offering filtered rewards|n|nThe text format can be adjusted in the |cnWHITE_FONT_COLOR:Quest Log|r settings"
+L["settings_pins_inactive_opacity_text"] = "Inactive Quests Opacity"
+L["settings_pins_inactive_opacity_tooltip"] = "Hide or fade pins for inactive quests by adjusting opacity"
 L["settings_pins_tooltip_progress_shown_text"] = "Progress in Tooltip"
 L["settings_pins_tooltip_progress_shown_tooltip"] = "Show quest progress and rewards for all tracked characters in the map pin's tooltip"
 L["settings_pins_continent_maps_shown_text"] = "Continent Maps"

@@ -246,6 +246,21 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 		Setter = Settings:GenerateSetter(key)
 	end
 
+	if options.range then
+		local values = {}
+		local start, stop, step = unpack(options.range)
+
+		for i = start, stop, step do
+			if options.percentage then
+				table.insert(values, { text = format("%d%%", i), value = i / 100 })
+			else
+				table.insert(values, { text = format("%d", i), value = i })
+			end
+		end
+
+		options = values
+	end
+
 	for _, option in ipairs(options) do
 		if type(option) == "string" then
 			option = { text = _G[option], value = option }
