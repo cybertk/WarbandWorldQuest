@@ -440,6 +440,7 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
 	local updated = false
 	local row = self:FindByQuestID(pin.questID, true)
 
+	-- print("UpdatePinProgress", row, pin.questID)
 	if row then
 		local progress = self.progressFrames[pin]
 		if progress == nil then
@@ -557,6 +558,96 @@ end
 
 function WarbandWorldQuestDataProviderMixin:GetPinTemplate()
 	return "WarbandWorldQuestPinTemplate"
+end
+
+WarbandWorldQuestFlightMapDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
+
+function WarbandWorldQuestFlightMapDataProviderMixin:Create(dataProvider)
+	local o = CreateFromMixins(self)
+
+	o:OnLoad()
+	o.data = dataProvider
+
+	return o
+end
+
+function WarbandWorldQuestFlightMapDataProviderMixin:OnLoad()
+	self.progressFrames = {}
+end
+
+function WarbandWorldQuestFlightMapDataProviderMixin:RefreshAllData()
+	-- print(" WarbandWorldQuestDataProviderMixin:RefreshAllData()")
+	local pinsToRemove = {}
+	for questID in pairs(self.activePins) do
+		pinsToRemove[questID] = true
+	end
+
+	local mapCanvas = self:GetMap()
+	local mapID = mapCanvas:GetMapID()
+	mapID = 2371
+	local mapType = C_Map.GetMapInfo(mapID).mapType
+
+	local quests = self.data:EnumerateActiveQuestsByMapID(mapID)
+
+	-- local playerPosition = C_Map.GetPlayerMapPosition(mapID, "player")
+	-- local subMapInfo = playerPosition and C_Map.GetMapInfoAtPosition(mapID, playerPosition:GetXY()) or nil
+
+	-- print("mapCanvas", mapCanvas, mapID, mapType, #quests, subMapInfo, subMapInfo and subMapInfo.mapID)
+
+	-- local quests =
+
+	-- for _, quest in ipairs(self.data.activeQuests)
+
+	for position, quest in pairs(quests) do
+		local pin = self.activePins[quest.ID]
+
+		if pin then
+			pin:RefreshVisuals()
+			pin:SetPosition(unpack(position))
+			pin:AddIconWidgets()
+		else
+			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
+			pin:SetPosition(unpack(position))
+			self.activePins[quest.ID] = pin
+
+			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), mapID)
+		end
+		-- pin.CompletedIndicator:SetShown(quest:IsCompleted())
+
+		pinsToRemove[quest.ID] = nil
+	end
+
+	for questID in pairs(pinsToRemove) do
+		mapCanvas:RemovePin(self.activePins[questID])
+		self.activePins[questID] = nil
+	end
+
+	self:UpdateAllPinsProgress()
+end
+
+function WarbandWorldQuestFlightMapDataProviderMixin:UpdateAllPinsProgress()
+	local framesToRemove = {}
+	for pin in pairs(self.progressFrames) do
+		framesToRemove[pin] = true
+	end
+
+	if self.data.showProgressOnPin then
+		for pin in self.data.EnumeratePinsByPredicate(self, GenerateClosure(self.data.UpdatePinProgress, self)) do
+			framesToRemove[pin] = nil
+		end
+	end
+
+	for pin in pairs(framesToRemove) do
+		self.progressFrames[pin]:Hide()
+	end
+end
+
+function WarbandWorldQuestFlightMapDataProviderMixin:FindByQuestID(questID, isActiveOnly)
+	for _, row in ipairs(self.data.rows) do
+		if (not isActiveOnly or row.isActive) and row.quest and row.quest.ID == questID then
+			return row
+		end
+	end
 end
 
 WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)

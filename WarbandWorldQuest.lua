@@ -202,7 +202,12 @@ do
 	end)
 
 	WarbandWorldQuest:RegisterEvent("ADDON_LOADED", function(event, name)
-		if name ~= addonName then
+		if name == "Blizzard_FlightMap" then
+			print("Blizzard_FlightMap", WarbandWorldQuest.dataProvider)
+
+			FlightMapFrame:AddDataProvider(WarbandWorldQuestFlightMapDataProviderMixin:Create(WarbandWorldQuest.dataProvider))
+		-- FlightMapFrame:AddDataProvider(CreateFromMixins(WQT_OfficialPinSuppressorProviderMixin));
+		elseif name ~= addonName then
 			return
 		end
 

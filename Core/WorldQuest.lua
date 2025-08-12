@@ -270,8 +270,15 @@ function QuestRewards:Update(questID, force)
 	if (self.items == nil and GetNumQuestLogRewards(questID) > 0) or force then
 		local items = {}
 		for i = 1, GetNumQuestLogRewards(questID) do
-			local _, _, numItems, _, _, itemID = GetQuestLogRewardInfo(i, questID)
-			table.insert(items, { itemID, numItems })
+			local _, _, numItems, quality, _, itemID, itemLevel = GetQuestLogRewardInfo(i, questID)
+			local itemEquipLoc = select(4, C_Item.GetItemInfoInstant(itemID))
+
+			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
+				table.insert(items, { itemID, numItems })
+			else
+				print("adding", itemID, numItems, quality, itemLevel)
+				table.insert(items, { itemID, numItems, quality, itemLevel })
+			end
 		end
 
 		if #items > 0 then
@@ -371,19 +378,19 @@ function QuestRewards:Summary(asList)
 
 	local equipments = {}
 	for _, item in ipairs(self.items or {}) do
-		local itemID, amount = unpack(item)
+		local itemID, amount, actualItemQuality, actualItemLevel = unpack(item)
 
 		if asList and not C_Item.IsItemDataCachedByID(itemID) then
 			C_Item.RequestLoadItemDataByID(itemID)
 			table.insert(records, 1, LFG_LIST_LOADING)
 		elseif asList then
 			local itemName, itemLink, itemQuality, itemLevel, _, itemType, itemSubType, _, itemEquipLoc, itemTexture = C_Item.GetItemInfo(itemID)
-			local color = ITEM_QUALITY_COLORS[itemQuality].color:GenerateHexColor()
+			local color = ITEM_QUALITY_COLORS[actualItemQuality or itemQuality].color:GenerateHexColor()
 
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
 				record = format(" |T%d:15|t |c%s[%s]|r", itemTexture, color, itemName)
 			else
-				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], itemLevel)
+				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], actualItemLevel or itemLevel)
 			end
 
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" or amount > 1 then

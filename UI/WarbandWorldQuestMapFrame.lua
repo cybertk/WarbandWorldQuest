@@ -659,6 +659,16 @@ function WarbandWorldQuestPageMixin:OnMapUpdate()
 	if self.highlightQuest then
 		self:HighlightMapPin(self.highlightQuest, true)
 	end
+
+	for _, template in ipairs({ WorldMap_WorldQuestDataProviderMixin:GetPinTemplate() }) do
+		for pin in WorldMapFrame:EnumeratePinsByTemplate(template) do
+			if not self.dataProvider:FindByQuestID(pin.questID, true) then
+				pin:SetAlpha(0.6)
+			else
+				pin:SetAlpha(1)
+			end
+		end
+	end
 end
 
 function WarbandWorldQuestPageMixin:OnMapChanged(mapID)
