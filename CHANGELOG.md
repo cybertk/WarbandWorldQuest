@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.26 - 2025-08-14
+
+### Alpha Release
+
+Improved UI for single-character mode (when no alts are scanned)
+
 ## v0.25 - 2025-08-12
 
 ### Alpha Release
