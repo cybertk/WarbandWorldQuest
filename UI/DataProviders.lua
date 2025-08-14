@@ -35,7 +35,9 @@ end
 function WarbandWorldQuestDataRowMixin:GetProgressText()
 	local text = ""
 
-	if self.dataProvider.progressTextOption == "CLAIMED" then
+	if CharacterStore.Get():GetNumEnabledCharacters() == 1 then
+		nop()
+	elseif self.dataProvider.progressTextOption == "CLAIMED" then
 		if self.progress.claimed == 0 and self.progress.eligible == 0 then
 			text = "-"
 		else

@@ -195,10 +195,16 @@ function WarbandWorldQuestCharactersButtonMixin:RemoveCharacter(character)
 end
 
 function WarbandWorldQuestCharactersButtonMixin:Update()
+	if CharacterStore:Get():GetNumEnabledCharacters() <= 1 then
+		self:SetWidth(1)
+		self:Hide()
+		return
+	end
+
 	local scanned, pending = self:PopulateCharactersData()
 
 	self.ButtonText:SetText(format("%s %d/%d", CreateAtlasMarkup("common-icon-undo", 16, 16), #scanned, #pending + #scanned))
-	self:SetWidth(self.ButtonText:GetUnboundedStringWidth())
+	self:SetWidth(self.ButtonText:GetUnboundedStringWidth() + 10)
 end
 
 function WarbandWorldQuestCharactersButtonMixin:PopulateCharactersData()
@@ -475,18 +481,19 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	tooltip:SetText(quest:GetName(), 1, 1, 1)
 	tooltip:AddLine(AUCTION_HOUSE_TIME_LEFT_FORMAT_ACTIVE:format(Util.FormatTimeDuration(quest.resetTime - GetServerTime())), NORMAL_FONT_COLOR:GetRGB())
 
-	tooltip:AddLine(" ")
-	tooltip:AddLine(L["log_entry_tooltip_characters_scanned"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
-	tooltip:AddLine(L["log_entry_tooltip_characters_completed"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
-	for _, character in self.owner.dataProvider:EnumerateCharacters() do
-		local rewards = character:GetRewards(quest.ID)
+	if CharacterStore.Get():GetNumCharacters() > 1 then
+		tooltip:AddLine(" ")
+		tooltip:AddLine(L["log_entry_tooltip_characters_scanned"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
+		tooltip:AddLine(L["log_entry_tooltip_characters_completed"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
+		for _, character in self.owner.dataProvider:EnumerateCharacters() do
+			local rewards = character:GetRewards(quest.ID)
+			local state = CreateAtlasMarkup("common-icon-" .. (rewards == nil and "undo" or rewards:IsClaimed() and "checkmark" or "redx"), 15, 15)
 
-		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
-
-		tooltip:AddDoubleLine(
-			Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
-			rewards and format("|c%s%s|r", self.data:GetProgressColor(character, WHITE_FONT_COLOR), rewards:Summary()) or ""
-		)
+			tooltip:AddDoubleLine(
+				Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
+				rewards and format("|c%s%s|r", self.data:GetProgressColor(character, WHITE_FONT_COLOR), rewards:Summary()) or ""
+			)
+		end
 	end
 
 	tooltip:AddLine(" ")

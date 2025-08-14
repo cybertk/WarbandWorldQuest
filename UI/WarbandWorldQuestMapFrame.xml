@@ -276,7 +276,7 @@
 				<NormalFont style="GameFontDisableSmall" />
 				<HighlightFont style="GameFontHighlightSmall" />
 				<Anchors>
-					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.CharactersButton" relativePoint="BOTTOMLEFT" x="-10" />
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.CharactersButton" relativePoint="BOTTOMLEFT" />
 				</Anchors>
 				<Scripts>
 					<OnShow method="OnShow" />
