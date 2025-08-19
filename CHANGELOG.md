@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.27 - 2025-08-19
+
+### Alpha Release
+
+Added support of showing quests on current map only - Turn on/off via settings "Show All Quests"
+
 ## v0.26 - 2025-08-14
 
 ### Alpha Release
