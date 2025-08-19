@@ -106,6 +106,7 @@ WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMa
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.rows = {}
+	self.filteredRows = {}
 	self.questsOnMap = {}
 	self.activeProgress = {}
 	self.progressFrames = {}
@@ -262,6 +263,10 @@ function WarbandWorldQuestDataProviderMixin:SetFilterUncollectedRewards(enabled)
 	self.filterUncollectedRewards = enabled
 end
 
+function WarbandWorldQuestDataProviderMixin:SetShouldShowAllQuests(enabled)
+	self.shouldShowAllQuests = enabled
+end
+
 function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
 	self.shouldPopulateData = shouldPopulateData
 	Util:Debug("Queued PopulateCharactersData")
@@ -269,6 +274,24 @@ function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulate
 	if not self:IsEmpty() then
 		self:Flush()
 	end
+end
+
+function WarbandWorldQuestDataProviderMixin:FilterRows()
+	local map = Util:GetBestMap(self:GetMap():GetMapID(), Enum.UIMapType.Zone)
+	if map.mapID == self.lastFilteredMap then
+		Util:Debug("Skip filtering", map.name)
+		return
+	end
+
+	wipe(self.filteredRows)
+
+	for _, row in ipairs(self.rows) do
+		if #row.quest:GetPositionOnMap(map.mapID) > 0 then
+			table.insert(self.filteredRows, row)
+		end
+	end
+
+	self.lastFilteredMap = map.mapID
 end
 
 function WarbandWorldQuestDataProviderMixin:Reset()
@@ -282,6 +305,12 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		self:Flush()
 	end
 
+	local rows = self.rows
+	if not self.shouldShowAllQuests then
+		self:FilterRows()
+		rows = self.filteredRows
+	end
+
 	local groups = {
 		FOCUSED = 1,
 		{ rows = {}, virtual = true, index = 1 },
@@ -291,7 +320,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		{ name = FACTION_INACTIVE, rows = {} },
 	}
 
-	for _, row in ipairs(self.rows) do
+	for _, row in ipairs(rows) do
 		row:UpdateFocused()
 
 		if row:IsFlaggedCompleted() then
@@ -337,14 +366,7 @@ function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, 
 		end
 
 		if matched then
-			local position = {}
-
-			local mapGroup = C_Map.GetMapGroupID(quest.map)
-			if (mapGroup and mapGroup == C_Map.GetMapGroupID(mapID)) or mapID == quest.map then
-				position = { quest.x, quest.y }
-			else
-				position = quest:GetPositionOnMap(mapID)
-			end
+			local position = quest:GetPositionOnMap(mapID)
 
 			if #position > 0 then
 				self.questsOnMap[mapID][position] = quest

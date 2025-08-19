@@ -102,6 +102,14 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				},
 			}, L["settings_section_completed_tooltip"], MenuResponse.Refresh)
 
+			Settings:CreateCheckboxMenu(
+				"log_all_quests_shown",
+				logMenu,
+				L["settings_log_all_quests_shown_text"],
+				nil,
+				L["settings_log_all_quests_shown_tooltip"]
+			)
+
 			logMenu:CreateDivider()
 			logMenu:CreateTitle(L["settings_log_section_fields"])
 

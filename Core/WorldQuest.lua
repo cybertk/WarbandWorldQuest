@@ -104,15 +104,27 @@ function WorldQuest:GetQuestPOIMapInfo()
 end
 
 function WorldQuest:GetPositionOnMap(mapID)
-	local xMin, xMax, yMin, yMax = C_Map.GetMapRectOnMap(self.map, mapID)
-	if xMin == xMax and yMin == yMax then
-		return {}
+	self.positionCache[self] = self.positionCache[self] or {}
+
+	if self.positionCache[self][mapID] == nil then
+		local mapGroup = C_Map.GetMapGroupID(self.map)
+		if (mapGroup and mapGroup == C_Map.GetMapGroupID(mapID)) or mapID == self.map then
+			self.positionCache[self][mapID] = { self.x, self.y }
+		else
+			local xMin, xMax, yMin, yMax = C_Map.GetMapRectOnMap(self.map, mapID)
+
+			if xMin == xMax and yMin == yMax then
+				self.positionCache[self][mapID] = {}
+			else
+				local x = xMin + self.x * (xMax - xMin)
+				local y = yMin + self.y * (yMax - yMin)
+
+				self.positionCache[self][mapID] = { x, y }
+			end
+		end
 	end
 
-	local x = xMin + self.x * (xMax - xMin)
-	local y = yMin + self.y * (yMax - yMin)
-
-	return { x, y }
+	return self.positionCache[self][mapID]
 end
 
 function WorldQuest:IsCompleted()

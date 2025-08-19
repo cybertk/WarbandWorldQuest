@@ -230,6 +230,7 @@ do
 			["log_scanning_icon_shown"] = true,
 			["log_is_default_tab"] = true,
 			["log_section_completed_shown"] = { enabled = true, option = "CURRENT" },
+			["log_all_quests_shown"] = false,
 			["log_time_left_shown"] = true,
 			["log_warband_rewards_shown"] = { enabled = true, option = "NOT_COLLECTED" },
 			["log_progress_shown"] = { enabled = true, option = "CLAIMED" },

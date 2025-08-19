@@ -219,6 +219,16 @@ function Util:IsPvPCurrency(currencyID)
 	return currencies[currencyID] or false
 end
 
+function Util:GetBestMap(mapID, mapType)
+	local map = C_Map.GetMapInfo(mapID)
+
+	if map.mapType <= mapType and bit.band(map.flags, Enum.UIMapFlag.IsCityMap) == 0 then
+		return map
+	end
+
+	return Util:GetBestMap(map.parentMapID, mapType)
+end
+
 function Util.FormatTimeDuration(seconds, useAbbreviation)
 	return WorldQuestsSecondsFormatter:Format(seconds, useAbbreviation and SecondsFormatter.Abbreviation.OneLetter)
 end

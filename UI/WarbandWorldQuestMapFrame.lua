@@ -604,9 +604,11 @@ function WarbandWorldQuestPageMixin:OnShow()
 
 	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
 	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
+	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.OnMapChanged, self)
 	Settings:RegisterCallback("reward_type_filters", self.Update, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Update, self)
 	Settings:RegisterCallback("log_section_completed_shown", self.Update, self)
+	Settings:RegisterCallback("log_all_quests_shown", self.Update, self)
 	Settings:RegisterCallback("log_scanning_icon_shown", self.QueueRefresh, self)
 	Settings:RegisterCallback("log_progress_shown", self.QueueRefresh, self)
 	Settings:RegisterCallback("log_time_left_shown", self.Update, self)
@@ -619,9 +621,11 @@ function WarbandWorldQuestPageMixin:OnHide()
 
 	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
 	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
+	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_section_completed_shown", self)
+	Settings:UnregisterCallback("log_all_quests_shown", self)
 	Settings:UnregisterCallback("log_scanning_icon_shown", self)
 	Settings:UnregisterCallback("log_progress_shown", self)
 	Settings:UnregisterCallback("log_time_left_shown", self)
@@ -655,6 +659,10 @@ function WarbandWorldQuestPageMixin:OnMapUpdate()
 	if self.highlightQuest then
 		self:HighlightMapPin(self.highlightQuest, true)
 	end
+end
+
+function WarbandWorldQuestPageMixin:OnMapChanged(mapID)
+	self.dataProvider:Reset()
 end
 
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
@@ -740,6 +748,7 @@ function WarbandWorldQuestPageMixin:Update()
 
 	self.dataProvider:SetFilterUncollectedRewards(Settings:GetOption("log_warband_rewards_shown") == "NOT_COLLECTED")
 	self.dataProvider:SetQuestCompleteOption(Settings:GetOption("log_section_completed_shown"))
+	self.dataProvider:SetShouldShowAllQuests(Settings:Get("log_all_quests_shown"))
 
 	for groupIndex, isCollapsed in pairs(Settings:Get("group_collapsed_states")) do
 		self.dataProvider:UpdateGroupState(groupIndex, isCollapsed)
