@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.28 - 2025-08-27
+
+### Alpha Release
+
+Resolved an issue that caused the foucsed quests Pins are not highlighted when "Show All Quests" is disabled
+
 ## v0.27 - 2025-08-19
 
 ### Alpha Release
