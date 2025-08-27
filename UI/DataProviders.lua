@@ -60,13 +60,9 @@ function WarbandWorldQuestDataRowMixin:UpdateFocused()
 		self.isActive = false
 	end
 
-	if wasFocused == self.isActive then
-		return
-	end
-
 	self.dataProvider.activeQuests[self.quest.ID] = self.isActive and self.quest or nil
 
-	return true
+	return wasFocused ~= self.isActive
 end
 
 function WarbandWorldQuestDataRowMixin:IsFlaggedCompleted(questCompletedForPlayer)
@@ -191,6 +187,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 	end
 
 	self.rows = rows
+	self.filteredRows = {}
 	self.activeQuests = {}
 	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
 	self:UpdateEligibleCharactersData()
@@ -278,7 +275,7 @@ end
 
 function WarbandWorldQuestDataProviderMixin:FilterRows()
 	local map = Util:GetBestMap(self:GetMap():GetMapID(), Enum.UIMapType.Zone)
-	if map.mapID == self.lastFilteredMap then
+	if #self.filteredRows > 0 and map.mapID == self.lastFilteredMap then
 		Util:Debug("Skip filtering", map.name)
 		return
 	end

@@ -662,7 +662,7 @@ function WarbandWorldQuestPageMixin:OnMapUpdate()
 end
 
 function WarbandWorldQuestPageMixin:OnMapChanged(mapID)
-	self.dataProvider:Reset()
+	self:Update()
 end
 
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
