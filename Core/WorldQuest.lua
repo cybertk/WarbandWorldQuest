@@ -330,8 +330,6 @@ function QuestRewards:ConvertAnimaItemsToCurrency()
 			else
 				completed = false
 			end
-
-			print("convert anima", itemID, numItems * animaAmount)
 		end
 	end
 
