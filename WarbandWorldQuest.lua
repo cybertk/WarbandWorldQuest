@@ -60,6 +60,12 @@ function WarbandWorldQuest:Init()
 	self:AddTrackedQuestsToObjectivesPanel()
 
 	Settings:RegisterCallback("maps_to_scan", self.Update, self, true)
+	Util.WorldQuestScanner:Init()
+	Util.WorldQuestScanner:Add(Settings:Get("maps_to_scan"))
+	Util.WorldQuestScanner:RegisterCallback("WORLD_QUEST_SCANNER_UPDATE", function(event, mapID, changes)
+		print("Got new quests", mapID, changes)
+		self:Update(true)
+	end)
 end
 
 function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)

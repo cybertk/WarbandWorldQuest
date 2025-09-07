@@ -285,3 +285,98 @@ function Util.WrapTextInClassColor(classFile, ...)
 
 	return ...
 end
+
+Util.WorldQuestScanner = CreateFromMixins(CallbackRegistryMixin)
+function Util.WorldQuestScanner:Init()
+	self.frame = CreateFrame("Frame")
+
+	self.frame:SetScript("OnEvent", function(frame, event, ...)
+		self:QueueUpdate()
+	end)
+
+	self.frame:RegisterEvent("QUEST_TURNED_IN")
+	self.frame:RegisterEvent("QUEST_ACCEPTED")
+	self.frame:RegisterEvent("PLAYER_MAP_CHANGED")
+	self.frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+	-- self.frame:RegisterEvent("QUEST_LOG_UPDATE")
+
+	self.scanned = {}
+	self:OnLoad()
+	self:SetUndefinedEventsAllowed(true)
+end
+
+function Util.WorldQuestScanner:Add(continents)
+	local mapsToScan = {}
+	local mapsToRemove = {}
+
+	for mapID, shouldScan in pairs(continents) do
+		local maps = shouldScan and mapsToScan or mapsToRemove
+		for _, map in ipairs(C_Map.GetMapChildrenInfo(mapID, Enum.UIMapType.Zone, true)) do
+			table.insert(maps, map)
+		end
+	end
+
+	-- self:RemoveQuests(mapsToRemove)
+	local now = GetServerTime()
+
+	for _, map in ipairs(mapsToScan) do
+		-- for _, info in ipairs(C_TaskQuest.GetQuestsOnMap(map.mapID) or {}) do
+		-- 	local scanned = {quests = {}, numQuests = 0, updatedAt = now}
+		-- 	if info.mapID == map.mapID and C_QuestLog.IsWorldQuest(info.questID) then
+		-- 		scanned.quests[info.questID] = true
+		-- 		scanned.numQuests = scanned.numQuests  + 1
+		-- 	end
+
+		-- 	self.scanned[map.mapID] = scanned
+		-- end
+		self:UpdateScannedByMap(map.mapID)
+	end
+end
+
+function Util.WorldQuestScanner:QueueUpdate()
+	if self.updateTimer ~= nil then
+		-- print("update scheduled", self.updateTimer:IsCancelled())
+		return
+	end
+
+	self.updateTimer = C_Timer.NewTimer(2, GenerateClosure(self.Update, self))
+end
+
+function Util.WorldQuestScanner:UpdateScannedByMap(mapID)
+	local changes = 0
+	local now = GetServerTime()
+
+	for _, info in ipairs(C_TaskQuest.GetQuestsOnMap(mapID) or {}) do
+		local scanned = self.scanned[mapID] or { quests = {}, numQuests = 0, updatedAt = now }
+		if info.mapID == mapID and C_QuestLog.IsWorldQuest(info.questID) then
+			if not scanned.quests[info.questID] then
+				scanned.numQuests = scanned.numQuests + 1
+				changes = changes + 1
+			end
+			scanned.quests[info.questID] = true
+		end
+
+		self.scanned[mapID] = scanned
+	end
+
+	print("UpdateScannedByMap", C_Map.GetMapInfo(mapID).name, changes)
+	return changes
+end
+
+function Util.WorldQuestScanner:Update()
+	local mapID = C_Map.GetBestMapForUnit("player")
+
+	self.updateTimer = nil
+	print("|cnRED_FONT_COLOR:AAAHHH|rUpdate", mapID)
+
+	if mapID == nil or self.scanned[mapID] == nil then
+		return
+	end
+
+	-- local quests = C_TaskQuest.GetQuestsOnMap(mapID)or {}
+
+	local changes = self:UpdateScannedByMap(mapID)
+	if changes > 0 then
+		self:TriggerEvent("WORLD_QUEST_SCANNER_UPDATE", self, mapID, changes)
+	end
+end
