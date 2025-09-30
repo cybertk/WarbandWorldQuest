@@ -239,6 +239,11 @@ function QuestRewards:Update(questID, force)
 		return
 	end
 
+	if C_TaskQuest.GetQuestTimeLeftSeconds(questID) == nil then
+		-- print("Non-eligible quest", questID)
+		return true
+	end
+
 	if self.money == nil or self.money == 0 or force then
 		local money = GetQuestLogRewardMoney(questID)
 
