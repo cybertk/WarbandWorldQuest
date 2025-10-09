@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.29 - 2025-10-09
+
+### Alpha Release
+
+11.2.5 is supported
+- Bump TOC to 11.2.5
+- Fixed crash: attempt to call method 'SetDataProvider' (a nil value)
+
 ## v0.28 - 2025-08-27
 
 ### Alpha Release
