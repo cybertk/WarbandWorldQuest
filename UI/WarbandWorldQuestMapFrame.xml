@@ -98,33 +98,9 @@
 		</Scripts>
 	</Button>
 
-	<Button name="WarbandWorldQuestHeaderTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
+
+	<Button name="WarbandWorldQuestHeaderTemplate" inherits="ListHeaderCodeTemplate, ListHeaderVisualTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
 		<Size x="295" y="0" />
-		<ButtonText parentKey="ButtonText" nonspacewrap="true" justifyH="LEFT">
-			<Size x="234" y="10" />
-			<Anchors>
-				<Anchor point="LEFT" x="8" y="1" />
-			</Anchors>
-		</ButtonText>
-		<NormalTexture atlas="questlog-tab" />
-		<HighlightTexture atlas="questlog-tab" alphaMode="ADD" alpha="0.4" />
-		<NormalFont style="Game15Font_Shadow" />
-		<HighlightFont style="Game15Font_Shadow" />
-		<Frames>
-			<Button parentKey="CollapseButton" inherits="QuestLogHeaderCollapseButtonTemplate">
-				<Anchors>
-					<Anchor point="RIGHT" x="-6" />
-				</Anchors>
-			</Button>
-		</Frames>
-		<Scripts>
-			<OnLoad method="OnLoad" />
-			<OnClick method="OnClick" />
-			<OnEnter method="OnEnter" />
-			<OnLeave method="OnLeave" />
-			<OnMouseDown method="OnMouseDown" />
-			<OnMouseUp method="OnMouseUp" />
-		</Scripts>
 	</Button>
 
 	<Frame name="WarbandWorldQuestTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandWorldQuestTabButtonMixin" virtual="true">
