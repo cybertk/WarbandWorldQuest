@@ -226,32 +226,14 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 	end)
 end
 
-local WarbandWorldQuestHeaderMixin = {}
+local WarbandWorldQuestHeaderMixin = CreateFromMixins(ListHeaderVisualMixin, ListHeaderMixin)
 WarbandQuestTrackerHeaderMixin = WarbandWorldQuestHeaderMixin
 
 function WarbandWorldQuestHeaderMixin:Init(elementData)
 	self.data = elementData
 
-	self:UpdateTitle()
-	self.CollapseButton:UpdateCollapsedState(elementData.isCollapsed)
-end
-
-function WarbandWorldQuestHeaderMixin:UpdateTitle()
-	self.ButtonText:SetText(format("%s (%d)", self.data.name, self.data.numQuests))
-	self.data.dirty = nil
-end
-
-function WarbandWorldQuestHeaderMixin:OnLoad()
-	self:CheckHighlightTitle(false)
-	self:SetPushedTextOffset(1, -1)
-end
-
-function WarbandWorldQuestHeaderMixin:OnShow()
-	if not self.data or not self.data.dirty then
-		return
-	end
-
-	self:UpdateTitle()
+	self:SetHeaderText(format("%s (%d)", self.data.name, self.data.numQuests))
+	self:UpdateCollapsedState(self.data.isCollapsed)
 end
 
 function WarbandWorldQuestHeaderMixin:OnClick(button)
@@ -260,53 +242,6 @@ function WarbandWorldQuestHeaderMixin:OnClick(button)
 		Settings:GenerateTableToggler("group_collapsed_states")(self.data.index)
 	elseif button == "RightButton" then
 	end
-end
-
-function WarbandWorldQuestHeaderMixin:OnEnter()
-	self:CheckHighlightTitle(true)
-	if self.CollapseButton then
-		self.CollapseButton:LockHighlight()
-	end
-end
-
-function WarbandWorldQuestHeaderMixin:OnLeave()
-	self:CheckHighlightTitle(false)
-	if self.CollapseButton then
-		self.CollapseButton:UnlockHighlight()
-	end
-end
-
-function WarbandWorldQuestHeaderMixin:GetTitleRegion()
-	return self.ButtonText or self.Text
-end
-
-function WarbandWorldQuestHeaderMixin:GetTitleColor(useHighlight)
-	return useHighlight and HIGHLIGHT_FONT_COLOR or DISABLED_FONT_COLOR
-end
-
-function WarbandWorldQuestHeaderMixin:IsTruncated()
-	return self:GetTitleRegion():IsTruncated()
-end
-
-function WarbandWorldQuestHeaderMixin:CheckHighlightTitle(isMouseOver)
-	local color = self:GetTitleColor(isMouseOver)
-	self:GetTitleRegion():SetTextColor(color:GetRGB())
-end
-
-function WarbandWorldQuestHeaderMixin:OnMouseDown()
-	local pressed = true
-	if self.Text then
-		self.Text:AdjustPointsOffset(1, -1)
-	end
-	self.CollapseButton:UpdatePressedState(pressed)
-end
-
-function WarbandWorldQuestHeaderMixin:OnMouseUp()
-	local pressed = false
-	if self.Text then
-		self.Text:AdjustPointsOffset(-1, 1)
-	end
-	self.CollapseButton:UpdatePressedState(pressed)
 end
 
 local WarbandWorldQuestEntryMixin = {}
@@ -522,7 +457,7 @@ function WarbandWorldQuestIconButtonMixin:Update(quest)
 	self.Underlay:SetAtlas(nil)
 end
 
-local WarbandWorldQuestTabButtonMixin = CreateFromMixins(QuestLogTabButtonMixin)
+local WarbandWorldQuestTabButtonMixin = CreateFromMixins(SidePanelTabButtonMixin)
 WarbandQuestTrackerTabButtonMixin = WarbandWorldQuestTabButtonMixin
 
 function WarbandWorldQuestTabButtonMixin:OnLoad()
@@ -537,13 +472,13 @@ function WarbandWorldQuestTabButtonMixin:SetChecked(checked)
 end
 
 function WarbandWorldQuestTabButtonMixin:OnMouseUp(button, upInside)
-	QuestLogTabButtonMixin.OnMouseUp(self, button, upInside)
+	SidePanelTabButtonMixin.OnMouseUp(self, button, upInside)
 	if button == "LeftButton" and upInside then
 		QuestMapFrame:SetDisplayMode(self.displayMode)
 	end
 end
 
-local WarbandWorldQuestPageMixin = CreateFromMixins(QuestLogTabButtonMixin)
+local WarbandWorldQuestPageMixin = {}
 WarbandQuestTrackerPageMixin = WarbandWorldQuestPageMixin
 
 function WarbandWorldQuestPageMixin:OnLoad()
