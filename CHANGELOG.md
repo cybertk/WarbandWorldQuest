@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.30 - 2025-12-07
+
+Bump TOC to 11.2.7
+
 ## v0.29 - 2025-10-09
 
 ### Alpha Release
