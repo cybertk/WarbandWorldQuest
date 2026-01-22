@@ -127,7 +127,9 @@ end
 function WarbandReward:GetClaimableDifficulties()
 	local sharedDifficulties = {}
 
-	if IsLegacyDifficulty(self.difficulties[1]) then
+	if not self.difficulties then
+		return sharedDifficulties
+	elseif IsLegacyDifficulty(self.difficulties[1]) then
 		sharedDifficulties[self.difficulties[#self.difficulties]] = self.difficulties
 	else
 		for _, difficultyID in ipairs(self.difficulties) do
@@ -215,6 +217,10 @@ function WarbandRewardList:CacheReward(reward)
 		self.mountCache[reward:GetMountID() or 0] = reward
 	end
 
+	if not reward.encounters then
+		return
+	end
+
 	for _, encounterID in ipairs(reward.encounters) do
 		self.encounterCache[encounterID] = self.encounterCache[encounterID] or {}
 		if not self.encounterCache[encounterID][reward] then
@@ -265,26 +271,15 @@ function WarbandRewardList:FindByDungeonEncounterID(dungeonEncounterID)
 end
 
 function WarbandRewardList:AddFromEncounters(encounters, difficulties, mountItemID, mount)
-	-- local mountID = C_MountJournal.GetMountFromItem(mountItemID)
-	-- if mountID ~= mount then
-	-- 	print("|cnRED_FONT_COLOR:xxxxxxxx", mountItemID, mount)
-	-- end
-
-	if self:FindByItemID(mount) then -- migration
-		Util:Debug("migrated", mountItemID, mount)
-		local reward = self:FindByItemID(mount)
-
-		reward.mount = mountItemID
-		self:CacheReward(reward)
+	local reward = self:FindByItemID(mountItemID)
+	if reward then
 		return
 	end
 
-	local rewerd = self:FindByItemID(mountItemID)
-	if rewerd then
-		return
+	if encounters then
+		reward = WarbandReward:CreateFromEncounters(encounters, difficulties)
 	end
 
-	local reward = WarbandReward:CreateFromEncounters(encounters, difficulties)
 	if not reward then
 		Util:Debug("Cannot recoginized encounters", encounters[1])
 		return
@@ -304,7 +299,7 @@ end
 function WarbandRewardList:Update()
 	local changed = {}
 	for _, reward in ipairs(self.rewards) do
-		if reward.poi == nil then
+		if reward.poi == nil and reward.dungeon then
 			if reward:UpdateDungeonPosition() then
 				table.insert(changed, reward:GetName())
 			end
@@ -320,7 +315,7 @@ function WarbandRewardList:GetAllEncounters()
 	local uniqueEncounters = {}
 
 	for _, reward in self:EnumerateAll() do
-		for _, encounterID in ipairs(reward.encounters) do
+		for _, encounterID in ipairs(reward.encounters or {}) do
 			uniqueEncounters[encounterID] = true
 		end
 	end

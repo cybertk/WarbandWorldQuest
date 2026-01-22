@@ -205,7 +205,11 @@ function WarbandRewardsTrackerInstanceEntryMixin:Init(elementData)
 	self.Name:SetText(self.data.reward:GetName())
 	self.TimeLeft:SetText(self:FormatTimeLeft(self.data))
 
-	self.IconButton:Update(DifficultyUtil.GetMaxPlayers(self.data.reward.difficulties[1]) > 5)
+	if self.data.reward.dungeon then
+		self.IconButton:Update(DifficultyUtil.GetMaxPlayers(self.data.reward.difficulties[1]) > 5)
+	else
+		self.IconButton:Update(false, true)
+	end
 
 	self:UpdateStatus()
 	self:UpdateProgress()

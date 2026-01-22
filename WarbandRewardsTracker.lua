@@ -9,15 +9,7 @@ local Settings = ns.Settings
 
 local WarbandWorldQuest = {}
 
-function WarbandWorldQuest:Migrate()
-	if self.db.version ~= "v0.22" then
-		for _, reward in WarbandRewardList:EnumerateAll() do
-			reward:UpdateResetTime()
-		end
-		self.db.version = "v0.22"
-		Util:Debug("DB migrated to v0.22")
-	end
-end
+function WarbandWorldQuest:Migrate() end
 
 function WarbandWorldQuest:Init()
 	CharacterStore.Load(self.db.characters)
@@ -64,7 +56,7 @@ end
 
 function WarbandWorldQuest:RemoveEncountersFromAllCharacters(reward)
 	self.characterStore:ForEach(function(character)
-		for _, encounterID in ipairs(reward.encounters) do
+		for _, encounterID in ipairs(reward.encounters or {}) do
 			character.encounters[encounterID] = nil
 		end
 	end, next)
