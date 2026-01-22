@@ -133,6 +133,11 @@ function QuestRewards:Update(questID, force)
 	if changes > 0 then
 		-- world quests with rep-only rewards are always marked as first-completetion-bonus
 		Util:Debug("Updated rewards:", questID, changes, completed, self.money, self.currencies and #self.currencies, self.items and #self.items)
+
+		if not C_TaskQuest.GetQuestTimeLeftSeconds(questID) then
+			self:SetIneligible()
+			Util:Debug("Quest is not avaialble to this character", questID)
+		end
 	end
 
 	return completed
@@ -254,7 +259,21 @@ function QuestRewards:Summary(asList)
 		s = s .. format(" |T%d:15|t(%s) %d", equipment.icon, _G[itemEquipLoc], equipment.amount)
 	end
 
+	if not asList and s == "" and not self:IsEligible() then
+		s = format("|cffffffff(|cnGRAY_FONT_COLOR:%s|r)|r", UNAVAILABLE)
+	end
+
 	return asList and records or s
+end
+
+function QuestRewards:SetIneligible()
+	self.items = nil
+	self.money = nil
+	self.currencies = nil
+end
+
+function QuestRewards:IsEligible()
+	return (self.items or self.money or self.currencies) and true or false
 end
 
 function QuestRewards:SetClaimed()
