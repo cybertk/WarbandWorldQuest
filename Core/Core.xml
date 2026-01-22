@@ -1,0 +1,9 @@
+<Ui>
+    <Script file="Util.lua" />
+    <Script file="Settings.lua" />
+    <Script file="RewardTypes.lua" />
+    <Script file="QuestRewards.lua" />
+    <Script file="WorldQuest.lua" />
+    <Script file="Character.lua" />
+    <Script file="CharacterStore.lua" />
+</Ui>
