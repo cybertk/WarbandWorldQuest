@@ -1,4 +1,4 @@
-## Interface: 120000, 110207
+## Interface: 120000
 ## Version:  @project-version@
 
 ## Title: |cff00d9ffWarband World Quest|r
@@ -22,7 +22,7 @@
 ## IconTexture: Interface\AddOns\WarbandWorldQuest\UI\Icon.blp
 
 ## X-Flavor: retail
-## X-Expansion: TWW
+## X-Expansion: MN
 ## X-Website: https://github.com/cybertk/WarbandWorldQuest
 ## X-Curse-Project-ID: 1271870
 ## X-Wago-ID: EGPXlOG1

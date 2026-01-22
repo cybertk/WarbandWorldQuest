@@ -2,10 +2,6 @@ package-as: WarbandWorldQuest
 
 enable-nolib-creation: no
 
-manual-changelog:
-    filename: CHANGELOG.md
-    markup-type: markdown
-
 externals:
     Embeds/WeeklyRewards:
         url: https://github.com/cybertk/WeeklyRewards
