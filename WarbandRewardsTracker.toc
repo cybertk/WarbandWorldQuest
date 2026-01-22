@@ -1,4 +1,4 @@
-## Interface: 110205
+## Interface: 120000
 ## Title: |cff00d9ffWarband Rewards Tracker|r
 ## Notes: Track rewards progress across all your characters
 ## Version: @project-version@
