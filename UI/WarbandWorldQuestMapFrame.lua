@@ -702,8 +702,13 @@ function WarbandWorldQuestPageMixin:Update()
 		self.LoadingFrame:Hide()
 	end
 
-	self.ScrollBox:SetDataProvider(self.dataProvider, self:IsVisible() and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition)
+	C_Timer.After(0.1, function()
+		self.ScrollBox:SetDataProvider(
+			self.dataProvider,
+			self:IsVisible() and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition
+		)
 
-	self:SetUpdateLocked(false)
-	Util:Debug("Page Updated", self:IsVisible())
+		self:SetUpdateLocked(false)
+		Util:Debug("Page Updated", self:IsVisible())
+	end)
 end
