@@ -446,6 +446,7 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
 			progress = pin:CreateFontString(nil, "OVERLAY")
 			progress:SetPoint("TOP", pin, "BOTTOM", 0, -1)
 			progress:SetFontObject("SystemFont_Shadow_Small_Outline")
+			progress:SetFontHeight(9)
 
 			self.progressFrames[pin] = progress
 		end

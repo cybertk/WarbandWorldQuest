@@ -203,7 +203,7 @@ function WarbandWorldQuestCharactersButtonMixin:Update()
 
 	local scanned, pending = self:PopulateCharactersData()
 
-	self.ButtonText:SetText(format("%s %d/%d", CreateAtlasMarkup("common-icon-undo", 16, 16), #scanned, #pending + #scanned))
+	self.ButtonText:SetText(format("%s%d/%d", CreateAtlasMarkup("questlog-questtypeicon-group", 18, 18, -1, 1), #scanned, #pending + #scanned))
 	self:SetWidth(self.ButtonText:GetUnboundedStringWidth() + 10)
 end
 
