@@ -65,9 +65,11 @@ function WarbandWorldQuestWarmodeButtonMixin:OnShow()
 	self:Update()
 
 	self:RegisterEvent("PVP_TIMER_UPDATE")
+	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 end
 
 function WarbandWorldQuestWarmodeButtonMixin:OnHide()
+	self:UnregisterEvent("PLAYER_FLAGS_CHANGED")
 	self:UnregisterEvent("PVP_TIMER_UPDATE")
 
 	self:SetWarmodeButtonShown(false)
@@ -105,7 +107,11 @@ function WarbandWorldQuestWarmodeButtonMixin:OnClick()
 	self:SetWarmodeButtonShown(not self.warmodeButton)
 end
 
-function WarbandWorldQuestWarmodeButtonMixin:OnEvent()
+function WarbandWorldQuestWarmodeButtonMixin:OnEvent(event, ...)
+	if event == "PLAYER_FLAGS_CHANGED" and select(1, ...) ~= "player" then
+		return
+	end
+
 	self:Update()
 end
 
