@@ -298,10 +298,6 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		return
 	end
 
-	if not self:IsEmpty() then
-		self:Flush()
-	end
-
 	local rows = self.rows
 	if not self.shouldShowAllQuests then
 		self:FilterRows()
@@ -310,7 +306,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 	local groups = {
 		FOCUSED = 1,
-		{ rows = {}, virtual = true, index = 1 },
+		{ rows = {}, virtual = true, index = 1, uncollapsible = true },
 		COMPLETED = 2,
 		{ name = CRITERIA_COMPLETED, rows = {}, virtual = self.questCompleteOption == nil },
 		INACTIVE = 3,
@@ -329,20 +325,18 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		end
 	end
 
-	local rows = {}
+	wipe(self.collection)
 	for i, group in ipairs(groups) do
-		local isCollapsed = self.groupState[i] or false
+		local isCollapsed = not group.uncollapsible and self.groupState[i]
 
 		if not group.virtual then
-			table.insert(rows, { isHeader = true, isCollapsed = isCollapsed, name = group.name, index = i, numQuests = #group.rows })
+			table.insert(self.collection, { isHeader = true, isCollapsed = isCollapsed, name = group.name, index = i, numQuests = #group.rows })
 		end
 
 		for _, row in ipairs(isCollapsed and {} or group.rows) do
-			table.insert(rows, row)
+			table.insert(self.collection, row)
 		end
 	end
-
-	self:InsertTable(rows)
 
 	return true
 end

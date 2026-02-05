@@ -702,7 +702,7 @@ function WarbandWorldQuestPageMixin:Update()
 		self.LoadingFrame:Hide()
 	end
 
-	C_Timer.After(0.1, function()
+	C_Timer.After(0, function()
 		self.ScrollBox:SetDataProvider(
 			self.dataProvider,
 			self:IsVisible() and ScrollBoxConstants.RetainScrollPosition or ScrollBoxConstants.DiscardScrollPosition
