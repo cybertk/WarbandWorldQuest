@@ -38,7 +38,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" useAtlasSize="true">
+				<Texture parentKey="Background" atlas="event-scheduler-ongoing-events-card-incomplete" alpha="0.6" useAtlasSize="true">
 					<Anchors>
 						<Anchor point="TOPLEFT" />
 						<Anchor point="BOTTOMRIGHT" />
@@ -98,10 +98,169 @@
 		</Scripts>
 	</Button>
 
+	<Frame name="_WarbandWorldQuestFilterHeaderTemplate" inherits="ResizeLayoutFrame" mixin="WarbandWorldFilterQuestHeaderMixin" virtual="true">
+		<Size x="1" y="1" />
+		<KeyValues>
+			<KeyValue key="fixedWidth" value="304" type="number" />
+		</KeyValues>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="Campaign_1027">
+					<Size x="304" y="69" />
+					<Anchors>
+						<Anchor point="TOPLEFT" y="0" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="Game15Font_Shadow" justifyH="LEFT" maxLines="1" mixin="AutoScalingFontStringMixin">
+					<KeyValues>
+						<KeyValue key="minLineHeight" value="10" type="number" />
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="TOPLEFT" x="16" y="-22" />
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Progress" inherits="SystemFont_Shadow_Small2">
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="TOPLEFT" x="16" y="-39" />
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="-1">
+				<Texture parentKey="HighlightTexture" atlas="Campaign_Horde" hidden="true" inherits="QuestLogHighlightTextureTemplate">
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Background" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="TopFiligree" atlas="QuestLog-frame-devider">
+					<Size x="0" y="15" />
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="5" />
+						<Anchor point="TOPRIGHT" x="0" y="5" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<!-- <Frames>
+			<Frame parentKey="NextObjective" inherits="ResizeLayoutFrame" mixin="CampaignNextObjectiveMixin">
+				<Size x="1" y="1"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.Background" relativePoint="BOTTOM" x="0" y="-6"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="GameFontNormal" justifyH="LEFT">
+							<Size x="265" y="0"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" x="10"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnEnter method="OnEnter"/>
+					<OnLeave method="OnLeave"/>
+					<OnMouseUp method="OnMouseUp"/>
+				</Scripts>
+			</Frame>
+		</Frames> -->
+	</Frame>
 
 	<Button name="WarbandWorldQuestHeaderTemplate" inherits="ListHeaderCodeTemplate, ListHeaderVisualTemplate" mixin="WarbandWorldQuestHeaderMixin" virtual="true">
 		<Size x="295" y="0" />
 	</Button>
+	
+	<Button name="WarbandWorldQuestFilterHeaderTemplate" inherits="ListHeaderCodeTemplate, ListHeaderVisualTemplate" mixin="WarbandWorldFilterQuestHeaderMixin" virtual="true">
+		<Size x="304" y="0" />
+		<!-- <KeyValues>
+			<KeyValue key="leftPadding" value="2" type="number" />
+		</KeyValues> -->
+		<!-- <Anchors>
+			<Anchor point="TOPLEFT" x="1" y="1" />
+		</Anchors> -->
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="Callings-Header-Venthyr">
+					<Size x="304" y="31" />
+					<Anchors>
+						<Anchor point="BOTTOM" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<!-- <Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="SelectedHighlight" atlas="questlog-header-glow-yellow" useAtlasSize="true">
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues>
+					<Anchors>
+						<Anchor point="BOTTOM" relativeKey="$parent.Background" y="2" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="-2">
+				<Texture parentKey="SelectedTexture" atlas="CampaignHeader_SelectedGlow" alphaMode="ADD" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Background" x="0" y="0" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background" x="0" y="3" />
+					</Anchors>
+				</Texture>
+			</Layer> -->
+			<Layer level="OVERLAY" textureSubLevel="-1">
+				<Texture parentKey="HighlightTexture" hidden="true" inherits="QuestLogHighlightTextureTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Background" />
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Divider" atlas="QuestLog-frame-devider">
+					<Size x="0" y="15" />
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="5" />
+						<Anchor point="TOPRIGHT" x="0" y="5" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture>
+			<!-- override template with nothing -->
+		</HighlightTexture>
+		<NormalFont style="GameFontNormal" />
+		<HighlightFont style="GameFontHighlight" />
+		<Scripts>
+			<!-- <OnLoad method="OnLoadCovenantCallings" inherit="prepend"/>
+			<OnEnter method="OnEnterCovenantCallings" inherit="prepend"/>
+			<OnLeave method="OnLeaveCovenantCallings" inherit="prepend"/> -->
+		</Scripts>
+	</Button>
+
+	<Frame name="WarbandWorldQuestSeparatorTemplate" virtual="true">
+		<Size x="304" y="15" />
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Divider" atlas="QuestLog-frame-devider">
+					<!-- <KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean" />
+					</KeyValues> -->
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
 
 	<Frame name="WarbandWorldQuestTabButtonTemplate" inherits="QuestLogTabButtonTemplate" mixin="WarbandWorldQuestTabButtonMixin" virtual="true">
 		<KeyValues>

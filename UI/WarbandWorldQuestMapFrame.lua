@@ -278,6 +278,40 @@ function WarbandWorldQuestHeaderMixin:OnClick(button)
 	end
 end
 
+WarbandWorldFilterQuestHeaderMixin = CreateFromMixins(ListHeaderVisualMixin, ListHeaderMixin)
+
+function WarbandWorldFilterQuestHeaderMixin:Init(elementData)
+	self.data = elementData
+
+	if self.Text then
+		self.Text:SetText("|cnWHITE_FONT_COLOR:Filter: |r|cnNORMAL_FONT_COLOR:12 / 31|r")
+	else
+		self:ClearNormalTexture()
+		-- self:SetHeaderText("|cnWHITE_FONT_COLOR:Filter: |r|cnNORMAL_FONT_COLOR:12 / 31|r")
+
+		local filters = ""
+		for _, rewardType in ipairs(ns.RewardTypes:FindByKeys(Settings:Get("reward_type_filters"))) do
+			if rewardType.texture then
+				filters = filters .. format("|T%d:15|t ", rewardType.texture)
+			elseif rewardType.i == 0 then
+				filters = filters .. CreateAtlasMarkup("Auctioneer")
+			elseif rewardType.i == 1 then
+				filters = filters .. CreateAtlasMarkup("Ammunition")
+			end
+		end
+
+		-- self:SetHeaderText(format("|cnWHITE_FONT_COLOR:Filter(|cnLIGHTBLUE_FONT_COLOR:%d/%d|r): |r", 20, 100) .. filters)
+		self:SetHeaderText(format("|A:Map-Filter-Button:20:20|a|cnYELLOW_FONT_COLOR:Filter (%d): |r", 20) .. filters)
+	end
+
+	-- self:SetText(QUEST_LOG_COVENANT_CALLINGS_HEADER:format(23, 100))
+
+	-- self.data = elementData
+
+	-- self:SetHeaderText(format("%s (%d)", self.data.name, self.data.numQuests))
+	-- self:UpdateCollapsedState(self.data.isCollapsed)
+end
+
 WarbandWorldQuestEntryMixin = {}
 WarbandWorldQuestEntryMixin.MaxNameWidth = 205
 
@@ -329,6 +363,10 @@ function WarbandWorldQuestEntryMixin:UpdateRewards()
 end
 
 function WarbandWorldQuestEntryMixin:FormatTimeLeft(elementData)
+	if not elementData.quest then
+		print("FormatTimeLeft", elementData.name)
+		return ""
+	end
 	return Settings:Get("log_time_left_shown") and Util.FormatTimeDuration(elementData.quest.resetTime - GetServerTime()) .. " - " or ""
 end
 
@@ -505,31 +543,48 @@ WarbandWorldQuestPageMixin = {}
 
 function WarbandWorldQuestPageMixin:OnLoad()
 	local indent = 0
-	local topPadding = 3
+	local topPadding = 0
 	local bottomPadding = 15
-	local leftPadding = 8
-	local rightPadding = 5
+	local leftPadding = 2
+	local rightPadding = 4
 	local elementSpacing = 3
 	local view = CreateScrollBoxListTreeListView(indent, topPadding, bottomPadding, leftPadding, rightPadding, elementSpacing)
 
 	view:SetElementFactory(function(factory, data)
 		local function Initializer(frame)
 			frame.owner = self
-			frame:Init(data)
+			if frame.Init then
+				frame:Init(data)
+			end
 		end
 
-		local template = data.isHeader and "WarbandWorldQuestHeaderTemplate" or "WarbandWorldQuestEntryTemplate"
+		local template = "WarbandWorldQuestEntryTemplate"
+		if data.isHeader then
+			template = data.index == 1 and "WarbandWorldQuestFilterHeaderTemplate" or "WarbandWorldQuestHeaderTemplate"
+		elseif data.isSeparator then
+			template = "WarbandWorldQuestSeparatorTemplate"
+			-- print("oh ha WarbandWorldQuestSeparatorTemplate")
+		end
+		-- local template = data.isHeader and (data.index == 1 and "WarbandWorldQuestHeaderTemplate" or "WarbandWorldQuestEntryTemplate"
 
 		factory(template, Initializer)
 	end)
 
-	view:SetElementIndentCalculator(function(elementData)
-		return elementData.isHeader and -2 or 0
+	view:SetElementIndentCalculator(function(data)
+		if data.isHeader then
+			return data.index == 1 and 0 or 4
+		elseif data.isSeparator then
+			return 2
+		else
+			return 8
+		end
 	end)
 
 	view:SetElementExtentCalculator(function(dataIndex, elementData)
 		if elementData.isHeader then
-			return 22
+			return elementData.index == 1 and 31 or 22
+		elseif elementData.isSeparator then
+			return 13
 		elseif self:IsRewardsTextOverlapped(elementData) then
 			elementData.isRewardsTextOverlapped = true
 			return 56

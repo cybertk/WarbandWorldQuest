@@ -215,7 +215,7 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 end
 
 function WarbandWorldQuestDataProviderMixin:UpdateGroupState(groupIndex, isCollapsed)
-	self.groupState[groupIndex] = isCollapsed
+	self.groupState[groupIndex] = groupIndex == 1 and false or isCollapsed
 end
 
 function WarbandWorldQuestDataProviderMixin:UpdateRewardTypeFilters(filters)
@@ -306,7 +306,7 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 	local groups = {
 		FOCUSED = 1,
-		{ rows = {}, virtual = true, index = 1, uncollapsible = true },
+		{ name = "", rows = {}, index = 1, separator = true, uncollapsible = true },
 		COMPLETED = 2,
 		{ name = CRITERIA_COMPLETED, rows = {}, virtual = self.questCompleteOption == nil },
 		INACTIVE = 3,
@@ -335,6 +335,10 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 
 		for _, row in ipairs(isCollapsed and {} or group.rows) do
 			table.insert(self.collection, row)
+		end
+
+		if group.separator then
+			table.insert(self.collection, { isSeparator = true })
 		end
 	end
 
@@ -510,6 +514,9 @@ function WarbandWorldQuestDataProviderMixin:UpdateAllPinsOpacity(force)
 end
 
 function WarbandWorldQuestDataProviderMixin:RefreshAllData()
+	if InCombatLockdown() then
+		return
+	end
 	local pinsToRemove = {}
 	for questID in pairs(self.activePins) do
 		pinsToRemove[questID] = true
@@ -559,6 +566,9 @@ WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)
 function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
 
 hooksecurefunc(WorldMapFrame, "RegisterPin", function(mapCanvas, pin)
+	if InCombatLockdown() then
+		return
+	end
 	if pin.CheckMouseButtonPassthrough ~= nop then
 		pin.CheckMouseButtonPassthrough = nop
 		pin.UpdateMousePropagation = nop

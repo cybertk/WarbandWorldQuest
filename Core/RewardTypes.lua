@@ -128,6 +128,19 @@ function RewardTypes:GenerateMask(selectedTypes)
 	return mask
 end
 
+function RewardTypes:FindByKeys(selectedTypes)
+	local allTypes = self:GetAll()
+	local types = {}
+
+	for key, selected in pairs(selectedTypes) do
+		if selected and allTypes[key] then
+			table.insert(types, allTypes[key])
+		end
+	end
+
+	return types
+end
+
 function RewardTypes:GetAll(excludeAnima)
 	local types = {}
 
@@ -149,3 +162,4 @@ function RewardTypes:GetAll(excludeAnima)
 end
 
 ns.RewardTypes = RewardTypes
+_G["RT"] = RewardTypes
