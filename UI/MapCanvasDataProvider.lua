@@ -1,8 +1,63 @@
 local _, ns = ...
 
-WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)
+local Util = ns.Util
+local Settings = ns.Settings
 
-function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
+WarbandWorldQuestIconButtonMixin = {}
+
+function WarbandWorldQuestIconButtonMixin:OnMouseEnter()
+	if self:GetParent().OnMouseEnter then
+		self:GetParent():OnMouseEnter()
+	end
+end
+
+function WarbandWorldQuestIconButtonMixin:OnMouseLeave()
+	if self:GetParent().OnMouseLeave then
+		self:GetParent():OnMouseLeave()
+	end
+end
+
+function WarbandWorldQuestIconButtonMixin:OnMouseDown()
+	self.Display:SetPoint("CENTER", 1, -1)
+end
+
+function WarbandWorldQuestIconButtonMixin:OnMouseUp()
+	self.Display:SetPoint("CENTER")
+end
+
+function WarbandWorldQuestIconButtonMixin:OnClick(button)
+	self:GetParent():ToggleTracked()
+end
+
+function WarbandWorldQuestIconButtonMixin:SetDesaturated(desaturated)
+	self:GetNormalTexture():SetDesaturated(desaturated)
+end
+
+function WarbandWorldQuestIconButtonMixin:SetSelected(selected)
+	if selected then
+		self.selectedAtlas = self:GetNormalTexture():GetAtlas()
+		self:GetNormalTexture():SetAtlas("worldquest-questmarker-epic-supertracked", true)
+	else
+		self:GetNormalTexture():SetAtlas(self.selectedAtlas, true)
+		self.selectedAtlas = nil
+	end
+end
+
+function WarbandWorldQuestIconButtonMixin:Update(questID)
+	local tag = C_QuestLog.GetQuestTagInfo(questID)
+
+	self.Display:SetAtlas(QuestUtil.GetWorldQuestAtlasInfo(questID, tag))
+
+	if tag.worldQuestType == Enum.QuestTagType.Capstone then
+		self.Underlay:SetAtlas("worldquest-Capstone-Banner", true)
+	elseif tag.isElite then
+		self.Underlay:SetAtlas("worldquest-questmarker-dragon", true)
+	else
+		self.Underlay:SetAtlas(nil)
+	end
+end
+
+WarbandWorldQuestPinMixin = {}
 
 function WarbandWorldQuestPinMixin:OnMouseEnter()
 	local tooltip = WarbandWorldQuestGameTooltip
@@ -11,29 +66,91 @@ function WarbandWorldQuestPinMixin:OnMouseEnter()
 	self:AddQuestToTooltip(tooltip)
 	tooltip:Show()
 
-	POIButtonMixin.OnEnter(self)
+	self.Progress:LockHighlight()
+	self:SetFrameLevel(self:GetFrameLevel() + 1)
+
+	self:RegisterEvent("MODIFIER_STATE_CHANGED")
+	self:SetScript("OnEvent", self.OnMouseEnter)
 end
 
 function WarbandWorldQuestPinMixin:OnMouseLeave()
+	self:SetFrameLevel(self:GetFrameLevel() - 1)
+	self.Progress:UnlockHighlight()
+
 	WarbandWorldQuestGameTooltip:Hide()
-	POIButtonMixin.OnLeave(self)
+
+	self:UnregisterEvent("MODIFIER_STATE_CHANGED")
+	self:SetScript("OnEvent", nil)
 end
 
-function WarbandWorldQuestPinMixin:OnClick(button)
-	self:ToggleTracked()
+function WarbandWorldQuestPinMixin:OnAcquired(quest, mapFrame)
+	self.quest = quest
+	self.questID = quest.ID -- compatible to native pin
+	self.mapFrame = mapFrame
+
+	self:SetParent(mapFrame:GetCanvas())
+	self.Icon:Update(quest.ID)
+	self:SetFrameLevel(WorldMapFrame:GetPinFrameLevelsManager():GetValidFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST") - 1) -- MAP_CANVAS_PIN_FRAME_LEVEL_DEFAULT PIN_FRAME_LEVEL_WORLD_QUEST
+
+	self.Progress:GetNormalFontObject():SetFontHeight(9)
+
+	if not HaveQuestRewardData(quest.ID) then
+		C_TaskQuest.RequestPreloadRewardData(quest.ID)
+	end
+
+	self:Show()
 end
 
-function WarbandWorldQuestPinMixin:AddQuestToTooltip(tooltip)
-	local questID = self.quest.ID
+function WarbandWorldQuestPinMixin:OnReleased()
+	self:Hide()
+	self:ClearAllPoints()
+end
 
+function WarbandWorldQuestPinMixin:SetMap(map)
+	self.map = map
+end
+
+function WarbandWorldQuestPinMixin:SetPosition(x, y)
+	local canvas = self.mapFrame:GetCanvas()
+	local scale = 1.0 / self.mapFrame:GetCanvasScale() * Lerp(1, 1, Saturate(self.mapFrame:GetCanvasZoomPercent()))
+
+	self:SetScale(scale)
+	self:ClearAllPoints()
+	self:SetPoint("CENTER", canvas, "TOPLEFT", (canvas:GetWidth() * x) / scale, -(canvas:GetHeight() * y) / scale)
+end
+
+function WarbandWorldQuestPinMixin:SetIconShown(shown)
+	self.Icon:SetShown(shown)
+end
+
+function WarbandWorldQuestPinMixin:RefreshVisuals()
+	local completed = self.quest:IsCompleted()
+	local ineligible = not self.quest:IsPlayerEligible()
+
+	local iconShown = completed or ineligible or (self.map.mapType ~= Enum.UIMapType.Zone and C_SuperTrack.GetSuperTrackedQuestID() ~= self.quest.ID)
+
+	self.CompletedCheck:SetShown(completed)
+	self.Icon:SetShown(iconShown)
+	self.Icon:SetDesaturated(ineligible)
+
+	self.Debug:SetColorTexture(iconShown and 0 or 1, 0, 0)
+end
+
+function WarbandWorldQuestPinMixin:UpdateProgressLabel(text)
+	self.Progress:SetText(text or "")
+	self.Progress:SetShown(text ~= nil)
+end
+
+function WarbandWorldQuestPinMixin:AddQuestToTooltip(tooltip, quest)
+	quest = quest or self.quest
+
+	local questID = quest.ID
 	if not HaveQuestData(questID) then
 		GameTooltip_SetTitle(tooltip, RETRIEVING_DATA, RED_FONT_COLOR)
 		GameTooltip_SetTooltipWaitingForData(tooltip, true)
 		tooltip:Show()
 		return
 	end
-
-	local quest = self.quest
 
 	do
 		local title, factionID, capped = C_TaskQuest.GetQuestInfoByQuestID(questID)
@@ -130,3 +247,184 @@ function WarbandWorldQuestPinMixin:ToggleTracked()
 		end
 	end
 end
+
+local WarbandWorldQuestMapCanvasDataProviderMixin = {}
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:OnLoad(data)
+	self.data = data
+
+	self.minPinDisplayLevel = Enum.UIMapType.Continent
+	self.maxPinDisplayLevel = Enum.UIMapType.Zone
+
+	self.activePins = {}
+	self.pinPool = CreateFramePool("Frame", nil, "WarbandWorldQuestPinTemplate", function(pool, pin)
+		pin:OnReleased()
+	end)
+
+	Settings:InvokeAndRegisterCallback("pins_min_display_level", self.SetMinPinDisplayLevel, self)
+	Settings:InvokeAndRegisterCallback("pins_progress_shown", self.SetProgressOnPinShown, self)
+	Settings:InvokeAndRegisterCallback("pins_completed_shown", self.SetPinOfCompletedQuestShown, self)
+	Settings:InvokeAndRegisterCallback("pins_inactive_opacity", self.SetPinOfInactiveQuestOpacity, self)
+	Settings:RegisterCallback("log_progress_shown", self.RefreshAllData, self)
+
+	hooksecurefunc(WorldMapFrame, "OnCanvasScaleChanged", function(mapFrame)
+		local scale = mapFrame:GetCanvasScale()
+
+		if self.scale ~= scale then
+			self.scale = scale
+			self:RefreshAllData()
+		end
+	end)
+
+	hooksecurefunc(WorldMapFrame, "OnMapChanged", function()
+		self:RefreshAllData()
+	end)
+
+	WorldMapFrame:HookScript("OnShow", function()
+		self.data:RegisterCallback(DataProviderMixin.Event.OnSizeChanged, self.OnDataProviderSizeChanged, self)
+
+		self:RefreshAllData()
+	end)
+
+	WorldMapFrame:HookScript("OnHide", function()
+		self.data:UnregisterCallback(DataProviderMixin.Event.OnSizeChanged, self)
+	end)
+
+	hooksecurefunc(C_SuperTrack, "SetSuperTrackedQuestID", function(questID)
+		if questID == 0 then
+			self:RefreshAllData()
+		elseif self.activePins[questID] then
+			self.activePins[questID]:SetIconShown(false)
+		end
+	end)
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:OnDataProviderSizeChanged()
+	Util:Debug("OnDataProviderSizeChanged")
+
+	self:RefreshAllData()
+	self:UpdateAllInactivePinsOpacity()
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:RefreshAllData()
+	Util:Debug("RefreshAllData")
+
+	local mapFrame = WorldMapFrame
+	if not mapFrame:IsShown() then
+		return
+	end
+
+	local pinsToRemove = {}
+	for questID in pairs(self.activePins) do
+		pinsToRemove[questID] = true
+	end
+
+	local map = C_Map.GetMapInfo(mapFrame:GetMapID())
+
+	for position, row in pairs(self:ShouldMapShowPins(map) and self.data:EnumerateActiveQuestsByMapID(map.mapID, self.showPinOfCompletedQuest) or {}) do
+		local quest = row.quest
+		local pin = self.activePins[quest.ID]
+
+		if not pin then
+			pin = self.pinPool:Acquire()
+			pin:OnAcquired(quest, mapFrame)
+
+			self.activePins[quest.ID] = pin
+			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), map.mapID)
+		end
+
+		pin:SetMap(map)
+		pin:SetPosition(unpack(position))
+		pin:RefreshVisuals()
+		pin:UpdateProgressLabel(self.showProgressOnPin and row:GetProgressText() or nil)
+
+		pinsToRemove[quest.ID] = nil
+	end
+
+	for questID in pairs(pinsToRemove) do
+		local pin = self.activePins[questID]
+
+		self.activePins[questID] = nil
+		self.pinPool:Release(pin)
+	end
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:ShouldMapShowPins(mapInfo)
+	local mapType = mapInfo.mapType
+
+	return mapType >= self.minPinDisplayLevel and mapType <= self.maxPinDisplayLevel
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:UpdatePinAlpha(pin, force)
+	if self.pinOfInactiveQuestOpacity or force then
+		local alpha = self.data:IsFilteredQuest(pin.questID) and 1 or self.pinOfInactiveQuestOpacity
+		if alpha ~= pin:GetAlpha() then
+			pin:SetAlpha(alpha)
+		end
+	end
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:UpdateAllInactivePinsOpacity()
+	for pin in WorldMapFrame:EnumeratePinsByTemplate(WorldMap_WorldQuestDataProviderMixin:GetPinTemplate()) do
+		self:UpdatePinAlpha(pin)
+	end
+
+	if not self.alphaHooked and self.pinOfInactiveQuestOpacity ~= 1 then
+		hooksecurefunc(WorldMap_WorldQuestPinMixin, "ApplyCurrentAlpha", function(pin)
+			self:UpdatePinAlpha(pin)
+		end)
+
+		self.alphaHooked = true
+	end
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:SetProgressOnPinShown(shown)
+	self.showProgressOnPin = shown
+	self:RefreshAllData()
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:SetMinPinDisplayLevel(uiMapType)
+	self.minPinDisplayLevel = uiMapType
+	self:RefreshAllData()
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:SetPinOfCompletedQuestShown(shown)
+	self.showPinOfCompletedQuest = shown
+	self:RefreshAllData()
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:SetPinOfInactiveQuestOpacity(alpha)
+	self.pinOfInactiveQuestOpacity = alpha
+	self:UpdateAllInactivePinsOpacity()
+end
+
+function WarbandWorldQuestMapCanvasDataProviderMixin:SetPinGlowingByQuest(quest, shown)
+	local position = quest:GetPositionOnMap(WorldMapFrame:GetMapID())
+	if #position == 0 then
+		Util:Debug("No position found for quest", quest.ID, quest:GetName(), "on map")
+		return
+	end
+
+	local pin = self.glowedPin
+	if not pin then
+		pin = self.pinPool:Acquire()
+
+		pin:OnAcquired(quest, WorldMapFrame)
+		pin:SetFrameLevel(3000)
+		pin.Icon:SetSelected(true)
+		pin.Glow:SetShown(true)
+
+		self.glowedPin = pin
+	end
+
+	if shown then
+		pin:SetPosition(unpack(position))
+		pin.Progress:LockHighlight()
+	else
+		pin.Progress:UnlockHighlight()
+	end
+
+	pin:SetShown(shown)
+end
+
+ns.WarbandWorldQuestMapCanvasDataProviderMixin = WarbandWorldQuestMapCanvasDataProviderMixin
