@@ -60,7 +60,7 @@ function WarbandWorldQuestDataRowMixin:UpdateFocused()
 		self.isActive = false
 	end
 
-	self.dataProvider.activeQuests[self.quest.ID] = self.isActive and self.quest or nil
+	self.dataProvider.activeRows[self.quest.ID] = self.isActive and self or nil
 
 	return wasFocused ~= self.isActive
 end
@@ -98,22 +98,17 @@ function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
 	self.progress.claimed = numClaimed
 end
 
-WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin, WorldMap_WorldQuestDataProviderMixin)
+local WarbandWorldQuestDataProviderMixin = CreateFromMixins(DataProviderMixin)
 
 function WarbandWorldQuestDataProviderMixin:OnLoad()
 	self.rows = {}
 	self.filteredRows = {}
 	self.questsOnMap = {}
-	self.activeProgress = {}
-	self.progressFrames = {}
-	self.activeQuests = {}
+	self.activeRows = {}
 	self.groupState = {}
 	self.shouldPopulateData = true
 	self.rewardFilters = {}
 	self.filterUncollectedRewards = true
-
-	self.minPinDisplayLevel = Enum.UIMapType.Continent
-	self.maxPinDisplayLevel = Enum.UIMapType.Zone
 
 	self:Init()
 end
@@ -188,7 +183,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 
 	self.rows = rows
 	self.filteredRows = {}
-	self.activeQuests = {}
+	self.activeRows = {}
 	self.rewardFiltersMask = QuestRewards.RewardTypes:GenerateMask(self.rewardFilters)
 	self:UpdateEligibleCharactersData()
 
@@ -236,24 +231,8 @@ function WarbandWorldQuestDataProviderMixin:SetQuestCompleteOption(option)
 	self.questCompleteOption = option
 end
 
-function WarbandWorldQuestDataProviderMixin:SetProgressOnPinShown(shown)
-	self.showProgressOnPin = shown
-end
-
 function WarbandWorldQuestDataProviderMixin:SetProgressTextOption(option)
 	self.progressTextOption = option
-end
-
-function WarbandWorldQuestDataProviderMixin:SetMinPinDisplayLevel(uiMapType)
-	self.minPinDisplayLevel = uiMapType
-end
-
-function WarbandWorldQuestDataProviderMixin:SetPinOfCompletedQuestShown(shown)
-	self.showPinOfCompletedQuest = shown
-end
-
-function WarbandWorldQuestDataProviderMixin:SetPinOfInactiveQuestOpacity(alpha)
-	self.pinOfInactiveQuestOpacity = alpha
 end
 
 function WarbandWorldQuestDataProviderMixin:SetFilterUncollectedRewards(enabled)
@@ -266,7 +245,7 @@ end
 
 function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulateData)
 	self.shouldPopulateData = shouldPopulateData
-	Util:Debug("Queued PopulateCharactersData")
+	Util:Debug("Queued PopulateCharactersData", shouldPopulateData)
 
 	if not self:IsEmpty() then
 		self:Flush()
@@ -274,7 +253,7 @@ function WarbandWorldQuestDataProviderMixin:SetShouldPopulateData(shouldPopulate
 end
 
 function WarbandWorldQuestDataProviderMixin:FilterRows()
-	local map = Util:GetBestMap(self:GetMap():GetMapID(), Enum.UIMapType.Zone)
+	local map = Util:GetBestMap(WorldMapFrame:GetMapID(), Enum.UIMapType.Zone)
 	if #self.filteredRows > 0 and map.mapID == self.lastFilteredMap then
 		Util:Debug("Skip filtering", map.name)
 		return
@@ -338,17 +317,20 @@ function WarbandWorldQuestDataProviderMixin:Reset()
 		end
 	end
 
+	self:TriggerEvent(self.Event.OnSizeChanged)
+
 	return true
 end
 
 function WarbandWorldQuestDataProviderMixin:IsFilteredQuest(questID)
-	return self.activeQuests[questID] ~= nil
+	return self.activeRows[questID] ~= nil
 end
 
 function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, includeCompleted, completedOnly)
 	self.questsOnMap[mapID] = {}
 
-	for _, quest in pairs(self.activeQuests) do
+	for _, row in pairs(self.activeRows) do
+		local quest = row.quest
 		local matched = true
 		if not includeCompleted and quest:IsCompleted() then
 			matched = false
@@ -360,7 +342,7 @@ function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, 
 			local position = quest:GetPositionOnMap(mapID)
 
 			if #position > 0 then
-				self.questsOnMap[mapID][position] = quest
+				self.questsOnMap[mapID][position] = row
 			end
 		end
 	end
@@ -369,20 +351,14 @@ function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, 
 end
 
 function WarbandWorldQuestDataProviderMixin:FindByQuestID(questID, isActiveOnly)
+	if isActiveOnly then
+		return self.activeRows[questID]
+	end
+
 	for _, row in ipairs(self.rows) do
 		if (not isActiveOnly or row.isActive) and row.quest and row.quest.ID == questID then
 			return row
 		end
-	end
-end
-
-function WarbandWorldQuestDataProviderMixin:FindPinByQuestID(questID)
-	local function MatchPin(pin)
-		return pin.questID == questID
-	end
-
-	for pin in self:EnumeratePinsByPredicate(MatchPin) do
-		return pin
 	end
 end
 
@@ -422,128 +398,4 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 	tooltip:Show()
 end
 
-function WarbandWorldQuestDataProviderMixin:UpdatePinProgress(pin)
-	local updated = false
-	local row = self:FindByQuestID(pin.questID, true)
-
-	if row then
-		local progress = self.progressFrames[pin]
-		if progress == nil then
-			progress = pin:CreateFontString(nil, "OVERLAY")
-			progress:SetPoint("TOP", pin, "BOTTOM", 0, -1)
-			progress:SetFontObject("SystemFont_Shadow_Small_Outline")
-			progress:SetFontHeight(9)
-
-			self.progressFrames[pin] = progress
-		end
-
-		progress:SetText(row:GetProgressText())
-		progress:Show()
-
-		updated = true
-	end
-
-	return updated
-end
-
-function WarbandWorldQuestDataProviderMixin:EnumeratePinsByPredicate(predicate)
-	local pins = {}
-
-	for _, template in ipairs({ self:GetPinTemplate(), WorldMap_WorldQuestDataProviderMixin:GetPinTemplate() }) do
-		for pin in self:GetMap():EnumeratePinsByTemplate(template) do
-			if predicate(pin) then
-				table.insert(pins, pin)
-			end
-		end
-	end
-
-	local index = 0
-
-	local function Enumerator(tbl)
-		index = index + 1
-		if index <= #tbl then
-			local value = tbl[index]
-			if value ~= nil then
-				return value
-			end
-		end
-	end
-
-	return Enumerator, pins
-end
-
-function WarbandWorldQuestDataProviderMixin:UpdateAllPinsProgress()
-	local framesToRemove = {}
-	for pin in pairs(self.progressFrames) do
-		framesToRemove[pin] = true
-	end
-
-	if self.showProgressOnPin then
-		for pin in self:EnumeratePinsByPredicate(GenerateClosure(self.UpdatePinProgress, self)) do
-			framesToRemove[pin] = nil
-		end
-	end
-
-	for pin in pairs(framesToRemove) do
-		self.progressFrames[pin]:Hide()
-	end
-end
-
-function WarbandWorldQuestDataProviderMixin:UpdateAllPinsOpacity(force)
-	if self.pinOfInactiveQuestOpacity or force then
-		for pin in self:GetMap():EnumeratePinsByTemplate(WorldMap_WorldQuestDataProviderMixin:GetPinTemplate()) do
-			pin:SetAlpha(self:IsFilteredQuest(pin.questID) and 1 or self.pinOfInactiveQuestOpacity)
-		end
-	end
-
-	if self.pinOfInactiveQuestOpacity == 1 then
-		self.pinOfInactiveQuestOpacity = nil
-	end
-end
-
-function WarbandWorldQuestDataProviderMixin:RefreshAllData()
-	local pinsToRemove = {}
-	for questID in pairs(self.activePins) do
-		pinsToRemove[questID] = true
-	end
-
-	local mapCanvas = self:GetMap()
-	local mapID = mapCanvas:GetMapID()
-	local mapType = C_Map.GetMapInfo(mapID).mapType
-
-	local quests = (mapType < self.minPinDisplayLevel or mapType > self.maxPinDisplayLevel) and {}
-		or self:EnumerateActiveQuestsByMapID(mapID, self.showPinOfCompletedQuest, mapType == Enum.UIMapType.Zone)
-
-	for position, quest in pairs(quests) do
-		local pin = self.activePins[quest.ID]
-
-		if pin then
-			pin:RefreshVisuals()
-			pin:SetPosition(unpack(position))
-			pin:AddIconWidgets()
-		else
-			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
-			pin:SetPosition(unpack(position))
-			pin.quest = quest
-			self.activePins[quest.ID] = pin
-
-			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), mapID)
-		end
-		pin:GetNormalTexture():SetDesaturated(not quest:IsPlayerEligible())
-		pin.CompletedIndicator:SetShown(quest:IsCompleted())
-
-		pinsToRemove[quest.ID] = nil
-	end
-
-	for questID in pairs(pinsToRemove) do
-		mapCanvas:RemovePin(self.activePins[questID])
-		self.activePins[questID] = nil
-	end
-
-	self:UpdateAllPinsProgress()
-	self:UpdateAllPinsOpacity()
-end
-
-function WarbandWorldQuestDataProviderMixin:GetPinTemplate()
-	return "WarbandWorldQuestPinTemplate"
-end
+ns.WarbandWorldQuestDataProviderMixin = WarbandWorldQuestDataProviderMixin

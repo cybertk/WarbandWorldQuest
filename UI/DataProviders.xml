@@ -3,13 +3,22 @@
     <Script file="QuestDataProvider.lua" />
     <Script file="MapCanvasDataProvider.lua" />
 
-    <Button name="WarbandWorldQuestPinTemplate" inherits="WorldQuestPinTemplate" flattenRenderLayers="true" enableMouse="true" mixin="WarbandWorldQuestPinMixin" virtual="true">
+    <Button name="WarbandWorldQuestIconButtonTemplate" mixin="WarbandWorldQuestIconButtonMixin" virtual="true">
+        <Size x="32" y="32" />
+        <NormalTexture atlas="UI-QuestPoi-QuestNumber" />
+        <HighlightTexture atlas="UI-QuestPoi-InnerGlow" alphaMode="ADD" />
         <Layers>
-            <Layer level="OVERLAY">
-                <Texture parentKey="CompletedIndicator" atlas="common-icon-checkmark">
-                    <Size x="14" y="14" />
+            <Layer level="BACKGROUND">
+                <Texture parentKey="Underlay">
                     <Anchors>
-                        <Anchor point="BOTTOM" relativePoint="BOTTOMRIGHT" x="0" y="-2" />
+                        <Anchor point="CENTER" />
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <Texture parentKey="Display">
+                    <Anchors>
+                        <Anchor point="CENTER" />
                     </Anchors>
                 </Texture>
             </Layer>
@@ -17,9 +26,81 @@
         <Scripts>
             <OnEnter method="OnMouseEnter" />
             <OnLeave method="OnMouseLeave" />
+            <OnMouseDown method="OnMouseDown" />
+            <OnMouseUp method="OnMouseUp" />
             <OnClick method="OnClick" />
         </Scripts>
     </Button>
+
+    <Frame name="WarbandWorldQuestPinTemplate" mixin="WarbandWorldQuestPinMixin" virtual="true">
+        <Size x="20" y="20" />
+        <Layers>
+            <Layer level="BACKGROUND">
+				<Texture parentKey="Glow" file="Interface\WorldMap\UI-QuestPoi-IconGlow" alphaMode="ADD" hidden="true">
+					<Size x="50" y="50"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+            <Layer level="ARTWORK">
+                <Texture parentKey="Debug" setAllPoints="true" hidden="true">
+                    <Color r="1" g="0" b="0" a="1" />
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY" textureSubLevel="1">
+                <Texture parentKey="TrackedCheck" atlas="worldquest-emissary-tracker-checkmark" useAtlasSize="true" hidden="true">
+                    <Anchors>
+                        <Anchor point="BOTTOM" relativePoint="BOTTOMRIGHT" x="0" y="-2" />
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Button parentKey="Icon" inherits="WarbandWorldQuestIconButtonTemplate">
+                <Anchors>
+                    <Anchor point="CENTER" />
+                </Anchors>
+            </Button>
+            <Button parentKey="Progress">
+                <Size x="20" y="14" />
+                <ButtonText parentKey="Text" nonspacewrap="true" justifyH="CENTER">
+                    <Anchors>
+                        <Anchor point="CENTER" />
+                    </Anchors>
+                </ButtonText>
+                <HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
+                <NormalFont style="SystemFont_Shadow_Small_Outline" />
+                <HighlightFont style="GameFontHighlightExtraSmall" />
+                <Anchors>
+                    <Anchor point="TOP" relativePoint="BOTTOM" />
+                </Anchors>
+            </Button>
+            <Frame parentKey="CompletedCheck" setAllPoints="true" hidden="true">
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <Texture parentKey="CompletedCheck" atlas="common-icon-checkmark">
+                            <Size x="14" y="14" />
+                            <Anchors>
+                                <Anchor point="BOTTOM" relativePoint="BOTTOMRIGHT" x="0" y="-2" />
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+            </Frame>
+            <Frame parentKey="TimeLowFrame" hidden="true">
+                <Size x="22" y="22" />
+                <Anchors>
+                    <Anchor point="CENTER" x="9" y="-9" />
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <Texture parentKey="Icon" atlas="worldquest-icon-clock" setAllPoints="true" />
+                    </Layer>
+                </Layers>
+            </Frame>
+        </Frames>
+    </Frame>
 
     <!-- from Blizzard_GameTooltip/Mainline/GameTooltip.xml -->
     <GameTooltip name="WarbandWorldQuestShoppingTooltip1" clampedToScreen="true" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="ShoppingTooltipTemplate" />

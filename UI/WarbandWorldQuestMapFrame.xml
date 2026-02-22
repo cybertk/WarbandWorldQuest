@@ -7,33 +7,11 @@
 		<Size x="295" y="0" />
 		<HighlightTexture atlas="event-scheduler-ongoing-events-card-hover" useAtlasSize="true" alphaMode="ADD" />
 		<Frames>
-			<Button parentKey="IconButton" mixin="WarbandWorldQuestIconButtonMixin">
+			<Button parentKey="IconButton" inherits="WarbandWorldQuestIconButtonTemplate">
 				<Size x="28" y="28" />
 				<Anchors>
 					<Anchor point="TOPLEFT" />
 				</Anchors>
-				<NormalTexture atlas="UI-QuestPoi-QuestNumber" />
-				<HighlightTexture atlas="UI-QuestPoi-InnerGlow" alphaMode="ADD" />
-				<Layers>
-					<Layer level="BACKGROUND">
-						<Texture parentKey="Underlay">
-							<Anchors>
-								<Anchor point="CENTER" />
-							</Anchors>
-						</Texture>
-					</Layer>
-					<Layer level="OVERLAY">
-						<Texture parentKey="Display">
-							<Anchors>
-								<Anchor point="CENTER" />
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
-				<Scripts>
-					<OnMouseDown method="OnMouseDown" />
-					<OnMouseUp method="OnMouseUp" />
-				</Scripts>
 			</Button>
 		</Frames>
 		<Layers>

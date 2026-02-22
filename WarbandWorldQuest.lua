@@ -29,7 +29,6 @@ function WarbandWorldQuest:Init()
 	self.dataProvider = self:CreateDataProvider()
 	self:Update(true)
 
-	WorldMapFrame:AddDataProvider(self.dataProvider)
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
@@ -120,17 +119,16 @@ function WarbandWorldQuest:SetRewardsClaimed(questID)
 end
 
 function WarbandWorldQuest:CreateDataProvider()
-	local dataProvider = CreateFromMixins(WarbandWorldQuestDataProviderMixin)
+	local dataProvider = CreateFromMixins(ns.WarbandWorldQuestDataProviderMixin)
 
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
 
-	Settings:InvokeAndRegisterCallback("pins_min_display_level", dataProvider.SetMinPinDisplayLevel, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_inactive_opacity", dataProvider.SetPinOfInactiveQuestOpacity, dataProvider)
 	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
 	Settings:InvokeAndRegisterCallback(Settings:WrapOptionCallback("log_progress_shown", dataProvider.SetProgressTextOption, dataProvider))
+
+	WarbandWorldQuestMapCanvasDataProvider = CreateFromMixins(ns.WarbandWorldQuestMapCanvasDataProviderMixin)
+	WarbandWorldQuestMapCanvasDataProvider:OnLoad(dataProvider)
 
 	return dataProvider
 end
