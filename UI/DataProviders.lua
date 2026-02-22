@@ -392,19 +392,20 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 		return
 	end
 
+	local offset = 0
 	if tooltip.ItemTooltip and tooltip.ItemTooltip:IsShown() then
-		tooltip.ItemTooltip.Tooltip:GetLeft()
+		if not self.itemTooltipOffset and not InCombatLockdown() then
+			tooltip.ItemTooltip.Tooltip:GetLeft()
 
-		local embeddedLeft, left = tooltip.ItemTooltip.Tooltip:GetLeft(), tooltip:GetLeft()
-		if embeddedLeft and left then
-			self.tooltipPadding = embeddedLeft - left
+			local embeddedLeft, left = tooltip.ItemTooltip.Tooltip:GetLeft(), tooltip:GetLeft()
+			if embeddedLeft and left then
+				self.itemTooltipOffset = left - embeddedLeft
+			end
 		end
-		tooltip = tooltip.ItemTooltip.Tooltip
-	else
-		self.tooltipPadding = 0
-	end
 
-	local offset = self.tooltipPadding and -self.tooltipPadding or 0
+		tooltip = tooltip.ItemTooltip.Tooltip
+		offset = self.itemTooltipOffset or -38
+	end
 
 	tooltip:AddLine(" ")
 	tooltip:AddLine("Warband Progress", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, false, offset)
