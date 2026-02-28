@@ -238,15 +238,6 @@ do
 		}
 
 		if WarbandWorldQuestSettings then -- Migration
-			if type(WarbandWorldQuestSettings.reward_type_filters) == "number" then
-				WarbandWorldQuestSettings.reward_type_filters = { ["c:0"] = true }
-			end
-
-			if type(WarbandWorldQuestSettings.pins_tooltip_shown) == "boolean" then
-				WarbandWorldQuestSettings.pins_tooltip_shown =
-					{ enabled = WarbandWorldQuestSettings.pins_tooltip_shown, option = WarbandWorldQuestSettings.pins_tooltip_modifier }
-				WarbandWorldQuestSettings.pins_tooltip_modifier = nil
-			end
 		end
 
 		Settings:RegisterSettings("WarbandWorldQuestSettings", DefaultWarbandWorldQuestSettings)
