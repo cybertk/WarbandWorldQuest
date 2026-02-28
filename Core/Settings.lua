@@ -176,19 +176,24 @@ function Settings:GenerateRotator(key, values)
 	end
 end
 
-function Settings:CreateMenuTree(key, menu, text, submenuTextGetter, response)
+function Settings:CreateMenuTree(key, menu, text, submenuTextGetter, sortDescending, response)
 	local submenus = {}
 
 	if type(submenuTextGetter) == "table" then
 		submenus = submenuTextGetter
-		table.sort(submenus, function(a, b)
-			return a.priority < b.priority
-		end)
 	else
 		for index in pairs(self.settings[key]) do
-			table.insert(submenus, { index = index, text = submenuTextGetter(index) })
+			table.insert(submenus, { index = index, priority = index, text = submenuTextGetter(index) })
 		end
 	end
+
+	table.sort(submenus, function(a, b)
+		if sortDescending then
+			return a.priority > b.priority
+		else
+			return a.priority < b.priority
+		end
+	end)
 
 	local rootMenu = text ~= nil and menu:CreateButton(text) or menu
 
