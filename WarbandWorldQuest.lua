@@ -131,7 +131,6 @@ function WarbandWorldQuest:CreateDataProvider()
 	Settings:InvokeAndRegisterCallback("pins_inactive_opacity", dataProvider.SetPinOfInactiveQuestOpacity, dataProvider)
 	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
 	Settings:InvokeAndRegisterCallback(Settings:WrapOptionCallback("log_progress_shown", dataProvider.SetProgressTextOption, dataProvider))
-	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", dataProvider.SetShouldPopulateData, dataProvider, true)
 
 	return dataProvider
 end
