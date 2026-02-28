@@ -214,7 +214,8 @@ do
 		local DefaultWarbandWorldQuestSettings = {
 			["group_collapsed_states"] = {},
 			["maps_to_scan"] = {
-				[2274] = true, -- Khaz Algar
+				[2537] = true, -- Quel'Thalas
+				[2274] = false, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
 				[1550] = false, -- Shadowlands
 			},

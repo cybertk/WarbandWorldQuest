@@ -179,8 +179,14 @@ function Util:TriggerEventAsync(event)
 	end)
 end
 
+-- From DB/CurrencyTypes
 function Util:GetFactionCurrencyID(factionID)
 	local currencies = {
+		[2696] = 3354, -- The Amani Tribe
+		[2699] = 3389, -- The Singularity
+		[2704] = 3370, -- The Hara'ti
+		[2710] = 3365, -- Silvermoon Court
+
 		[2590] = 2897, -- Council of Dornogal
 		[2570] = 2899, -- Hallowfall Arathi
 		[2594] = 2902, -- The Assembly of the Deeps
@@ -206,6 +212,11 @@ function Util:GetFactionReputationBonusMultiplier(factionID)
 		[2673] = 2, -- Bilgewater Cartel
 		[2675] = 2, -- Blackwater Cartel
 		[2677] = 2, -- Steamwheedle Cartel
+
+		[2696] = 1.5, -- The Amani Tribe
+		[2699] = 1.5, -- The Singularity
+		[2704] = 1.5, -- The Hara'ti
+		[2710] = 1.5, -- Silvermoon Court
 	}
 
 	return multipliers[factionID] or 1
