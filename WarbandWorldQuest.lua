@@ -218,6 +218,9 @@ do
 				[2274] = false, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
 				[1550] = false, -- Shadowlands
+				[619] = false, -- Legion
+				[875] = false, -- Zandalar
+				[876] = false, -- Kul Tiras
 			},
 			["reward_type_filters"] = {
 				["c:0"] = true, -- Gold
