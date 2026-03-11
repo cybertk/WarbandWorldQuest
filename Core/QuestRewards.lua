@@ -205,7 +205,7 @@ function QuestRewards:Summary(asList)
 				s = s .. format(" |T%d:15|t %d", info.iconFileID, amount)
 			end
 
-			local color = ITEM_QUALITY_COLORS[info.quality].color:GenerateHexColor()
+			local color = (ITEM_QUALITY_COLORS[info.quality] or ITEM_QUALITY_COLORS[1]).color:GenerateHexColor()
 			table.insert(records, 1, format(" |T%d:15|t |c%s[%s]|r x%d", info.iconFileID, color, info.name, amount))
 		elseif asList then
 			table.insert(records, 1, LFG_LIST_LOADING)
@@ -227,19 +227,25 @@ function QuestRewards:Summary(asList)
 			table.insert(records, 1, LFG_LIST_LOADING)
 		elseif asList then
 			local itemName, itemLink, itemQuality, itemLevel, _, itemType, itemSubType, _, itemEquipLoc, itemTexture = C_Item.GetItemInfo(itemID)
-			local color = ITEM_QUALITY_COLORS[itemQuality].color:GenerateHexColor()
 
-			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
-				record = format(" |T%d:15|t |c%s[%s]|r", itemTexture, color, itemName)
+			if not itemName then
+				C_Item.RequestLoadItemDataByID(itemID)
+				table.insert(records, 1, LFG_LIST_LOADING)
 			else
-				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], itemLevel)
-			end
+				local color = ITEM_QUALITY_COLORS[itemQuality].color:GenerateHexColor()
 
-			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" or amount > 1 then
-				record = record .. format(" x%d", amount)
-			end
+				if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
+					record = format(" |T%d:15|t |c%s[%s]|r", itemTexture, color, itemName)
+				else
+					record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], itemLevel)
+				end
 
-			table.insert(records, 1, record)
+				if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" or amount > 1 then
+					record = record .. format(" x%d", amount)
+				end
+
+				table.insert(records, 1, record)
+			end
 		else
 			local _, _, _, itemEquipLoc, icon = C_Item.GetItemInfoInstant(itemID)
 
