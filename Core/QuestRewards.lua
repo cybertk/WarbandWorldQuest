@@ -31,15 +31,19 @@ function QuestRewards:Aggregate(rewardsList)
 		end
 
 		for _, item in ipairs(o.items or {}) do
-			local itemID, amount = unpack(item)
+			local itemID, amount, itemLevel = item[1], item[2], item[3]
 
-			items[itemID] = (items[itemID] or 0) + amount
+			if items[itemID] then
+				items[itemID][2] = items[itemID][2] + amount
+			else
+				items[itemID] = { itemID, amount, itemLevel }
+			end
 		end
 	end
 
 	local aggregated = { money = money, items = {}, currencies = {} }
-	for ID, amount in pairs(items) do
-		table.insert(aggregated.items, { ID, amount })
+	for _, item in pairs(items) do
+		table.insert(aggregated.items, item)
 	end
 
 	for ID, amount in pairs(currencies) do
@@ -115,7 +119,22 @@ function QuestRewards:Update(questID, force)
 		local items = {}
 		for i = 1, GetNumQuestLogRewards(questID) do
 			local _, _, numItems, _, _, itemID = GetQuestLogRewardInfo(i, questID)
-			table.insert(items, { itemID, numItems })
+			local itemLevel
+			local itemLink = GetQuestLogItemLink("reward", i, questID)
+			if itemLink then
+				local _, _, _, iLevel = C_Item.GetItemInfo(itemLink)
+				itemLevel = iLevel
+			end
+			table.insert(items, { itemID, numItems, itemLevel })
+		end
+
+		-- backfill missing ilvl for equipment from existing items
+		if self.items and force then
+			for idx, item in ipairs(items) do
+				if item[3] == nil and self.items[idx] and self.items[idx][3] then
+					item[3] = self.items[idx][3]
+				end
+			end
 		end
 
 		if #items > 0 then
@@ -220,7 +239,7 @@ function QuestRewards:Summary(asList)
 
 	local equipments = {}
 	for _, item in ipairs(self.items or {}) do
-		local itemID, amount = unpack(item)
+		local itemID, amount, storedItemLevel = item[1], item[2], item[3]
 
 		if asList and not C_Item.IsItemDataCachedByID(itemID) then
 			C_Item.RequestLoadItemDataByID(itemID)
@@ -232,7 +251,7 @@ function QuestRewards:Summary(asList)
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
 				record = format(" |T%d:15|t |c%s[%s]|r", itemTexture, color, itemName)
 			else
-				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], itemLevel)
+				record = format(" |T%d:15|t |c%s[%s (%s/%s)]|r", itemTexture, color, itemName, _G[itemEquipLoc], storedItemLevel or itemLevel)
 			end
 
 			if itemEquipLoc == "INVTYPE_NON_EQUIP_IGNORE" or amount > 1 then
@@ -247,7 +266,7 @@ function QuestRewards:Summary(asList)
 				s = s .. format(" |T%d:15|t %d", icon, amount)
 			else
 				if equipments[itemEquipLoc] == nil then
-					equipments[itemEquipLoc] = { amount = amount, icon = icon }
+					equipments[itemEquipLoc] = { amount = amount, icon = icon, itemLevel = storedItemLevel }
 				else
 					equipments[itemEquipLoc].amount = equipments[itemEquipLoc].amount + amount
 				end
@@ -256,7 +275,12 @@ function QuestRewards:Summary(asList)
 	end
 
 	for itemEquipLoc, equipment in pairs(equipments) do
-		s = s .. format(" |T%d:15|t(%s) %d", equipment.icon, _G[itemEquipLoc], equipment.amount)
+		local slotName = _G[itemEquipLoc]
+		if equipment.itemLevel then
+			s = s .. format(" |T%d:15|t(%s %d) %d", equipment.icon, slotName, equipment.itemLevel, equipment.amount)
+		else
+			s = s .. format(" |T%d:15|t(%s) %d", equipment.icon, slotName, equipment.amount)
+		end
 	end
 
 	if not asList and s == "" and not self:IsEligible() then
