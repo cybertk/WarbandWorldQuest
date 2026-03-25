@@ -394,11 +394,11 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 
 	local offset = 0
 	if tooltip.ItemTooltip and tooltip.ItemTooltip:IsShown() then
-		if not self.itemTooltipOffset and not InCombatLockdown() then
+		if not self.itemTooltipOffset then
 			tooltip.ItemTooltip.Tooltip:GetLeft()
 
 			local embeddedLeft, left = tooltip.ItemTooltip.Tooltip:GetLeft(), tooltip:GetLeft()
-			if embeddedLeft and left then
+			if not issecretvalue(embeddedLeft) and left then
 				self.itemTooltipOffset = left - embeddedLeft
 			end
 		end
