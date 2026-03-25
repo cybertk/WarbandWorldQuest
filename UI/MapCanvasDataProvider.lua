@@ -82,6 +82,9 @@ function WarbandWorldQuestPinMixin:AddQuestToTooltip(tooltip)
 		if questCompleted then
 			GameTooltip_AddBlankLineToTooltip(tooltip)
 			GameTooltip_AddColoredLine(tooltip, ERR_QUEST_ALREADY_DONE, GREEN_FONT_COLOR)
+		elseif not quest:IsPlayerEligible() then
+			GameTooltip_AddBlankLineToTooltip(tooltip)
+			GameTooltip_AddColoredLine(tooltip, ERR_QUEST_NEED_PREREQS, RED_FONT_COLOR)
 		else
 			GameTooltip_AddQuestRewardsToTooltip(tooltip, questID, TOOLTIP_QUEST_REWARDS_STYLE_WORLD_QUEST)
 		end
@@ -94,6 +97,10 @@ function WarbandWorldQuestPinMixin:ToggleTracked()
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 
 	if ChatFrameUtil.TryInsertQuestLinkForQuestID(questID) then
+		return
+	end
+
+	if not self.quest:IsPlayerEligible() then
 		return
 	end
 

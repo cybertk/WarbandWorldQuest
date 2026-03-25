@@ -538,6 +538,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 
 			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), mapID)
 		end
+		pin:GetNormalTexture():SetDesaturated(not quest:IsPlayerEligible())
 		pin.CompletedIndicator:SetShown(quest:IsCompleted())
 
 		pinsToRemove[quest.ID] = nil
