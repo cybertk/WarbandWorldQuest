@@ -35,7 +35,7 @@ function WarbandWorldQuest:Init()
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
 
 			if Settings:MatchOption("pins_tooltip_shown", { ["CTRL"] = IsControlKeyDown, ["ALT"] = IsALTKeyDown }) then
-				self.dataProvider:UpdatePinTooltip(GameTooltip, pin)
+				self.dataProvider:UpdatePinTooltip(pin.quest and WarbandWorldQuestGameTooltip or GameTooltip, pin)
 			end
 		end)
 

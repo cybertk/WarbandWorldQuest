@@ -533,6 +533,7 @@ function WarbandWorldQuestDataProviderMixin:RefreshAllData()
 		else
 			pin = self:AddWorldQuest(quest:GetQuestPOIMapInfo())
 			pin:SetPosition(unpack(position))
+			pin.quest = quest
 			self.activePins[quest.ID] = pin
 
 			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), mapID)
@@ -554,14 +555,3 @@ end
 function WarbandWorldQuestDataProviderMixin:GetPinTemplate()
 	return "WarbandWorldQuestPinTemplate"
 end
-
-WarbandWorldQuestPinMixin = CreateFromMixins(WorldQuestPinMixin)
-
-function WarbandWorldQuestPinMixin:CheckMouseButtonPassthrough(...) end
-
-hooksecurefunc(WorldMapFrame, "RegisterPin", function(mapCanvas, pin)
-	if pin.CheckMouseButtonPassthrough ~= nop then
-		pin.CheckMouseButtonPassthrough = nop
-		pin.UpdateMousePropagation = nop
-	end
-end)
