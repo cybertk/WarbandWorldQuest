@@ -7,6 +7,7 @@ local RewardTypes = ns.RewardTypes
 local WorldQuest = {
 	nameCache = {},
 	positionCache = {},
+	eligibilityCache = {},
 }
 WorldQuest.__index = WorldQuest
 
@@ -156,6 +157,18 @@ end
 
 function WorldQuest:IsInactive()
 	return self.inactive or false
+end
+
+function WorldQuest:IsPlayerEligible()
+	if self.eligibilityCache[self.ID] then
+		return true
+	end
+
+	self.eligibilityCache[self.ID] = self:IsCompleted()
+		or C_QuestLog.GetQuestTagInfo(self.ID).worldQuestType == Enum.QuestTagType.Capstone
+		or C_TaskQuest.GetQuestTimeLeftSeconds(self.ID)
+
+	return self.eligibilityCache[self.ID] ~= nil
 end
 
 local WorldQuestList = {
