@@ -364,9 +364,9 @@ function WarbandWorldQuestDataProviderMixin:FindByQuestID(questID, isActiveOnly)
 	end
 end
 
-function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
-	local questID = pin.questID
-	if not WorldQuestList:IsActiveQuest(questID) then
+function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin, showAllCharacters)
+	local row = self:FindByQuestID(pin.questID, false)
+	if not row then
 		return
 	end
 
@@ -376,25 +376,41 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin)
 		offset = -38 -- GameTooltip.ItemTooltip.x(10) + InternalEmbeddedItemTooltipTemplate.x(28)
 	end
 
+	local uncollectedHint = format("(|cnLIGHTBLUE_FONT_COLOR:%s: |cnWHITE_FONT_COLOR:%d|r|r)", NOT_COLLECTED, row.progress.unknown)
+
 	tooltip:AddLine(" ")
-	tooltip:AddLine("Warband Progress", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, false, offset)
+
+	tooltip:AddDoubleLine(
+		PVP_PROGRESS_REWARDS_HEADER .. format(": %s", row.progress.unknown > 0 and uncollectedHint or ""),
+		row:GetProgressText(),
+		NORMAL_FONT_COLOR.r,
+		NORMAL_FONT_COLOR.g,
+		NORMAL_FONT_COLOR.b,
+		WHITE_FONT_COLOR.r,
+		WHITE_FONT_COLOR.g,
+		WHITE_FONT_COLOR.b,
+		false,
+		offset
+	)
 
 	for _, character in self:EnumerateCharacters() do
-		local rewards = character:GetRewards(questID)
+		local rewards = character:GetRewards(row.quest.ID)
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
 
-		tooltip:AddDoubleLine(
-			Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
-			rewards and rewards:Summary(),
-			NORMAL_FONT_COLOR.r,
-			NORMAL_FONT_COLOR.g,
-			NORMAL_FONT_COLOR.b,
-			WHITE_FONT_COLOR.r,
-			WHITE_FONT_COLOR.g,
-			WHITE_FONT_COLOR.b,
-			false,
-			offset
-		)
+		if rewards or showAllCharacters then
+			tooltip:AddDoubleLine(
+				Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
+				rewards and rewards:Summary(),
+				NORMAL_FONT_COLOR.r,
+				NORMAL_FONT_COLOR.g,
+				NORMAL_FONT_COLOR.b,
+				WHITE_FONT_COLOR.r,
+				WHITE_FONT_COLOR.g,
+				WHITE_FONT_COLOR.b,
+				false,
+				offset
+			)
+		end
 	end
 
 	tooltip:Show()
