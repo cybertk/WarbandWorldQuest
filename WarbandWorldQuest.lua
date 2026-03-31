@@ -43,7 +43,8 @@ function WarbandWorldQuest:Init()
 
 					GameTooltip:Hide()
 
-					tooltip:SetOwner(pin, "ANCHOR_RIGHT")
+					local anchor, x, y = select(3, pin:GetPointByName("CENTER"))
+					tooltip:SetOwner(WorldMapFrame:GetCanvas(), "ANCHOR_" .. anchor, x + 10, y)
 					WarbandWorldQuestPinMixin:AddQuestToTooltip(tooltip, row.quest)
 				end
 
@@ -51,8 +52,6 @@ function WarbandWorldQuest:Init()
 				tooltip:Show()
 			elseif not pin.quest then
 				tooltip:Hide()
-				WarbandWorldQuestShoppingTooltip1:Hide()
-				WarbandWorldQuestShoppingTooltip2:Hide()
 			end
 		end)
 
