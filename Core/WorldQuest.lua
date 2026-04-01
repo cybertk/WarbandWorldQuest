@@ -24,10 +24,9 @@ function WorldQuest:Create(info)
 	if not HaveQuestRewardData(o.ID) then
 		C_TaskQuest.RequestPreloadRewardData(o.ID)
 		Util:Debug("Reward data is not available", o.ID, o:GetName(), C_TaskQuest.GetQuestTimeLeftSeconds(o.ID))
-		return
+	else
+		o:UpdateFirstCompletionBonus()
 	end
-
-	o:UpdateFirstCompletionBonus()
 
 	return o
 end
@@ -177,6 +176,7 @@ local WorldQuestList = {
 	mapCache = {},
 	questsOnMap = {},
 	isScanSessionCompleted = nil,
+	childMapsCache = {},
 }
 
 function WorldQuestList:Load(quests, resetStartTime)
@@ -307,8 +307,12 @@ function WorldQuestList:Scan(continents, isNewSession)
 	end
 
 	for mapID, shouldScan in pairs(continents) do
+		if self.childMapsCache[mapID] == nil then
+			self.childMapsCache[mapID] = C_Map.GetMapChildrenInfo(mapID, Enum.UIMapType.Zone, true)
+		end
+
 		local maps = shouldScan and mapsToScan or mapsToRemove
-		for _, map in ipairs(C_Map.GetMapChildrenInfo(mapID, Enum.UIMapType.Zone, true)) do
+		for _, map in ipairs(self.childMapsCache[mapID]) do
 			table.insert(maps, map)
 		end
 	end

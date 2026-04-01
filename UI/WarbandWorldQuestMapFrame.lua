@@ -542,6 +542,7 @@ function WarbandWorldQuestPageMixin:OnShow()
 
 	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.OnMapChanged, self)
+	Settings:RegisterCallback("maps_to_scan", self.Update, self)
 	Settings:RegisterCallback("reward_type_filters", self.Update, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Update, self)
 	Settings:RegisterCallback("log_section_completed_shown", self.Update, self)
@@ -558,6 +559,7 @@ function WarbandWorldQuestPageMixin:OnHide()
 
 	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
 	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)
+	Settings:UnregisterCallback("maps_to_scan", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
 	Settings:UnregisterCallback("log_section_completed_shown", self)
@@ -624,7 +626,9 @@ function WarbandWorldQuestPageMixin:QueueRefresh()
 
 	local function OnUpdate(self)
 		self:SetScript("OnUpdate", nil)
-		self:Refresh()
+		if not self:IsUpdateLocked() then
+			self:Refresh()
+		end
 	end
 
 	self:SetScript("OnUpdate", OnUpdate)
