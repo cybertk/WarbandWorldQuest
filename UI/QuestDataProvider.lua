@@ -206,9 +206,11 @@ function WarbandWorldQuestDataProviderMixin:UpdateRewardsClaimed(questID)
 
 	Util:Debug("Updated rewards progress", questID, row.quest:GetName(), groupChanged)
 
-	self:TriggerEvent(self.Event.OnSizeChanged)
-
-	return groupChanged
+	if groupChanged then
+		self:Flush()
+	else
+		self:TriggerEvent(self.Event.OnSizeChanged)
+	end
 end
 
 function WarbandWorldQuestDataProviderMixin:UpdateGroupState(groupIndex, isCollapsed)
