@@ -46,7 +46,9 @@ function Util:DebugQuest(questID)
 end
 
 function Util:Filter(t, pattern, inplace, asList)
-	asList = asList or true
+	if asList == nil then
+		asList = true
+	end
 
 	if inplace then
 		for i = #t, 1, -1 do
@@ -122,7 +124,9 @@ end
 ---@param useCache? boolean Use the cache by default
 ---@return boolean
 function Util:IsProfessionLearned(skillLineID, useCache)
-	useCache = useCache or true
+	if useCache == nil then
+		useCache = true
+	end
 
 	if self.professions == nil or not useCache then
 		local professions = {}

@@ -194,7 +194,13 @@ do
 	end)
 
 	WarbandWorldQuest:RegisterEvent("QUEST_LOG_UPDATE", function()
-		WarbandWorldQuest:Update()
+		if not WarbandWorldQuest.updatePending then
+			WarbandWorldQuest.updatePending = true
+			C_Timer.After(0, function()
+				WarbandWorldQuest.updatePending = nil
+				WarbandWorldQuest:Update()
+			end)
+		end
 	end)
 
 	WarbandWorldQuest:RegisterEvent("QUEST_TURNED_IN", function(event, questID, xpReward, moneyReward)
