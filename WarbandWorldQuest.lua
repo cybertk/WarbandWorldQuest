@@ -41,7 +41,7 @@ function WarbandWorldQuest:Init()
 						return
 					end
 
-					GameTooltip:Hide()
+					GameTooltip:SetOwner(WorldMapFrame:GetCanvas(), "ANCHOR_NONE")
 
 					local anchor, x, y = select(3, pin:GetPointByName("CENTER"))
 					tooltip:SetOwner(WorldMapFrame:GetCanvas(), "ANCHOR_" .. anchor, x + 10, y)
