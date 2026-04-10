@@ -288,21 +288,17 @@ function WorldQuestList:RemoveQuests(maps)
 	end
 end
 
-function WorldQuestList:Scan(continents, isNewSession)
-	local mapsToScan = {}
-	local mapsToRemove = {}
-	local remainingQuests = {}
+function WorldQuestList:PopulateQuestsToScan(continents)
+	self.pendingQuests = self.pendingQuests or {}
 
-	if isNewSession then
-		self.isScanSessionCompleted = nil
-		RewardTypes:Reset()
-		Util:Debug("Started new scan session")
-	end
-
-	if self.isScanSessionCompleted then
+	if next(self.pendingQuests) ~= nil then
 		return
 	end
 
+	local mapsToScan = {}
+	local mapsToRemove = {}
+
+	Util:Debug("Populating maps to scan")
 	for mapID, shouldScan in pairs(continents) do
 		if self.childMapsCache[mapID] == nil then
 			self.childMapsCache[mapID] = C_Map.GetMapChildrenInfo(mapID, Enum.UIMapType.Zone, true)
@@ -323,26 +319,42 @@ function WorldQuestList:Scan(continents, isNewSession)
 
 		for _, info in ipairs(quests) do
 			if self:GetQuest(info.questID) == nil then
-				remainingQuests[info.questID] = info
+				self.pendingQuests[info.questID] = info
 			end
 
 			WorldQuest:MarkPlayerEligibleForQuest(info.questID)
 		end
 	end
 
-	for questID, info in pairs(remainingQuests) do
+	Util:Debug("Scanned maps", #mapsToScan, CountTable(self.pendingQuests))
+end
+
+function WorldQuestList:Scan(continents, isNewSession)
+	if isNewSession then
+		self.isScanSessionCompleted = nil
+		RewardTypes:Reset()
+		Util:Debug("Started new scan session")
+	end
+
+	if self.isScanSessionCompleted then
+		return
+	end
+
+	self:PopulateQuestsToScan(continents)
+
+	for questID, info in pairs(self.pendingQuests) do
 		if self:AddQuest(info) then
-			remainingQuests[questID] = nil
+			self.pendingQuests[questID] = nil
 		end
 	end
-	Util:Debug("Scanned maps", #mapsToScan, next(remainingQuests) == nil, #self.quests)
 
 	table.sort(self.quests, function(x, y)
 		return x.resetTime < y.resetTime
 	end)
 
-	if next(remainingQuests) == nil and #self.quests > 0 then
+	if next(self.pendingQuests) == nil and #self.quests > 0 then
 		self.isScanSessionCompleted = true
+		Util:Debug("Scan session completed", #self.quests)
 	end
 
 	return self.isScanSessionCompleted
