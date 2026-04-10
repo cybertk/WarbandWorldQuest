@@ -160,15 +160,11 @@ function WorldQuest:IsInactive()
 	return self.inactive or false
 end
 
+function WorldQuest:MarkPlayerEligibleForQuest(questID)
+	self.eligibilityCache[questID] = true
+end
+
 function WorldQuest:IsPlayerEligible()
-	if self.eligibilityCache[self.ID] then
-		return true
-	end
-
-	self.eligibilityCache[self.ID] = self:IsCompleted()
-		or C_QuestLog.GetQuestTagInfo(self.ID).worldQuestType == Enum.QuestTagType.Capstone
-		or C_TaskQuest.GetQuestTimeLeftSeconds(self.ID)
-
 	return self.eligibilityCache[self.ID] ~= nil
 end
 
@@ -329,6 +325,8 @@ function WorldQuestList:Scan(continents, isNewSession)
 			if self:GetQuest(info.questID) == nil then
 				remainingQuests[info.questID] = info
 			end
+
+			WorldQuest:MarkPlayerEligibleForQuest(info.questID)
 		end
 	end
 

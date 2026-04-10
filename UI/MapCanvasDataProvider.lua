@@ -125,7 +125,7 @@ end
 
 function WarbandWorldQuestPinMixin:RefreshVisuals()
 	local completed = self.quest:IsCompleted()
-	local ineligible = not self.quest:IsPlayerEligible()
+	local ineligible = not completed and not self.quest:IsPlayerEligible()
 
 	local iconShown = completed or ineligible or (self.map.mapType ~= Enum.UIMapType.Zone and C_SuperTrack.GetSuperTrackedQuestID() ~= self.quest.ID)
 
