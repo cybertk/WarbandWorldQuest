@@ -371,12 +371,12 @@ end
 
 function WarbandWorldQuestEntryMixin:OnEnter()
 	self:UpdateTooltip()
-	self.owner:HighlightMapPin(self.data.quest.ID, true)
+	WarbandWorldQuestMapCanvasDataProvider:SetPinGlowingByQuest(self.data.quest, true)
 end
 
 function WarbandWorldQuestEntryMixin:OnLeave()
 	GetAppropriateTooltip():Hide()
-	self.owner:HighlightMapPin(self.data.quest.ID, false)
+	WarbandWorldQuestMapCanvasDataProvider:SetPinGlowingByQuest(self.data.quest, false)
 end
 
 function WarbandWorldQuestEntryMixin:OnClick(button)
@@ -455,49 +455,37 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 	tooltip:Show()
 end
 
-WarbandWorldQuestIconButtonMixin = {}
-
-function WarbandWorldQuestIconButtonMixin:OnMouseDown()
-	self.Display:SetPoint("CENTER", 1, -1)
-end
-
-function WarbandWorldQuestIconButtonMixin:OnMouseUp()
-	self.Display:SetPoint("CENTER")
-
-	self:GetParent():ToggleTracked()
-end
-
-function WarbandWorldQuestIconButtonMixin:Update(questID)
-	local tag = C_QuestLog.GetQuestTagInfo(questID)
-
-	self.Display:SetAtlas(QuestUtil.GetWorldQuestAtlasInfo(questID, tag))
-
-	if tag.worldQuestType == Enum.QuestTagType.Capstone then
-		self.Underlay:SetAtlas("worldquest-Capstone-Banner", true)
-	elseif tag.isElite then
-		self.Underlay:SetAtlas("worldquest-questmarker-dragon", true)
-	else
-		self.Underlay:SetAtlas(nil)
-	end
-end
-
 WarbandWorldQuestTabButtonMixin = CreateFromMixins(SidePanelTabButtonMixin)
 
 function WarbandWorldQuestTabButtonMixin:OnLoad()
 	self.Icon:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
 	self.Icon:SetSize(24, 24)
-	self:SetPoint("TOP", QuestMapFrame.TabButtons[#QuestMapFrame.TabButtons - 1], "BOTTOM", 0, -3)
-	self:SetChecked(false)
+	self:SetPoint("TOP", QuestMapFrame.TabButtons[#QuestMapFrame.TabButtons], "BOTTOM", 0, -3)
+
+	hooksecurefunc(QuestMapFrame, "SetDisplayMode", function(_, displayMode)
+		if displayMode ~= nil then
+			self:SetChecked(false)
+		end
+	end)
+end
+
+function WarbandWorldQuestTabButtonMixin:SetContentFrame(name, template)
+	self.ContentFrame = CreateFrame("Frame", name, QuestMapFrame.ContentsAnchor, template)
 end
 
 function WarbandWorldQuestTabButtonMixin:SetChecked(checked)
 	self.SelectedTexture:SetShown(checked)
+	self.ContentFrame:SetShown(checked)
+
+	if checked then
+		QuestMapFrame:SetDisplayMode()
+	end
 end
 
 function WarbandWorldQuestTabButtonMixin:OnMouseUp(button, upInside)
 	SidePanelTabButtonMixin.OnMouseUp(self, button, upInside)
 	if button == "LeftButton" and upInside then
-		QuestMapFrame:SetDisplayMode(self.displayMode)
+		self:SetChecked(true)
 	end
 end
 
@@ -553,7 +541,6 @@ function WarbandWorldQuestPageMixin:OnShow()
 	self:RegisterEvent("QUEST_TURNED_IN")
 
 	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
-	WorldMapFrame:RegisterCallback("WorldQuestsUpdate", self.OnMapUpdate, self)
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.OnMapChanged, self)
 	Settings:RegisterCallback("reward_type_filters", self.Update, self)
 	Settings:RegisterCallback("group_collapsed_states", self.Update, self)
@@ -570,7 +557,6 @@ function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_TURNED_IN")
 
 	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
-	WorldMapFrame:UnregisterCallback("WorldQuestsUpdate", self)
 	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)
 	Settings:UnregisterCallback("reward_type_filters", self)
 	Settings:UnregisterCallback("group_collapsed_states", self)
@@ -605,12 +591,6 @@ function WarbandWorldQuestPageMixin:IsRewardsTextOverlapped(elementData)
 	return self.RewardsText:GetStringWidth() > entry.MaxNameWidth + 35
 end
 
-function WarbandWorldQuestPageMixin:OnMapUpdate()
-	if self.highlightQuest then
-		self:HighlightMapPin(self.highlightQuest, true)
-	end
-end
-
 function WarbandWorldQuestPageMixin:OnMapChanged(mapID)
 	self:Update()
 end
@@ -618,26 +598,6 @@ end
 function WarbandWorldQuestPageMixin:SetDataProvider(dataProvider)
 	self.dataProvider = dataProvider
 	self:Update()
-end
-
-function WarbandWorldQuestPageMixin:HighlightMapPin(questID, shown)
-	local pin = self.dataProvider:FindPinByQuestID(questID)
-	if pin == nil then
-		self.highlightQuest = shown and questID or nil
-		return
-	end
-
-	pin:ChangeSelected(shown)
-	self.highlightPin = shown and pin or nil
-	self.highlightQuest = nil
-
-	if self.pinsHooked[pin] == nil then
-		hooksecurefunc(pin, "RefreshVisuals", function(pin)
-			if pin == self.highlightPin then
-				pin:ChangeSelected(true)
-			end
-		end)
-	end
 end
 
 function WarbandWorldQuestPageMixin:HighlightRow(questID, shown)
