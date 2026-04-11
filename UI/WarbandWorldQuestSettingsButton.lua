@@ -147,7 +147,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				return C_Map.GetMapInfo(mapID).name
 			end
 
-			Settings:CreateMenuTree("maps_to_scan", rootMenu, L["settings_maps_title"], GetMapName, true, MenuResponse.CloseAll)
+			Settings:CreateMenuTree("maps_to_scan", rootMenu, L["settings_maps_title"], GetMapName, true, MenuResponse.Refresh)
 		end
 
 		rootMenu:CreateDivider()

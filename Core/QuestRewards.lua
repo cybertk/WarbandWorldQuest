@@ -7,11 +7,11 @@ local QuestRewards = {}
 QuestRewards.__index = QuestRewards
 QuestRewards.RewardTypes = RewardTypes
 
-function QuestRewards:Create(questID)
+function QuestRewards:Create(questID, ineligible)
 	local o = {}
 	setmetatable(o, QuestRewards)
 
-	if o:Update(questID) then
+	if ineligible or o:Update(questID) then
 		return o
 	end
 end
@@ -77,6 +77,7 @@ function QuestRewards:Update(questID, force)
 
 	local completed = true
 	local changes = 0
+	local hasFirstCompletionBonus = false
 
 	if not HaveQuestRewardData(questID) then
 		C_TaskQuest.RequestPreloadRewardData(questID)
@@ -94,7 +95,6 @@ function QuestRewards:Update(questID, force)
 
 	if (self.currencies == nil and C_QuestInfoSystem.HasQuestRewardCurrencies(questID)) or force then
 		local currencies = {}
-		local hasFirstCompletionBonus = false
 		for _, currency in ipairs(C_QuestInfoSystem.GetQuestRewardCurrencies(questID)) do
 			if currency.questRewardContextFlags == Enum.QuestRewardContextFlags.FirstCompletionBonus then
 				hasFirstCompletionBonus = true
@@ -130,14 +130,13 @@ function QuestRewards:Update(questID, force)
 		completed = self:ConvertAnimaItemsToCurrency() and completed
 	end
 
+	if hasFirstCompletionBonus and changes == 0 then
+		self.money = 0
+	end
+
 	if changes > 0 then
 		-- world quests with rep-only rewards are always marked as first-completetion-bonus
 		Util:Debug("Updated rewards:", questID, changes, completed, self.money, self.currencies and #self.currencies, self.items and #self.items)
-
-		if not C_TaskQuest.GetQuestTimeLeftSeconds(questID) then
-			self:SetIneligible()
-			Util:Debug("Quest is not avaialble to this character", questID)
-		end
 	end
 
 	return completed
@@ -272,14 +271,8 @@ function QuestRewards:Summary(asList)
 	return asList and records or s
 end
 
-function QuestRewards:SetIneligible()
-	self.items = nil
-	self.money = nil
-	self.currencies = nil
-end
-
 function QuestRewards:IsEligible()
-	return (self.items or self.money or self.currencies) and true or false
+	return (self.claimedAt or self.items or self.money or self.currencies) and true or false
 end
 
 function QuestRewards:SetClaimed()

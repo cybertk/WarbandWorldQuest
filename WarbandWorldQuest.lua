@@ -29,34 +29,46 @@ function WarbandWorldQuest:Init()
 	self.dataProvider = self:CreateDataProvider()
 	self:Update(true)
 
-	WorldMapFrame:AddDataProvider(self.dataProvider)
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
 
+			local tooltip = WarbandWorldQuestGameTooltip
 			if Settings:MatchOption("pins_tooltip_shown", { ["CTRL"] = IsControlKeyDown, ["ALT"] = IsALTKeyDown }) then
-				self.dataProvider:UpdatePinTooltip(GameTooltip, pin)
+				if not pin.quest then
+					local row = self.dataProvider:FindByQuestID(pin.questID)
+					if not row then
+						return
+					end
+
+					GameTooltip:SetOwner(WorldMapFrame:GetCanvas(), "ANCHOR_NONE")
+
+					local anchor, x, y = select(3, pin:GetPointByName("CENTER"))
+					tooltip:SetOwner(WorldMapFrame:GetCanvas(), "ANCHOR_" .. anchor, x + 10, y)
+					WarbandWorldQuestPinMixin:AddQuestToTooltip(tooltip, row.quest)
+				end
+
+				self.dataProvider:UpdatePinTooltip(tooltip, pin)
+				tooltip:Show()
+			elseif not pin.quest then
+				tooltip:Hide()
 			end
 		end)
 
 		hooksecurefunc(pin, "OnMouseLeave", function(pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, false)
+			WarbandWorldQuestGameTooltip:Hide()
 		end)
 	end
 
 	do -- Add tab to QuestMapFrame
-		CreateFrame("Frame", nil, QuestMapFrame, "WarbandWorldQuestTabButtonTemplate")
+		local tab = CreateFrame("Frame", nil, QuestMapFrame, "WarbandWorldQuestTabButtonTemplate")
+
+		tab:SetContentFrame("WarbandWorldQuestPage", "WarbandWorldQuestPageTemplate")
+		tab.ContentFrame:SetDataProvider(self.dataProvider)
+		tab:SetChecked(Settings:Get("log_is_default_tab"))
 	end
 
-	do -- Add content to QuestMapFrame
-		local content = CreateFrame("Frame", "WarbandWorldQuestPage", QuestMapFrame, "WarbandWorldQuestPageTemplate")
-		content:SetDataProvider(self.dataProvider)
-		table.insert(QuestMapFrame.ContentFrames, content)
-	end
-
-	if Settings:Get("log_is_default_tab") then
-		QuestMapFrame:SetDisplayMode("WarbandWorldQuest")
-	end
 	self:AddTrackedQuestsToObjectivesPanel()
 
 	Settings:RegisterCallback("maps_to_scan", self.Update, self, true)
@@ -114,23 +126,20 @@ function WarbandWorldQuest:SetRewardsClaimed(questID)
 	end
 
 	rewards:SetClaimed()
-	if self.dataProvider:UpdateRewardsClaimed(questID) then
-		self.dataProvider:Flush()
-	end
+	self.dataProvider:UpdateRewardsClaimed(questID)
 end
 
 function WarbandWorldQuest:CreateDataProvider()
-	local dataProvider = CreateFromMixins(WarbandWorldQuestDataProviderMixin)
+	local dataProvider = CreateFromMixins(ns.WarbandWorldQuestDataProviderMixin)
 
 	dataProvider:OnLoad()
 	dataProvider.character = self.character
 
-	Settings:InvokeAndRegisterCallback("pins_min_display_level", dataProvider.SetMinPinDisplayLevel, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_progress_shown", dataProvider.SetProgressOnPinShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_completed_shown", dataProvider.SetPinOfCompletedQuestShown, dataProvider)
-	Settings:InvokeAndRegisterCallback("pins_inactive_opacity", dataProvider.SetPinOfInactiveQuestOpacity, dataProvider)
 	Settings:InvokeAndRegisterCallback("reward_type_filters", dataProvider.UpdateRewardTypeFilters, dataProvider)
 	Settings:InvokeAndRegisterCallback(Settings:WrapOptionCallback("log_progress_shown", dataProvider.SetProgressTextOption, dataProvider))
+
+	WarbandWorldQuestMapCanvasDataProvider = CreateFromMixins(ns.WarbandWorldQuestMapCanvasDataProviderMixin)
+	WarbandWorldQuestMapCanvasDataProvider:OnLoad(dataProvider)
 
 	return dataProvider
 end
@@ -185,7 +194,13 @@ do
 	end)
 
 	WarbandWorldQuest:RegisterEvent("QUEST_LOG_UPDATE", function()
-		WarbandWorldQuest:Update()
+		if not WarbandWorldQuest.updatePending then
+			WarbandWorldQuest.updatePending = true
+			C_Timer.After(0, function()
+				WarbandWorldQuest.updatePending = nil
+				WarbandWorldQuest:Update()
+			end)
+		end
 	end)
 
 	WarbandWorldQuest:RegisterEvent("QUEST_TURNED_IN", function(event, questID, xpReward, moneyReward)
@@ -218,9 +233,9 @@ do
 				[2274] = false, -- Khaz Algar
 				[1978] = false, -- Dragon Isles
 				[1550] = false, -- Shadowlands
-				[619]  = false, -- Legion
-				[875]  = false, -- Zandalar
-				[876]  = false, -- Kul Tiras
+				[619] = false, -- Legion
+				[875] = false, -- Zandalar
+				[876] = false, -- Kul Tiras
 			},
 			["reward_type_filters"] = {
 				["c:0"] = true, -- Gold
