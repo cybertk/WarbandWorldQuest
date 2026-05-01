@@ -83,6 +83,8 @@ function Character:SetQuests(quests)
 		return rewards == nil or not rewards:IsClaimed()
 	end)
 
+		self.name = UnitName("player")
+	self.realmName = GetRealmName()
 	Util:Debug("Quests to update:", #Character.Quests, #quests)
 end
 
