@@ -87,10 +87,13 @@ function QuestRewards:Update(questID, force)
 	if self.money == nil or self.money == 0 or force then
 		local money = GetQuestLogRewardMoney(questID)
 
-		if money > 0 then
-			self.money = money
+		money = money > 0 and money or nil
+
+		if money ~= self.money then
 			changes = changes + 1
 		end
+
+		self.money = money
 	end
 
 	if (self.currencies == nil and C_QuestInfoSystem.HasQuestRewardCurrencies(questID)) or force then
@@ -103,12 +106,13 @@ function QuestRewards:Update(questID, force)
 			end
 		end
 
-		if #currencies > 0 then
-			self.currencies = currencies
+		if #currencies ~= #(self.currencies or {}) then
 			changes = changes + 1
 		elseif not hasFirstCompletionBonus then
 			completed = false
 		end
+
+		self.currencies = #currencies > 0 and currencies or nil
 	end
 
 	if (self.items == nil and GetNumQuestLogRewards(questID) > 0) or force then
@@ -118,12 +122,13 @@ function QuestRewards:Update(questID, force)
 			table.insert(items, { itemID, numItems })
 		end
 
-		if #items > 0 then
-			self.items = items
+		if #items ~= #(self.items or {}) then
 			changes = changes + 1
 		else
 			completed = false
 		end
+
+		self.items = #items > 0 and items or nil
 	end
 
 	if self.items then
@@ -139,7 +144,7 @@ function QuestRewards:Update(questID, force)
 		Util:Debug("Updated rewards:", questID, changes, completed, self.money, self.currencies and #self.currencies, self.items and #self.items)
 	end
 
-	return completed
+	return completed, changes
 end
 
 function QuestRewards:GetAnimaAmount(itemID)

@@ -33,6 +33,13 @@ function WarbandWorldQuest:Init()
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
 			WarbandWorldQuestPage:HighlightRow(pin.questID, true)
 
+			local rewards = self.character:GetRewards(pin.questID)
+			if rewards then
+				local _, changes = rewards:Update(pin.questID, true)
+
+				Util:Debug("Updated rewards", pin.questID, changes)
+			end
+
 			local tooltip = WarbandWorldQuestGameTooltip
 			if Settings:MatchOption("pins_tooltip_shown", { ["CTRL"] = IsControlKeyDown, ["ALT"] = IsALTKeyDown }) then
 				if not pin.quest then
