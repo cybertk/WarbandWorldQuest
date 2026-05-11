@@ -92,17 +92,17 @@ function WarbandWorldQuest:Update(isNewScanSession)
 	if isNewScanSession then
 		WorldQuestList:Reset(GenerateClosure(self.RemoveQuestRewardsFromAllCharacters, self))
 
-		if self.resetTimer ~= nil then
-			self.resetTimer:Cancel()
-			self.resetTimer = nil
+		if self.resetTicker ~= nil then
+			self.resetTicker:Cancel()
+			self.resetTicker = nil
 		end
 	end
 
 	local changed = WorldQuestList:Scan(Settings:Get("maps_to_scan"), isNewScanSession)
 	if changed then
-		local secondsToReset = select(2, WorldQuestList:NextResetQuests()) - GetServerTime() + 60
-
-		self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
+		if self.resetTicker == nil then
+			self.resetTicker = C_Timer.NewTicker(3600, GenerateClosure(self.Update, self, true))
+		end
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
 
 		self.warModeScanned = C_PvP.IsWarModeActive() or self.warModeScanned
