@@ -231,11 +231,12 @@ function WorldQuestList:GetQuestsByMapID(mapID)
 	return self.mapCache[mapID]
 end
 
-function WorldQuestList:NextResetQuests(excludeTags)
+function WorldQuestList:NextResetQuests(excludeTags, excludeMaps)
 	excludeTags = excludeTags or {}
+	excludeMaps = excludeMaps or {}
 
 	local quests = Util:Filter(self.quests, function(quest)
-		return not excludeTags[C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType]
+		return not excludeTags[C_QuestLog.GetQuestTagInfo(quest.ID).worldQuestType] and not excludeMaps[quest.map]
 	end)
 
 	if #quests == 0 then

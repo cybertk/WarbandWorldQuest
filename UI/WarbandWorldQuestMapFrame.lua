@@ -11,19 +11,28 @@ WarbandWorldQuestNextResetButtonMixin = {}
 
 function WarbandWorldQuestNextResetButtonMixin:OnLoad()
 	self.settingsKey = "next_reset_exclude_types"
+	self.excludeMapsKey = "next_reset_exclude_maps"
 
 	self:SetupMenu(function(_, rootMenu)
 		rootMenu:CreateTitle(L["next_reset_dropdown_exclude_types"])
 
 		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, SHOW_PET_BATTLES_ON_MAP_TEXT, Enum.QuestTagType.PetBattle)
 		Settings:CreateCheckboxMenu(self.settingsKey, rootMenu, DRAGONRIDING_RACES_MAP_TOGGLE, Enum.QuestTagType.DragonRiderRacing)
+
+		rootMenu:CreateSpacer()
+		rootMenu:CreateTitle(L["next_reset_dropdown_exclude_maps"])
+
+		Settings:CreateMenuTree(self.excludeMapsKey, rootMenu, nil, function(mapID)
+			return C_Map.GetMapInfo(mapID).name
+		end, true)
 	end)
 
 	Settings:InvokeAndRegisterCallback(self.settingsKey, self.Update, self)
+	Settings:InvokeAndRegisterCallback(self.excludeMapsKey, self.Update, self)
 end
 
 function WarbandWorldQuestNextResetButtonMixin:Update()
-	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey))
+	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey), Settings:Get(self.excludeMapsKey))
 
 	self.ButtonText:SetText(L["next_reset_button_text"]:format(resetTime and date("%m-%d %H:%M", resetTime) or UNKNOWN, #quests))
 
@@ -31,7 +40,7 @@ function WarbandWorldQuestNextResetButtonMixin:Update()
 end
 
 function WarbandWorldQuestNextResetButtonMixin:OnEnter()
-	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey))
+	local quests, resetTime = WorldQuestList:NextResetQuests(Settings:Get(self.settingsKey), Settings:Get(self.excludeMapsKey))
 	local tooltip = GetAppropriateTooltip()
 
 	tooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")

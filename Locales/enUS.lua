@@ -4,6 +4,7 @@ local L = {}
 ns.L = L
 
 L["next_reset_dropdown_exclude_types"] = "Exclude World Quest Types"
+L["next_reset_dropdown_exclude_maps"] = "Exclude Maps"
 L["next_reset_button_text"] = "Next Reset: %s (%d)"
 L["next_reset_tooltip_title"] = "Upcomming Reset of World Quests"
 L["next_reset_tooltip_quest_num"] = "Quests Count: |cnWHITE_FONT_COLOR:%d|r"

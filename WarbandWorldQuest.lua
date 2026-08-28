@@ -253,6 +253,10 @@ do
 			["log_warband_rewards_shown"] = { enabled = true, option = "NOT_COLLECTED" },
 			["log_progress_shown"] = { enabled = true, option = "CLAIMED" },
 			["next_reset_exclude_types"] = {},
+			["next_reset_exclude_maps"] = {
+				[2599] = false, -- Val
+				[2600] = false, -- Naigtal
+			},
 		}
 
 		if WarbandWorldQuestSettings then -- Migration
