@@ -28,6 +28,7 @@ function WarbandWorldQuest:Init()
 
 	self.dataProvider = self:CreateDataProvider()
 	self:Update(true)
+	self:StartResetTicker()
 
 	for _, pin in ipairs({ WorldMap_WorldQuestPinMixin, WarbandWorldQuestPinMixin }) do
 		hooksecurefunc(pin, "OnMouseEnter", function(pin)
@@ -74,6 +75,23 @@ function WarbandWorldQuest:Init()
 	Settings:RegisterCallback("maps_to_scan", self.Update, self, true)
 end
 
+function WarbandWorldQuest:StartResetTicker()
+	if self.resetTicker ~= nil or self.resetTickerStartTimer ~= nil then
+		return
+	end
+
+	local secondsToNextHour = 3600 - (GetServerTime() % 3600)
+	if secondsToNextHour == 0 then
+		secondsToNextHour = 3600
+	end
+
+	self.resetTickerStartTimer = C_Timer.NewTimer(secondsToNextHour, function()
+		self.resetTickerStartTimer = nil
+		self:Update(true)
+		self.resetTicker = C_Timer.NewTicker(3600, GenerateClosure(self.Update, self, true))
+	end)
+end
+
 function WarbandWorldQuest:RemoveQuestRewardsFromAllCharacters(quest)
 	self.characterStore:ForEach(function(character)
 		if character.rewards[quest.ID] then
@@ -91,18 +109,10 @@ function WarbandWorldQuest:Update(isNewScanSession)
 
 	if isNewScanSession then
 		WorldQuestList:Reset(GenerateClosure(self.RemoveQuestRewardsFromAllCharacters, self))
-
-		if self.resetTimer ~= nil then
-			self.resetTimer:Cancel()
-			self.resetTimer = nil
-		end
 	end
 
 	local changed = WorldQuestList:Scan(Settings:Get("maps_to_scan"), isNewScanSession)
 	if changed then
-		local secondsToReset = select(2, WorldQuestList:NextResetQuests()) - GetServerTime() + 60
-
-		self.resetTimer = C_Timer.NewTimer(secondsToReset, GenerateClosure(self.Update, self, true))
 		self.character:SetQuests(WorldQuestList:GetAllQuests())
 
 		self.warModeScanned = C_PvP.IsWarModeActive() or self.warModeScanned
