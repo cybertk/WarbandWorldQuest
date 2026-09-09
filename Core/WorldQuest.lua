@@ -315,7 +315,9 @@ function WorldQuestList:PopulateQuestsToScan(continents)
 
 	for _, map in ipairs(mapsToScan) do
 		local quests = Util:Filter(C_TaskQuest.GetQuestsOnMap(map.mapID) or {}, function(info)
-			return info.mapID == map.mapID and C_QuestLog.IsWorldQuest(info.questID)
+			return info.mapID == map.mapID
+				and C_QuestLog.IsWorldQuest(info.questID)
+				and C_QuestLog.GetQuestTagInfo(info.questID).worldQuestType ~= Enum.QuestTagType.Prey
 		end)
 
 		for _, info in ipairs(quests) do
