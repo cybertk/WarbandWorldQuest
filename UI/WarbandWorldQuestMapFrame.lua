@@ -445,8 +445,16 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 
 	if CharacterStore.Get():GetNumCharacters() > 1 then
 		tooltip:AddLine(" ")
-		tooltip:AddLine(L["log_entry_tooltip_characters_scanned"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.total - self.data.progress.unknown))
-		tooltip:AddLine(L["log_entry_tooltip_characters_completed"] .. format(": |cnWHITE_FONT_COLOR:%d|r", self.data.progress.claimed))
+		tooltip:AddDoubleLine(
+			L["log_entry_tooltip_characters"],
+			format(
+				"|cnLIGHTBLUE_FONT_COLOR:%s: |cffffffff%d|r %s: |cffffffff%d|r|r",
+				L["log_entry_tooltip_characters_scanned"],
+				self.data.progress.total - self.data.progress.unknown,
+				GOAL_COMPLETED,
+				self.data.progress.claimed
+			)
+		)
 		for _, character in self.owner.dataProvider:EnumerateCharacters() do
 			local rewards = character:GetRewards(quest.ID)
 			local state = CreateAtlasMarkup("common-icon-" .. (rewards == nil and "undo" or rewards:IsClaimed() and "checkmark" or "redx"), 15, 15)

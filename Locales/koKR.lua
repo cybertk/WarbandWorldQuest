@@ -60,6 +60,6 @@ L["settings_section_completed_option_all_tooltip"] = "모든 캐릭터가 필터
 L["settings_section_completed_option_current_text"] = "현재 캐릭터만"
 L["settings_section_completed_option_current_tooltip"] = "현재 캐릭터가 완료한 경우 퀘스트가 완료된 것으로 간주됩니다"
 
-L["log_entry_tooltip_characters_scanned"] = "스캔한 캐릭터"
-L["log_entry_tooltip_characters_completed"] = "완료한 캐릭터"
+L["log_entry_tooltip_characters"] = "캐릭터:"
+L["log_entry_tooltip_characters_scanned"] = "스캔한"
 L["log_entry_tooltip_total_rewards"] = "총 전투부대 보상:"

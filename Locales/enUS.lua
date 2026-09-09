@@ -57,6 +57,6 @@ L["settings_section_completed_option_all_tooltip"] = "The quest is considered co
 L["settings_section_completed_option_current_text"] = "Current Character Only"
 L["settings_section_completed_option_current_tooltip"] = "The quest is considered completed if the current character has completed it"
 
-L["log_entry_tooltip_characters_scanned"] = "Characters Scanned"
-L["log_entry_tooltip_characters_completed"] = "Characters Completed"
+L["log_entry_tooltip_characters"] = "Characters:"
+L["log_entry_tooltip_characters_scanned"] = "Scanned"
 L["log_entry_tooltip_total_rewards"] = "Total Warband Rewards:"
