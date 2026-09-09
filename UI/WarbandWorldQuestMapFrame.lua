@@ -172,7 +172,7 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 	Settings:InvokeAndRegisterCallback("next_reset_exclude_types", self.Update, self)
 	CharacterStore:RegisterCallback("CharacterStore.CharacterStateChanged", self.Update, self)
 
-	self:SetupMenu(function(_, rootMenu)
+	Settings:SetupPagedMenu(self, function(_, rootMenu)
 		rootMenu:CreateTitle(L["characters_dropdown_title"])
 
 		local function CharactersFilter(character)
@@ -180,7 +180,10 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 		end
 
 		local characterStore = CharacterStore.Get()
-		characterStore:ForEach(function(character)
+		local characters = characterStore:ForEach(function() end, CharactersFilter)
+
+		local pageSize = 20
+		Settings:CreatePagedMenu(rootMenu, characters, function(character)
 			local checkbox = rootMenu:CreateCheckbox(character:GetNameInClassColor(), function()
 				return not character.enabled
 			end)
@@ -194,7 +197,7 @@ function WarbandWorldQuestCharactersButtonMixin:OnLoad()
 					return MenuResponse.Refresh
 				end
 			end)
-		end, CharactersFilter)
+		end, self, pageSize)
 
 		rootMenu:CreateSpacer()
 		rootMenu:CreateTitle(GREEN_FONT_COLOR:WrapTextInColorCode(L["characters_dropdown_instruction"]:format("CTRL + |A:NPE_LeftClick:16:16|a")))
