@@ -287,4 +287,56 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 	end
 end
 
+function Settings:SetupPagedMenu(dropdown, generator)
+	-- Refresh only reinitializes existing rows; regeneration is required so page changes can rebuild the slice.
+	dropdown:EnableRegenerateOnResponse()
+	dropdown:SetupMenu(generator)
+end
+
+function Settings:CreatePagedMenu(menu, items, addItem, pageOwner, pageSize)
+	local numItems = #items
+	local numPages = math.max(1, math.ceil(numItems / pageSize))
+	local page = pageOwner.menuPage or 1
+	if page < 1 then
+		page = 1
+	elseif page > numPages then
+		page = numPages
+	end
+	pageOwner.menuPage = page
+
+	local startIndex = 1
+	local endIndex = numItems
+	if numItems > pageSize then
+		startIndex = (page - 1) * pageSize + 1
+		endIndex = math.min(page * pageSize, numItems)
+	end
+
+	for i = startIndex, endIndex do
+		addItem(items[i])
+	end
+
+	if numItems <= pageSize then
+		return
+	end
+
+	menu:CreateDivider()
+	menu:CreateTitle(PAGE_NUMBER_WITH_MAX:format(page, numPages))
+
+	local prevButton = menu:CreateButton(PREV, function()
+		if pageOwner.menuPage > 1 then
+			pageOwner.menuPage = pageOwner.menuPage - 1
+		end
+		return MenuResponse.Refresh
+	end)
+	prevButton:SetEnabled(page > 1)
+
+	local nextButton = menu:CreateButton(NEXT, function()
+		if pageOwner.menuPage < numPages then
+			pageOwner.menuPage = pageOwner.menuPage + 1
+		end
+		return MenuResponse.Refresh
+	end)
+	nextButton:SetEnabled(page < numPages)
+end
+
 namespace.Settings = Settings
