@@ -287,21 +287,6 @@ function Settings:CreateOptionsTree(key, menu, text, options, tooltipText, respo
 	end
 end
 
-local function AddMouseWheelHint(button, text)
-	button:AddInitializer(function(frame)
-		local hint = frame:AttachFontString()
-		hint:SetPoint("RIGHT")
-		hint:SetHeight(20)
-		hint:SetJustifyH("RIGHT")
-		hint:SetText(text)
-		hint:SetTextColor(GREEN_FONT_COLOR:GetRGB())
-
-		local pad = 20
-		local width = pad + frame.fontString:GetUnboundedStringWidth() + hint:GetUnboundedStringWidth()
-		return width, 20
-	end)
-end
-
 local function AdvanceMenuPage(pageOwner, pageDelta)
 	local numPages = pageOwner.menuPageCount or 1
 	local page = pageOwner.menuPage or 1
@@ -388,18 +373,16 @@ function Settings:CreatePagedMenu(menu, items, addItem, pageOwner, pageSize)
 	menu:CreateDivider()
 	menu:CreateTitle(PAGE_NUMBER_WITH_MAX:format(page, numPages))
 
-	local prevButton = menu:CreateButton(PREV, function()
+	local prevButton = menu:CreateButton(PREV .. " " .. CreateAtlasMarkup("tkey-icon-mousewheel-up", 16, 16), function()
 		AdvanceMenuPage(pageOwner, -1)
 		return MenuResponse.Refresh
 	end)
-	AddMouseWheelHint(prevButton, KEY_MOUSEWHEELUP)
 	prevButton:SetEnabled(page > 1)
 
-	local nextButton = menu:CreateButton(NEXT, function()
+	local nextButton = menu:CreateButton(NEXT .. " " .. CreateAtlasMarkup("tkey-icon-mousewheel-down", 16, 16), function()
 		AdvanceMenuPage(pageOwner, 1)
 		return MenuResponse.Refresh
 	end)
-	AddMouseWheelHint(nextButton, KEY_MOUSEWHEELDOWN)
 	nextButton:SetEnabled(page < numPages)
 end
 
