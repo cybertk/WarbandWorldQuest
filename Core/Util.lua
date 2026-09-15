@@ -190,6 +190,7 @@ function Util:GetFactionCurrencyID(factionID)
 		[2699] = 3389, -- The Singularity
 		[2704] = 3370, -- The Hara'ti
 		[2710] = 3365, -- Silvermoon Court
+		[2772] = 3504, -- Zul'jarra's Forces
 
 		[2590] = 2897, -- Council of Dornogal
 		[2570] = 2899, -- Hallowfall Arathi
@@ -221,6 +222,7 @@ function Util:GetFactionReputationBonusMultiplier(factionID)
 		[2699] = 1.5, -- The Singularity
 		[2704] = 1.5, -- The Hara'ti
 		[2710] = 1.5, -- Silvermoon Court
+		[2772] = 1.5, -- Zul'jarra's Forces
 	}
 
 	return multipliers[factionID] or 1
