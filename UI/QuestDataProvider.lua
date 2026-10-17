@@ -395,8 +395,14 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin, showA
 		offset
 	)
 
+	self:AddQuestProgressToTooltip(tooltip, offset, row.quest.ID, showAllCharacters)
+
+	tooltip:Show()
+end
+
+function WarbandWorldQuestDataProviderMixin:AddQuestProgressToTooltip(tooltip, offset, questID, showAllCharacters)
 	for _, character in self:EnumerateCharacters() do
-		local rewards = character:GetRewards(row.quest.ID)
+		local rewards = character:GetRewards(questID)
 		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
 
 		if rewards or showAllCharacters then
@@ -414,8 +420,6 @@ function WarbandWorldQuestDataProviderMixin:UpdatePinTooltip(tooltip, pin, showA
 			)
 		end
 	end
-
-	tooltip:Show()
 end
 
 ns.WarbandWorldQuestDataProviderMixin = WarbandWorldQuestDataProviderMixin

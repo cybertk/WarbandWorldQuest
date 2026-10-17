@@ -1,5 +1,6 @@
 local _, ns = ...
 
+local L = ns.L
 local Util = ns.Util
 local Settings = ns.Settings
 
@@ -57,6 +58,36 @@ function WarbandWorldQuestIconButtonMixin:Update(questID)
 	end
 end
 
+WarbandWorldQuestLabelButtonMixin = {}
+
+function WarbandWorldQuestLabelButtonMixin:OnLoad()
+	self:GetNormalFontObject():SetFontHeight(9)
+end
+
+function WarbandWorldQuestLabelButtonMixin:OnEnter()
+	if not self.quest then
+		return
+	end
+
+	local tooltip = GameTooltip
+
+	tooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip_SetTitle(tooltip, ("%s %s"):format(self:GetText(), L["settings_log_progress_shown_text"]))
+
+	local row = self.data:FindByQuestID(self.quest.ID, true)
+	if row then
+		GameTooltip_AddNormalLine(tooltip, ("%s: |cffffffff%d|r"):format(NOT_COLLECTED, row.progress.unknown))
+	end
+
+	tooltip:AddLine(" ")
+	self.data:AddQuestProgressToTooltip(tooltip, 0, self.quest.ID, false)
+	tooltip:Show()
+end
+
+function WarbandWorldQuestLabelButtonMixin:OnLeave()
+	GameTooltip:Hide()
+end
+
 WarbandWorldQuestPinMixin = {}
 
 function WarbandWorldQuestPinMixin:OnMouseEnter()
@@ -92,8 +123,6 @@ function WarbandWorldQuestPinMixin:OnAcquired(quest, mapFrame)
 	self.Icon:Update(quest.ID)
 	self:SetFrameLevel(WorldMapFrame:GetPinFrameLevelsManager():GetValidFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST") - 1) -- MAP_CANVAS_PIN_FRAME_LEVEL_DEFAULT PIN_FRAME_LEVEL_WORLD_QUEST
 
-	self.Progress:GetNormalFontObject():SetFontHeight(9)
-
 	if not HaveQuestRewardData(quest.ID) then
 		C_TaskQuest.RequestPreloadRewardData(quest.ID)
 	end
@@ -104,6 +133,12 @@ end
 function WarbandWorldQuestPinMixin:OnReleased()
 	self:Hide()
 	self:ClearAllPoints()
+end
+
+function WarbandWorldQuestPinMixin:SetData(data)
+	self.data = data
+	self.Progress.data = data
+	self.Progress.quest = self.quest
 end
 
 function WarbandWorldQuestPinMixin:SetMap(map)
@@ -333,6 +368,7 @@ function WarbandWorldQuestMapCanvasDataProviderMixin:RefreshAllData()
 			Util:Debug("Added pin for quest", quest.ID, quest:GetName(), map.mapID)
 		end
 
+		pin:SetData(self.data)
 		pin:SetMap(map)
 		pin:SetPosition(unpack(position))
 		pin:RefreshVisuals()

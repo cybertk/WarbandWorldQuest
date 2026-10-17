@@ -32,17 +32,37 @@
         </Scripts>
     </Button>
 
+    <Button name="WarbandWorldQuestLabelButtonTemplate" mixin="WarbandWorldQuestLabelButtonMixin" virtual="true">
+        <Size x="20" y="14" />
+        <ButtonText parentKey="Text" nonspacewrap="true" justifyH="CENTER">
+            <Anchors>
+                <Anchor point="CENTER" />
+            </Anchors>
+        </ButtonText>
+        <HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
+        <NormalFont style="SystemFont_Shadow_Small_Outline" />
+        <HighlightFont style="GameFontHighlightExtraSmall" />
+        <Anchors>
+            <Anchor point="TOP" relativePoint="BOTTOM" />
+        </Anchors>
+        <Scripts>
+            <OnLoad method="OnLoad" />
+            <OnEnter method="OnEnter" />
+            <OnLeave method="OnLeave" />
+        </Scripts>
+    </Button>
+
     <Frame name="WarbandWorldQuestPinTemplate" mixin="WarbandWorldQuestPinMixin" virtual="true">
         <Size x="20" y="20" />
         <Layers>
             <Layer level="BACKGROUND">
-				<Texture parentKey="Glow" file="Interface\WorldMap\UI-QuestPoi-IconGlow" alphaMode="ADD" hidden="true">
-					<Size x="50" y="50"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
+                <Texture parentKey="Glow" file="Interface\WorldMap\UI-QuestPoi-IconGlow" alphaMode="ADD" hidden="true">
+                    <Size x="50" y="50" />
+                    <Anchors>
+                        <Anchor point="CENTER" />
+                    </Anchors>
+                </Texture>
+            </Layer>
             <Layer level="ARTWORK">
                 <Texture parentKey="Debug" setAllPoints="true" hidden="true">
                     <Color r="1" g="0" b="0" a="1" />
@@ -62,20 +82,7 @@
                     <Anchor point="CENTER" />
                 </Anchors>
             </Button>
-            <Button parentKey="Progress" frameLevel="3000">
-                <Size x="20" y="14" />
-                <ButtonText parentKey="Text" nonspacewrap="true" justifyH="CENTER">
-                    <Anchors>
-                        <Anchor point="CENTER" />
-                    </Anchors>
-                </ButtonText>
-                <HighlightTexture atlas="questlog-quest-glow-yellow" alphaMode="ADD" />
-                <NormalFont style="SystemFont_Shadow_Small_Outline" />
-                <HighlightFont style="GameFontHighlightExtraSmall" />
-                <Anchors>
-                    <Anchor point="TOP" relativePoint="BOTTOM" />
-                </Anchors>
-            </Button>
+            <Button parentKey="Progress" inherits="WarbandWorldQuestLabelButtonTemplate" frameLevel="3000" />
             <Frame parentKey="CompletedCheck" setAllPoints="true" hidden="true">
                 <Layers>
                     <Layer level="OVERLAY">
