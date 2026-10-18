@@ -98,6 +98,7 @@
 		</Layers>
 		<Scripts>
 			<OnLoad method="OnLoad" />
+			<OnShow method="OnShow" />
 			<OnMouseUp method="OnMouseUp" />
 		</Scripts>
 	</Frame>

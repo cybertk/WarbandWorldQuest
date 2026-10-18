@@ -480,17 +480,20 @@ WarbandWorldQuestTabButtonMixin = CreateFromMixins(SidePanelTabButtonMixin)
 function WarbandWorldQuestTabButtonMixin:OnLoad()
 	self.Icon:SetTexture(format("Interface/AddOns/%s/UI/Icon.blp", addonName))
 	self.Icon:SetSize(24, 24)
-	self:SetPoint("TOP", QuestMapFrame.TabButtons[#QuestMapFrame.TabButtons], "BOTTOM", 0, -3)
 
 	hooksecurefunc(QuestMapFrame, "SetDisplayMode", function(_, displayMode)
-		if displayMode ~= nil then
+		if displayMode ~= nil or not self.checkedLock then
 			self:SetChecked(false)
 		end
 	end)
 end
 
+function WarbandWorldQuestTabButtonMixin:OnShow()
+	self:Layout()
+end
+
 function WarbandWorldQuestTabButtonMixin:SetContentFrame(name, template)
-	self.ContentFrame = CreateFrame("Frame", name, QuestMapFrame.ContentsAnchor, template)
+	self.ContentFrame = CreateFrame("Frame", name, QuestMapFrame, template)
 end
 
 function WarbandWorldQuestTabButtonMixin:SetChecked(checked)
@@ -498,7 +501,14 @@ function WarbandWorldQuestTabButtonMixin:SetChecked(checked)
 	self.ContentFrame:SetShown(checked)
 
 	if checked then
-		QuestMapFrame:SetDisplayMode()
+		self.checkedLock = true
+		if LibStub and LibStub("LibWorldMapTabs", true) then
+			LibStub("LibWorldMapTabs"):SetDisplayMode(addonName)
+		else
+			QuestMapFrame:SetDisplayMode()
+		end
+
+		self.checkedLock = nil
 	end
 end
 
@@ -506,6 +516,22 @@ function WarbandWorldQuestTabButtonMixin:OnMouseUp(button, upInside)
 	SidePanelTabButtonMixin.OnMouseUp(self, button, upInside)
 	if button == "LeftButton" and upInside then
 		self:SetChecked(true)
+	end
+end
+
+function WarbandWorldQuestTabButtonMixin:Layout()
+	local numTabs = -1
+	for i, f in ipairs({ QuestMapFrame:GetChildren() }) do
+		if f.displayMode and f.SetChecked then
+			numTabs = numTabs + 1
+		end
+	end
+
+	if self.numTabs ~= numTabs then
+		self:ClearAllPoints()
+		self:SetPoint("TOP", QuestMapFrame.TabButtons[1], "TOP", 0, -58 * numTabs)
+
+		self.numTabs = numTabs
 	end
 end
 
