@@ -370,15 +370,25 @@ function WarbandWorldQuestEntryMixin:AdjustHeight()
 end
 
 function WarbandWorldQuestEntryMixin:ToggleTracked()
-	local tracked = not self.data.quest:IsTracked()
+	local quest = self.data.quest
+	if not quest:IsPlayerEligible() then
+		return
+	end
+
+	local tracked = not quest:IsTracked()
 
 	PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-	self.data.quest:SetTracked(tracked)
+	quest:SetTracked(tracked)
 	self:UpdateStatus()
 end
 
 function WarbandWorldQuestEntryMixin:ToggleSuperTracked()
-	local questID = self.data.quest.ID
+	local quest = self.data.quest
+	if not quest:IsPlayerEligible() then
+		return
+	end
+
+	local questID = quest.ID
 
 	if C_SuperTrack.GetSuperTrackedQuestID() == questID then
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
@@ -444,11 +454,16 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
 			rootDescription:SetTag("MENU_QUEST_MAP_WARBAND_WORLD_QUEST")
 
-			local isTracked = quest:IsTracked()
-			local isSuperTracked = C_SuperTrack.GetSuperTrackedQuestID() == quest.ID
+			if quest:IsPlayerEligible() then
+				local isTracked = quest:IsTracked()
+				local isSuperTracked = C_SuperTrack.GetSuperTrackedQuestID() == quest.ID
 
-			rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(self.ToggleTracked, self))
-			rootDescription:CreateButton(isSuperTracked and STOP_SUPER_TRACK_QUEST or SUPER_TRACK_QUEST, GenerateClosure(self.ToggleSuperTracked, self))
+				rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(self.ToggleTracked, self))
+				rootDescription:CreateButton(
+					isSuperTracked and STOP_SUPER_TRACK_QUEST or SUPER_TRACK_QUEST,
+					GenerateClosure(self.ToggleSuperTracked, self)
+				)
+			end
 
 			local isInactive = quest:IsInactive()
 			if self.data.isActive or isInactive then
@@ -612,6 +627,8 @@ function WarbandWorldQuestPageMixin:OnShow()
 
 	self:RegisterEvent("QUEST_LOG_UPDATE")
 	self:RegisterEvent("QUEST_TURNED_IN")
+	self:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
+	self:RegisterEvent("SUPER_TRACKING_CHANGED")
 
 	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.OnMapChanged, self)
@@ -628,6 +645,8 @@ end
 function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
+	self:UnregisterEvent("QUEST_WATCH_LIST_CHANGED")
+	self:UnregisterEvent("SUPER_TRACKING_CHANGED")
 
 	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
 	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)

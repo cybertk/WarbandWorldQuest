@@ -134,25 +134,45 @@ function WorldQuest:IsCompleted()
 end
 
 function WorldQuest:SetTracked(tracked)
-	self.tracked = tracked or nil
+	self:SetWarbandTracked(tracked)
 
-	if not self:IsCompleted() then
-		if self.tracked then
-			C_QuestLog.AddWorldQuestWatch(self.ID, Enum.QuestWatchType.Manual)
-		else
-			C_QuestLog.RemoveWorldQuestWatch(self.ID)
-		end
+	if tracked then
+		QuestUtil.TrackWorldQuest(self.ID, Enum.QuestWatchType.Manual)
+	else
+		QuestUtil.UntrackWorldQuest(self.ID)
 	end
 end
 
+-- true: tracked by the warband, false: untracked by the warband, nil: never tracked
+function WorldQuest:SetWarbandTracked(tracked)
+	self.tracked = tracked
+end
+
+function WorldQuest:SyncWarbandTracking()
+	if self.tracked == nil or not self:IsPlayerEligible() or self:IsCompleted() then
+		return
+	end
+
+	local isManual = C_QuestLog.GetQuestWatchType(self.ID) == Enum.QuestWatchType.Manual
+
+	if self.tracked and not isManual then
+		C_QuestLog.AddWorldQuestWatch(self.ID, Enum.QuestWatchType.Manual)
+	elseif not self.tracked and isManual then
+		C_QuestLog.RemoveWorldQuestWatch(self.ID)
+	end
+end
+
+-- same rule as WorldMap_IsWorldQuestEffectivelyTracked
 function WorldQuest:IsTracked()
-	return self.tracked or false
+	local watchType = C_QuestLog.GetQuestWatchType(self.ID)
+
+	return watchType == Enum.QuestWatchType.Manual or (watchType == Enum.QuestWatchType.Automatic and C_SuperTrack.GetSuperTrackedQuestID() == self.ID)
 end
 
 function WorldQuest:SetInactive(inactive)
 	self.inactive = inactive or nil
 
-	if inactive and self.tracked then
+	if inactive and (self.tracked or self:IsTracked()) then
 		self:SetTracked(false)
 	end
 end
