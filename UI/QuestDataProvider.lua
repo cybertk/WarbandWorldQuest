@@ -79,20 +79,50 @@ function WarbandWorldQuestDataRowMixin:IsFlaggedCompleted(questCompletedForPlaye
 	end
 end
 
+-- locked characters have no reward data yet, so assume they get the same rewards as an unlocked character
+local function EstimateLockedRewards(rewards)
+	local template
+
+	for _, reward in pairs(rewards) do
+		if not reward:IsLocked() and reward:IsValid() then
+			template = reward
+			break
+		end
+	end
+
+	if template == nil then
+		return rewards
+	end
+
+	local estimate = setmetatable({ money = template.money, currencies = template.currencies, items = template.items }, QuestRewards)
+	local estimated = {}
+
+	for character, reward in pairs(rewards) do
+		estimated[character] = reward:IsLocked() and estimate or reward
+	end
+
+	return estimated
+end
+
 function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
 	local rewards = {}
+	local collected = {}
 	local numClaimed = 0
 
-	for character, reward in pairs(self.rewards) do
+	for character, reward in pairs(EstimateLockedRewards(self.rewards)) do
 		if not reward:IsClaimed() then
 			rewards[character] = reward
 		else
+			collected[character] = reward
 			numClaimed = numClaimed + 1
 		end
 	end
 
 	self.uncollectedRewards = QuestRewards:Aggregate(rewards)
-	if not claimed and not self.quest:IsFirstCompletionBonusClaimed() then
+	self.collectedRewards = QuestRewards:Aggregate(collected)
+	if claimed or self.quest:IsFirstCompletionBonusClaimed() then
+		self.collectedRewards:AddFirstCompletionBonus(self.quest.currencies)
+	else
 		self.uncollectedRewards:AddFirstCompletionBonus(self.quest.currencies)
 	end
 	self.progress.claimed = numClaimed
@@ -171,7 +201,7 @@ function WarbandWorldQuestDataProviderMixin:PopulateCharactersData()
 			progress.total = progress.total + 1
 		end
 
-		local row = { quest = quest, rewards = rewards, progress = progress, totalRewards = QuestRewards:Aggregate(rewards) }
+		local row = { quest = quest, rewards = rewards, progress = progress, totalRewards = QuestRewards:Aggregate(EstimateLockedRewards(rewards)) }
 		row.dataProvider = self
 		row.totalRewards:AddFirstCompletionBonus(quest.currencies)
 		row.totalRewards:PassRewardTypeFilters(0)
@@ -340,6 +370,8 @@ function WarbandWorldQuestDataProviderMixin:EnumerateActiveQuestsByMapID(mapID, 
 			matched = false
 		elseif completedOnly and not quest:IsCompleted() then
 			matched = false
+		elseif quest:IsPlayerLocked() then
+			matched = false
 		end
 
 		if matched then
@@ -403,7 +435,7 @@ end
 function WarbandWorldQuestDataProviderMixin:AddQuestProgressToTooltip(tooltip, offset, questID, showAllCharacters)
 	for _, character in self:EnumerateCharacters() do
 		local rewards = character:GetRewards(questID)
-		local state = CreateAtlasMarkup(rewards == nil and "common-icon-undo" or rewards:IsClaimed() and "common-icon-checkmark" or "common-icon-redx", 15, 15)
+		local state = CreateAtlasMarkup(QuestRewards.GetStateAtlas(rewards), 15, 15)
 
 		if rewards or showAllCharacters then
 			tooltip:AddDoubleLine(

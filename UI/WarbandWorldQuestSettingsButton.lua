@@ -110,6 +110,14 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				L["settings_log_all_quests_shown_tooltip"]
 			)
 
+			Settings:CreateCheckboxMenu(
+				"log_auto_track_filtered",
+				logMenu,
+				L["settings_log_auto_track_filtered_text"],
+				nil,
+				L["settings_log_auto_track_filtered_tooltip"]
+			)
+
 			logMenu:CreateDivider()
 			logMenu:CreateTitle(L["settings_log_section_fields"])
 
@@ -127,7 +135,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				"log_warband_rewards_shown",
 				logMenu,
 				RENOWN_REWARD_ACCOUNT_UNLOCK_LABEL,
-				{ "NOT_COLLECTED", "TOTAL" },
+				{ "NOT_COLLECTED", "COLLECTED", "TOTAL" },
 				L["settings_log_warband_rewards_shown_tooltip"],
 				MenuResponse.Refresh
 			)

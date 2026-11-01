@@ -352,6 +352,8 @@ function WarbandWorldQuestEntryMixin:FormatRewards(elementData)
 		rewards = elementData.rewards[CharacterStore.Get():CurrentPlayer()]
 	elseif option == "NOT_COLLECTED" then
 		rewards = elementData.uncollectedRewards
+	elseif option == "COLLECTED" then
+		rewards = elementData.collectedRewards
 	else
 		rewards = elementData.totalRewards
 	end
@@ -368,9 +370,52 @@ function WarbandWorldQuestEntryMixin:AdjustHeight()
 end
 
 function WarbandWorldQuestEntryMixin:ToggleTracked()
+	local quest = self.data.quest
+	if not quest:IsPlayerEligible() then
+		return
+	end
+
+	local tracked = not quest:IsTracked()
+
 	PlaySound(tracked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-	self.data.quest:SetTracked(not self.data.quest:IsTracked())
+	quest:SetTracked(tracked)
 	self:UpdateStatus()
+end
+
+function WarbandWorldQuestEntryMixin:ToggleSuperTracked()
+	local quest = self.data.quest
+	if not quest:IsPlayerEligible() then
+		return
+	end
+
+	local questID = quest.ID
+
+	if C_SuperTrack.GetSuperTrackedQuestID() == questID then
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		C_SuperTrack.SetSuperTrackedQuestID(0)
+	else
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+
+		if C_QuestLog.GetQuestWatchType(questID) ~= Enum.QuestWatchType.Manual then
+			QuestUtil.TrackWorldQuest(questID, Enum.QuestWatchType.Automatic)
+		end
+
+		C_SuperTrack.SetSuperTrackedQuestID(questID)
+	end
+
+	self:UpdateStatus()
+end
+
+-- rows are clicked through OnMouseUp, which has no double click handler
+function WarbandWorldQuestEntryMixin:IsDoubleClick()
+	local now = GetTime()
+	local questID = self.data.quest.ID
+	local isDoubleClick = self.lastClickQuestID == questID and now - self.lastClickTime < 0.3
+
+	self.lastClickQuestID = not isDoubleClick and questID or nil
+	self.lastClickTime = now
+
+	return isDoubleClick
 end
 
 function WarbandWorldQuestEntryMixin:OnShow()
@@ -396,7 +441,11 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 
 	if button == "LeftButton" then
 		if IsShiftKeyDown() then
-			ChatEdit_TryInsertQuestLinkForQuestID(quest.ID)
+			if not ChatEdit_TryInsertQuestLinkForQuestID(quest.ID) then
+				self:ToggleSuperTracked()
+			end
+		elseif self:IsDoubleClick() then
+			self:ToggleTracked()
 		else
 			PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
 			C_Map.OpenWorldMap(quest.map)
@@ -405,22 +454,15 @@ function WarbandWorldQuestEntryMixin:OnClick(button)
 		MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
 			rootDescription:SetTag("MENU_QUEST_MAP_WARBAND_WORLD_QUEST")
 
-			local watchType = C_QuestLog.GetQuestWatchType(quest.ID)
-			local isTracked = quest:IsTracked()
+			if quest:IsPlayerEligible() then
+				local isTracked = quest:IsTracked()
+				local isSuperTracked = C_SuperTrack.GetSuperTrackedQuestID() == quest.ID
 
-			rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(self.ToggleTracked, self))
-
-			if C_SuperTrack.GetSuperTrackedQuestID() ~= quest.ID then
-				rootDescription:CreateButton(SUPER_TRACK_QUEST, function()
-					C_SuperTrack.SetSuperTrackedQuestID(quest.ID)
-					if watchType ~= Enum.QuestWatchType.Manual then
-						QuestUtil.TrackWorldQuest(quest.ID, Enum.QuestWatchType.Automatic)
-					end
-				end)
-			else
-				rootDescription:CreateButton(STOP_SUPER_TRACK_QUEST, function()
-					C_SuperTrack.SetSuperTrackedQuestID(0)
-				end)
+				rootDescription:CreateButton(isTracked and UNTRACK_QUEST or TRACK_QUEST, GenerateClosure(self.ToggleTracked, self))
+				rootDescription:CreateButton(
+					isSuperTracked and STOP_SUPER_TRACK_QUEST or SUPER_TRACK_QUEST,
+					GenerateClosure(self.ToggleSuperTracked, self)
+				)
 			end
 
 			local isInactive = quest:IsInactive()
@@ -457,7 +499,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 		)
 		for _, character in self.owner.dataProvider:EnumerateCharacters() do
 			local rewards = character:GetRewards(quest.ID)
-			local state = CreateAtlasMarkup("common-icon-" .. (rewards == nil and "undo" or rewards:IsClaimed() and "checkmark" or "redx"), 15, 15)
+			local state = CreateAtlasMarkup(QuestRewards.GetStateAtlas(rewards), 15, 15)
 
 			tooltip:AddDoubleLine(
 				Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),
@@ -585,6 +627,8 @@ function WarbandWorldQuestPageMixin:OnShow()
 
 	self:RegisterEvent("QUEST_LOG_UPDATE")
 	self:RegisterEvent("QUEST_TURNED_IN")
+	self:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
+	self:RegisterEvent("SUPER_TRACKING_CHANGED")
 
 	self.dataProvider:RegisterCallback(self.dataProvider.Event.OnSizeChanged, self.QueueRefresh, self)
 	EventRegistry:RegisterCallback("MapCanvas.MapSet", self.OnMapChanged, self)
@@ -601,6 +645,8 @@ end
 function WarbandWorldQuestPageMixin:OnHide()
 	self:UnregisterEvent("QUEST_LOG_UPDATE")
 	self:UnregisterEvent("QUEST_TURNED_IN")
+	self:UnregisterEvent("QUEST_WATCH_LIST_CHANGED")
+	self:UnregisterEvent("SUPER_TRACKING_CHANGED")
 
 	self.dataProvider:UnregisterCallback(self.dataProvider.Event.OnSizeChanged, self)
 	EventRegistry:UnregisterCallback("MapCanvas.MapSet", self)
