@@ -106,18 +106,23 @@ end
 
 function WarbandWorldQuestDataRowMixin:UpdateRemainingRewards(claimed)
 	local rewards = {}
+	local collected = {}
 	local numClaimed = 0
 
 	for character, reward in pairs(EstimateLockedRewards(self.rewards)) do
 		if not reward:IsClaimed() then
 			rewards[character] = reward
 		else
+			collected[character] = reward
 			numClaimed = numClaimed + 1
 		end
 	end
 
 	self.uncollectedRewards = QuestRewards:Aggregate(rewards)
-	if not claimed and not self.quest:IsFirstCompletionBonusClaimed() then
+	self.collectedRewards = QuestRewards:Aggregate(collected)
+	if claimed or self.quest:IsFirstCompletionBonusClaimed() then
+		self.collectedRewards:AddFirstCompletionBonus(self.quest.currencies)
+	else
 		self.uncollectedRewards:AddFirstCompletionBonus(self.quest.currencies)
 	end
 	self.progress.claimed = numClaimed

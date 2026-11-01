@@ -127,7 +127,7 @@ function WarbandWorldQuestSettingsButtonMixin:Update(force)
 				"log_warband_rewards_shown",
 				logMenu,
 				RENOWN_REWARD_ACCOUNT_UNLOCK_LABEL,
-				{ "NOT_COLLECTED", "TOTAL" },
+				{ "NOT_COLLECTED", "COLLECTED", "TOTAL" },
 				L["settings_log_warband_rewards_shown_tooltip"],
 				MenuResponse.Refresh
 			)

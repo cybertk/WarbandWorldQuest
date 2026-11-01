@@ -352,6 +352,8 @@ function WarbandWorldQuestEntryMixin:FormatRewards(elementData)
 		rewards = elementData.rewards[CharacterStore.Get():CurrentPlayer()]
 	elseif option == "NOT_COLLECTED" then
 		rewards = elementData.uncollectedRewards
+	elseif option == "COLLECTED" then
+		rewards = elementData.collectedRewards
 	else
 		rewards = elementData.totalRewards
 	end

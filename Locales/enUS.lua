@@ -47,7 +47,7 @@ L["settings_log_progress_shown_option_2_tooltip"] =
 	"Show the number of characters who are eligible to claim the filtered rewards from the quest but have not yet completed it"
 L["settings_log_time_left_shown_tooltip"] = "Show time left label in the quest log"
 L["settings_log_warband_rewards_shown_tooltip"] =
-	"Show accumulated rewards for all characters in the quest log, either as a total or uncollected.|nWhen disabled, show rewards of current logged-in character"
+	"Show accumulated rewards for all characters in the quest log, either as a total, uncollected, or collected.|nWhen disabled, show rewards of current logged-in character"
 L["settings_maps_title"] = "Scanning Maps"
 L["settings_filters_title"] = "Quest Filters by Rewards"
 L["settings_section_text"] = "%s Section"
