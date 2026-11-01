@@ -1,5 +1,6 @@
 local _, ns = ...
 
+local L = ns.L
 local Util = ns.Util
 local RewardTypes = ns.RewardTypes
 
@@ -7,9 +8,14 @@ local QuestRewards = {}
 QuestRewards.__index = QuestRewards
 QuestRewards.RewardTypes = RewardTypes
 
-function QuestRewards:Create(questID, ineligible)
+function QuestRewards:Create(questID, ineligible, locked)
 	local o = {}
 	setmetatable(o, QuestRewards)
+
+	if locked then
+		o.locked = true
+		return o
+	end
 
 	if ineligible or o:Update(questID) then
 		return o
@@ -259,7 +265,7 @@ function QuestRewards:Summary(asList)
 	end
 
 	if not asList and s == "" and not self:IsEligible() then
-		s = format("|cffffffff(|cnGRAY_FONT_COLOR:%s|r)|r", UNAVAILABLE)
+		s = format("|cffffffff(|cnGRAY_FONT_COLOR:%s|r)|r", self:IsLocked() and L["rewards_locked"] or UNAVAILABLE)
 	end
 
 	return asList and records or s
@@ -275,6 +281,22 @@ end
 
 function QuestRewards:IsClaimed()
 	return self.claimedAt ~= nil
+end
+
+function QuestRewards:IsLocked()
+	return self.locked or false
+end
+
+function QuestRewards.GetStateAtlas(rewards)
+	if rewards == nil then
+		return "common-icon-undo"
+	elseif rewards:IsClaimed() then
+		return "common-icon-checkmark"
+	elseif rewards:IsLocked() then
+		return "worldquest-tracker-lock"
+	else
+		return "common-icon-redx"
+	end
 end
 
 function QuestRewards:IsValid()

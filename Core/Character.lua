@@ -94,7 +94,9 @@ function Character:Update()
 	end
 
 	for i = #self.Quests, 1, -1 do
-		local rewards = QuestRewards:Create(self.Quests[i].ID, not self.Quests[i]:IsPlayerEligible())
+		local quest = self.Quests[i]
+		local ineligible = not quest:IsPlayerEligible()
+		local rewards = QuestRewards:Create(quest.ID, ineligible, ineligible and quest:IsPlayerLocked())
 
 		if rewards then
 			self.rewards[self.Quests[i].ID] = rewards

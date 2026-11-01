@@ -8,6 +8,7 @@ local WorldQuest = {
 	nameCache = {},
 	positionCache = {},
 	eligibilityCache = {},
+	lockedNameCache = {},
 }
 WorldQuest.__index = WorldQuest
 
@@ -168,6 +169,11 @@ function WorldQuest:IsPlayerEligible()
 	return self.eligibilityCache[self.ID] ~= nil
 end
 
+-- locked Special Assignments are area POIs without a quest ID, so they can only be matched by name
+function WorldQuest:IsPlayerLocked()
+	return self.lockedNameCache[self:GetName()] ~= nil
+end
+
 local WorldQuestList = {
 	questCache = {},
 	mapCache = {},
@@ -313,6 +319,9 @@ function WorldQuestList:PopulateQuestsToScan(continents)
 
 	self:RemoveQuests(mapsToRemove)
 
+	self.scannedMaps = mapsToScan
+	self:UpdateLockedQuests()
+
 	for _, map in ipairs(mapsToScan) do
 		local quests = Util:Filter(C_TaskQuest.GetQuestsOnMap(map.mapID) or {}, function(info)
 			return info.mapID == map.mapID
@@ -330,6 +339,42 @@ function WorldQuestList:PopulateQuestsToScan(continents)
 	end
 
 	Util:Debug("Scanned maps", #mapsToScan, CountTable(self.pendingQuests))
+end
+
+function WorldQuestList:UpdateLockedQuests()
+	if self.scannedMaps == nil then
+		return false
+	end
+
+	local lockedNames = {}
+
+	for _, map in ipairs(self.scannedMaps) do
+		for _, areaPoiID in ipairs(C_AreaPoiInfo.GetAreaPOIForMap(map.mapID) or {}) do
+			local info = C_AreaPoiInfo.GetAreaPOIInfo(map.mapID, areaPoiID)
+			local atlas = info and info.atlasName
+
+			if atlas and atlas:find("Capstone", 1, true) and atlas:find("Locked", 1, true) then
+				lockedNames[info.name] = true
+			end
+		end
+	end
+
+	local cache = WorldQuest.lockedNameCache
+	local changed = CountTable(cache) ~= CountTable(lockedNames)
+
+	for name in pairs(lockedNames) do
+		if cache[name] == nil then
+			changed = true
+		end
+	end
+
+	if changed then
+		wipe(cache)
+		MergeTable(cache, lockedNames)
+		Util:Debug("Locked Special Assignments:", CountTable(cache))
+	end
+
+	return changed
 end
 
 function WorldQuestList:Scan(continents, isNewSession)

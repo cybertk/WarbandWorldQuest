@@ -56,6 +56,7 @@ L["settings_section_completed_option_all_text"] = "All Eligible Characters"
 L["settings_section_completed_option_all_tooltip"] = "The quest is considered completed only if all characters have claimed the filtered rewards"
 L["settings_section_completed_option_current_text"] = "Current Character Only"
 L["settings_section_completed_option_current_tooltip"] = "The quest is considered completed if the current character has completed it"
+L["rewards_locked"] = "Locked"
 
 L["log_entry_tooltip_characters"] = "Characters:"
 L["log_entry_tooltip_characters_scanned"] = "Scanned"

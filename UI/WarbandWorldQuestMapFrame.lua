@@ -457,7 +457,7 @@ function WarbandWorldQuestEntryMixin:UpdateTooltip()
 		)
 		for _, character in self.owner.dataProvider:EnumerateCharacters() do
 			local rewards = character:GetRewards(quest.ID)
-			local state = CreateAtlasMarkup("common-icon-" .. (rewards == nil and "undo" or rewards:IsClaimed() and "checkmark" or "redx"), 15, 15)
+			local state = CreateAtlasMarkup(QuestRewards.GetStateAtlas(rewards), 15, 15)
 
 			tooltip:AddDoubleLine(
 				Util.WrapTextInClassColor(character.class, format("%s %s - %s", state, character.name, character.realmName)),

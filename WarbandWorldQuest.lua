@@ -115,6 +115,27 @@ function WarbandWorldQuest:Update(isNewScanSession)
 	end
 end
 
+function WarbandWorldQuest:QueueLockedQuestsCheck()
+	if self.lockedQuestsCheckPending or self.dataProvider == nil then
+		return
+	end
+
+	self.lockedQuestsCheckPending = true
+	C_Timer.After(2, function()
+		self.lockedQuestsCheckPending = nil
+
+		if WorldQuestList:UpdateLockedQuests() then
+			Util:Debug("Locked Special Assignments changed")
+			self:Update(true)
+
+			-- the unlocked quest may not be on the map yet when the lock disappears
+			C_Timer.After(5, function()
+				self:Update(true)
+			end)
+		end
+	end)
+end
+
 function WarbandWorldQuest:SetRewardsClaimed(questID)
 	if not WorldQuestList:IsActiveQuest(questID) then
 		return
@@ -206,6 +227,11 @@ do
 
 	WarbandWorldQuest:RegisterEvent("QUEST_TURNED_IN", function(event, questID, xpReward, moneyReward)
 		WarbandWorldQuest:SetRewardsClaimed(questID)
+		WarbandWorldQuest:QueueLockedQuestsCheck()
+	end)
+
+	WarbandWorldQuest:RegisterEvent("AREA_POIS_UPDATED", function()
+		WarbandWorldQuest:QueueLockedQuestsCheck()
 	end)
 
 	WarbandWorldQuest:RegisterEvent("PLAYER_FLAGS_CHANGED", function()
